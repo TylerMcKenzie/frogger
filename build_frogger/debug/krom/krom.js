@@ -420,7 +420,6 @@ var arm_GameSystem = function() {
 			vehicleTrait.setDirection(new iron_math_Vec4(0,-1,0));
 			vehicleTrait.setActive(true);
 		}
-		_gthis.vehicleSystem.update();
 	});
 };
 $hxClasses["arm.GameSystem"] = arm_GameSystem;
@@ -671,6 +670,7 @@ arm_StreetSystem.prototype = {
 };
 var arm_Vehicle = function() {
 	this.speed = 1.0;
+	this.active = false;
 	var _gthis = this;
 	arm_GameTrait.call(this);
 	this.notifyOnInit(function() {
@@ -699,6 +699,50 @@ arm_Vehicle.prototype = $extend(arm_GameTrait.prototype,{
 		this.direction = d;
 	}
 	,__class__: arm_Vehicle
+});
+var arm_VehicleSpawner = function() {
+	this.lastSpawnTimer = 0;
+	var _gthis = this;
+	arm_GameTrait.call(this);
+	this.system = this.game.vehicleSystem;
+	this.notifyOnUpdate(function() {
+		_gthis.lastSpawnTimer += 0.0166666666666666664 * iron_system_Time.scale;
+		if(_gthis.lastSpawnTimer >= _gthis.freq) {
+			_gthis.spawnVehicle();
+			_gthis.lastSpawnTimer = 0;
+		}
+	});
+};
+$hxClasses["arm.VehicleSpawner"] = arm_VehicleSpawner;
+arm_VehicleSpawner.__name__ = "arm.VehicleSpawner";
+arm_VehicleSpawner.__super__ = arm_GameTrait;
+arm_VehicleSpawner.prototype = $extend(arm_GameTrait.prototype,{
+	system: null
+	,freq: null
+	,spawnDirection: null
+	,spawnType: null
+	,lastSpawnTimer: null
+	,setDirection: function(d) {
+		this.spawnDirection = d;
+	}
+	,spawnVehicle: function() {
+		var vehicleObject = this.system.getRandomVehicle();
+		var vehicleTrait = vehicleObject.getTrait(arm_Vehicle);
+		var _this = vehicleObject.transform.loc;
+		var _this1 = this.object.transform.world;
+		var v_x = _this1.self._30;
+		var v_y = _this1.self._31;
+		var v_z = _this1.self._32;
+		var v_w = _this1.self._33;
+		_this.x = v_x;
+		_this.y = v_y;
+		_this.z = v_z;
+		_this.w = v_w;
+		vehicleObject.transform.buildMatrix();
+		vehicleTrait.setDirection(this.spawnDirection);
+		vehicleTrait.setActive(true);
+	}
+	,__class__: arm_VehicleSpawner
 });
 var arm_VehicleSystem = function(gameSystem) {
 	this.vehicles = [];
@@ -1704,6 +1748,71 @@ iron_App.removeEndFrame = function(f) {
 };
 iron_App.prototype = {
 	__class__: iron_App
+};
+var haxe_IMap = function() { };
+$hxClasses["haxe.IMap"] = haxe_IMap;
+haxe_IMap.__name__ = "haxe.IMap";
+var haxe_ds_StringMap = function() {
+	this.h = { };
+};
+$hxClasses["haxe.ds.StringMap"] = haxe_ds_StringMap;
+haxe_ds_StringMap.__name__ = "haxe.ds.StringMap";
+haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
+haxe_ds_StringMap.prototype = {
+	h: null
+	,rh: null
+	,setReserved: function(key,value) {
+		if(this.rh == null) {
+			this.rh = { };
+		}
+		this.rh["$" + key] = value;
+	}
+	,getReserved: function(key) {
+		if(this.rh == null) {
+			return null;
+		} else {
+			return this.rh["$" + key];
+		}
+	}
+	,existsReserved: function(key) {
+		if(this.rh == null) {
+			return false;
+		}
+		return this.rh.hasOwnProperty("$" + key);
+	}
+	,remove: function(key) {
+		if(__map_reserved[key] != null) {
+			key = "$" + key;
+			if(this.rh == null || !this.rh.hasOwnProperty(key)) {
+				return false;
+			}
+			delete(this.rh[key]);
+			return true;
+		} else {
+			if(!this.h.hasOwnProperty(key)) {
+				return false;
+			}
+			delete(this.h[key]);
+			return true;
+		}
+	}
+	,arrayKeys: function() {
+		var out = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) {
+			out.push(key);
+		}
+		}
+		if(this.rh != null) {
+			for( var key in this.rh ) {
+			if(key.charCodeAt(0) == 36) {
+				out.push(key.substr(1));
+			}
+			}
+		}
+		return out;
+	}
+	,__class__: haxe_ds_StringMap
 };
 var iron_data_Data = function() {
 };
@@ -5046,9 +5155,6 @@ armory_trait_internal_DebugDraw.prototype = {
 	}
 	,__class__: armory_trait_internal_DebugDraw
 };
-var haxe_IMap = function() { };
-$hxClasses["haxe.IMap"] = haxe_IMap;
-haxe_IMap.__name__ = "haxe.IMap";
 var haxe_Log = function() { };
 $hxClasses["haxe.Log"] = haxe_Log;
 haxe_Log.__name__ = "haxe.Log";
@@ -5522,68 +5628,6 @@ haxe_ds__$StringMap_StringMapIterator.prototype = {
 		}
 	}
 	,__class__: haxe_ds__$StringMap_StringMapIterator
-};
-var haxe_ds_StringMap = function() {
-	this.h = { };
-};
-$hxClasses["haxe.ds.StringMap"] = haxe_ds_StringMap;
-haxe_ds_StringMap.__name__ = "haxe.ds.StringMap";
-haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
-haxe_ds_StringMap.prototype = {
-	h: null
-	,rh: null
-	,setReserved: function(key,value) {
-		if(this.rh == null) {
-			this.rh = { };
-		}
-		this.rh["$" + key] = value;
-	}
-	,getReserved: function(key) {
-		if(this.rh == null) {
-			return null;
-		} else {
-			return this.rh["$" + key];
-		}
-	}
-	,existsReserved: function(key) {
-		if(this.rh == null) {
-			return false;
-		}
-		return this.rh.hasOwnProperty("$" + key);
-	}
-	,remove: function(key) {
-		if(__map_reserved[key] != null) {
-			key = "$" + key;
-			if(this.rh == null || !this.rh.hasOwnProperty(key)) {
-				return false;
-			}
-			delete(this.rh[key]);
-			return true;
-		} else {
-			if(!this.h.hasOwnProperty(key)) {
-				return false;
-			}
-			delete(this.h[key]);
-			return true;
-		}
-	}
-	,arrayKeys: function() {
-		var out = [];
-		for( var key in this.h ) {
-		if(this.h.hasOwnProperty(key)) {
-			out.push(key);
-		}
-		}
-		if(this.rh != null) {
-			for( var key in this.rh ) {
-			if(key.charCodeAt(0) == 36) {
-				out.push(key.substr(1));
-			}
-			}
-		}
-		return out;
-	}
-	,__class__: haxe_ds_StringMap
 };
 var haxe_io_Bytes = function(data) {
 	this.length = data.byteLength;
@@ -38243,8 +38287,8 @@ var Float = Number;
 var Bool = Boolean;
 var Class = { };
 var Enum = { };
-haxe_ds_ObjectMap.count = 0;
 var __map_reserved = {};
+haxe_ds_ObjectMap.count = 0;
 Object.defineProperty(js__$Boot_HaxeError.prototype,"message",{ get : function() {
 	return String(this.val);
 }});
@@ -38255,6 +38299,7 @@ if(ArrayBuffer.prototype.slice == null) {
 Main.projectName = "frogger";
 Main.projectPackage = "arm";
 arm_Street.STREET_SIZE = 6;
+arm_VehicleSpawner.__meta__ = { fields : { freq : { prop : null}, spawnDirection : { prop : null}}};
 arm_VehicleSystem.VEHICLES = ["Truck_L","Truck_M","Truck_S"];
 armory_data_Config.configLoaded = false;
 armory_renderpath_Inc.superSample = 1.0;

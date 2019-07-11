@@ -70,7 +70,7 @@ class GameSystem extends iron.Trait
 				vehicleTrait.setActive(true);
 			}
 
-			vehicleSystem.update();
+			// vehicleSystem.update();
 		});
 	}
 
