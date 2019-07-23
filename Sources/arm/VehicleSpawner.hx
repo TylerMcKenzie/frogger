@@ -20,6 +20,12 @@ class VehicleSpawner extends GameTrait
 	@prop
 	private var spawnDirectionZ: FastFloat = 0.0;
 
+	@prop
+	private var isRandomFrequency: Bool = false;
+
+	@prop
+	private var active: Bool = false;
+
 	private var spawnDirection: Vec4;
 
 	private var spawnType: String;
@@ -28,37 +34,58 @@ class VehicleSpawner extends GameTrait
 	public function new()
 	{
 		super();
-		system = game.vehicleSystem;
+		this.system = this.game.vehicleSystem;
 
-		if (spawnFrequency == null) {
-			spawnFrequency = 5;
+		if (this.spawnFrequency == null) {
+			this.isRandomFrequency = true;
+			this.spawnFrequency = this.randomFreq();
+
 		}
 
 		notifyOnUpdate(function() {
-			lastSpawnTimer += Time.delta;
+			if (this.active != true) {
+				return;
+			}
 
-			if (lastSpawnTimer >= spawnFrequency) {
+			this.lastSpawnTimer += Time.delta;
+
+			if (this.lastSpawnTimer >= this.spawnFrequency) {
 				// Todo add random spawn frequency
-				spawnVehicle();
-				lastSpawnTimer = 0;
+				this.spawnVehicle();
+
+				this.lastSpawnTimer = 0;
+
+				if (this.isRandomFrequency) {
+					this.spawnFrequency = this.randomFreq();
+				}
 			}
 		});
 	}
 
+	public function setActive(active: Bool)
+	{
+		this.active = active;
+	}
+
+	private function randomFreq()
+	{
+		return Math.random()*(3 - 0.5) + 0.5;
+	}
+
 	private function spawnVehicle()
 	{
-		var vehicleObject = system.getRandomVehicle();
+		var vehicleObject = this.system.getRandomVehicle();
 		var vehicleTrait = vehicleObject.getTrait(Vehicle);
 		vehicleObject.transform.loc.setFrom(object.transform.world.getLoc());
 		vehicleObject.transform.buildMatrix();
 		vehicleTrait.setDirection(
 			new Vec4(
-				spawnDirectionX, 
-				spawnDirectionY, 
-				spawnDirectionZ
+				this.spawnDirectionX, 
+				this.spawnDirectionY, 
+				this.spawnDirectionZ
 			)
 		);
-		vehicleTrait.setLifeTime(5);
+		vehicleTrait.setLifeTime(8);
 		vehicleTrait.setActive(true);
 	}
 }

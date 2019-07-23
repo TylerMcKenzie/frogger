@@ -38,7 +38,7 @@ class GameSystem extends iron.Trait
 			getTitleObjects();
 			getGameObjects();
 
-			setState(PLAYING);
+			// setState(PLAYING);
 		});
 
 		notifyOnUpdate(function() {
@@ -70,6 +70,16 @@ class GameSystem extends iron.Trait
 				vehicleTrait.setActive(true);
 			}
 
+			var finish = streetSystem.getFinish();
+
+			if (finish != null) {
+				trace(player.transform.world.getLoc().y);
+				trace(finish.transform.world.getLoc().y);
+				if (player.transform.world.getLoc().y >= finish.transform.world.getLoc().y) {
+
+					trace("FINISH");
+				}
+			}
 			// vehicleSystem.update();
 		});
 	}
@@ -95,7 +105,9 @@ class GameSystem extends iron.Trait
 					showGameObjects();
 
 					var start = scene.getChild("LEVEL_START");
-					streetSystem.createStreetPath(start.transform.world.getLoc(), 20);
+					streetSystem.createStreetPath(start.transform.world.getLoc(), 50);
+
+					
 				case GAME_OVER:
 			}
 	}

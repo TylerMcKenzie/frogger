@@ -25,7 +25,7 @@ class Player extends GameTrait
 			if (game.state != PLAYING) return;
 			
 			if (kb.started("up") || kb.started("w")) jumpForward();
-			if (kb.started("down") || kb.started("s")) jumpBackward();
+			// if (kb.started("down") || kb.started("s")) jumpBackward();
 			if (kb.started("left") || kb.started("a")) jumpLeft();
 			if (kb.started("right") || kb.started("d")) jumpRight();
 		});

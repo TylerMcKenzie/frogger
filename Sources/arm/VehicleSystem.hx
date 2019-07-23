@@ -24,7 +24,7 @@ class VehicleSystem
 
 	public function new(gameSystem: GameSystem)
 	{
-		game = gameSystem;
+		this.game = gameSystem;
 	}
 
 	public function update()
@@ -38,7 +38,7 @@ class VehicleSystem
 	{
 		var vehicle;
 
-		game.scene.spawnObject(
+		this.game.scene.spawnObject(
 			cast(type, String),
 			null,
 			function(v) {
@@ -57,6 +57,11 @@ class VehicleSystem
 
 	public function register(vehicle: Vehicle)
 	{
-		vehicles.push(vehicle);
+		this.vehicles.push(vehicle);
+	}
+
+	public function unregister(vehicle: Vehicle)
+	{
+		this.vehicles.remove(vehicle);
 	}
 }

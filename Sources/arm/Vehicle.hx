@@ -15,7 +15,7 @@ class Vehicle extends GameTrait
 	private var aliveTime: FastFloat = 10.0;
 
 	private var direction: Vec4;
-	private var speed: FastFloat = 0.1;
+	private var speed: FastFloat = 0.5;
 	private var system: VehicleSystem;
 
 	public function new()
@@ -23,38 +23,42 @@ class Vehicle extends GameTrait
 		super();
 
 		notifyOnInit(function() {
-			system = game.vehicleSystem;
-			system.register(this);
+			this.system = this.game.vehicleSystem;
+			this.system.register(this);
 		});
 
 		notifyOnUpdate(function() {
-			if (active && alive) {
-				object.transform.translate(direction.x * speed, direction.y * speed, direction.z * speed);
+			if (this.active && this.alive) {
+				this.object.transform.translate(direction.x * speed, direction.y * speed, direction.z * speed);
 
-				if (aliveTime > 0) {
-					aliveTime -= Time.delta;
+				if (this.aliveTime > 0 && this.active) {
+					this.aliveTime -= Time.delta;
 				}
 			}
 
-			if (aliveTime <= 0) {
-				alive = false;
-				object.remove();
+			if (this.aliveTime <= 0) {
+				this.alive = false;
+				this.object.remove();
 			}
+		});
+
+		notifyOnRemove(function() {
+			this.system.unregister(this);
 		});
 	}
 
-	public function setActive(b: Bool)
+	public function setActive(active: Bool)
 	{
-		active = b;
+		this.active = active;
 	}
 
-	public function setLifeTime(t: FastFloat)
+	public function setLifeTime(time: FastFloat)
 	{
-		aliveTime = t;
+		this.aliveTime = time;
 	}
 
-	public function setDirection(d: Vec4)
+	public function setDirection(direction: Vec4)
 	{
-		direction = d;
+		this.direction = direction;
 	}
 }

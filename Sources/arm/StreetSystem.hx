@@ -3,7 +3,7 @@ package arm;
 import iron.math.Vec4;
 import iron.object.Object;
 
-import kha.FastFloat;
+import armory.system.Event;
 
 @:enum
 abstract STREET_TYPES(String) 
@@ -15,41 +15,79 @@ abstract STREET_TYPES(String)
 class StreetSystem 
 {
 	private var game: GameSystem;
-	private var streets: Array<Street> = [];
+	private var streets: Array<Object> = [];
 
 	public function new(gameSystem) 
 	{
-		game = gameSystem;
+		this.game = gameSystem;
 	}
 
 	public function getStreet(type) : Object
 	{
 		var street;
-		game.scene.spawnObject(
+		this.game.scene.spawnObject(
 			cast(type, String), 
 			null, 
 			function(streetObject) {
 				street = streetObject;
+				this.register(street);
 			}
 		);
 
 		return street;
 	}
 
-	public function createStreetPath(start: Vec4, length: Int)
+	public function getFinish()
 	{
-		var path = generatePath(start, length);
+		return this.streets.filter(function(street) { 
+			var st = street.getTrait(Street);
+			if (st != null) {
+			trace(st);
+				return st.getIsEnd();
+			} else {
+				return false;
+			}
+		})[0];
+	}
+
+	public function createStreetPath(start: Vec4, length: Int, setEnd: Bool = false)
+	{
+		var path = this.generatePath(start, length);
 
 		for (i in 0...path.length) {
-			var street = (i % 2 == 1) ? getStreet(ROAD) : getStreet(GRASS);
+			var street = (i % 2 == 1) ? this.getStreet(ROAD) : this.getStreet(GRASS);
 			street.transform.loc.setFrom(path[i]);
 			street.transform.buildMatrix();
+
+			if (setEnd && i == path.length) {
+				var st = street.getTrait(Street);
+				st.setIsEnd(true);
+			}
+
+			var rand = Math.round(Math.random()*2);
+			var spawnObj = null;
+			
+			if (rand % 2 == 1) {
+				spawnObj = street.getChild("TSPAWN_L");
+			} else {
+				spawnObj = street.getChild("TSPAWN_R");
+			}
+
+			if (spawnObj != null) {
+				var spawner = spawnObj.getTrait(VehicleSpawner);
+				spawner.setActive(true);
+			}
 		}
 	}
 
-	public function register(streetSection: Street) 
+	public function getStreets(): Array<Object>
 	{
-		streets.push(streetSection);
+		return this.streets;
+	}
+
+	public function register(streetSection: Object) 
+	{
+		this.streets.push(streetSection);
 	}
 
 	private function generatePath(start: Vec4, len: Int) : Array<Vec4>
