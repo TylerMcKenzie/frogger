@@ -1,5 +1,6 @@
 package arm;
 
+import armory.trait.physics.RigidBody;
 import iron.system.Time;
 import iron.math.Vec4;
 
@@ -18,6 +19,8 @@ class Vehicle extends GameTrait
 	private var speed: FastFloat = 0.5;
 	private var system: VehicleSystem;
 
+	private var body: RigidBody;
+
 	public function new()
 	{
 		super();
@@ -25,11 +28,16 @@ class Vehicle extends GameTrait
 		notifyOnInit(function() {
 			this.system = this.game.vehicleSystem;
 			this.system.register(this);
+
+			this.body = this.object.getTrait(RigidBody);
 		});
 
 		notifyOnUpdate(function() {
 			if (this.active && this.alive) {
+				if (!this.body.ready) return;
+
 				this.object.transform.translate(direction.x * speed, direction.y * speed, direction.z * speed);
+				this.body.syncTransform();
 
 				if (this.aliveTime > 0 && this.active) {
 					this.aliveTime -= Time.delta;

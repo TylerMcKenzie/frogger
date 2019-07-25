@@ -39,15 +39,7 @@ class StreetSystem
 
 	public function getFinish()
 	{
-		return this.streets.filter(function(street) { 
-			var st = street.getTrait(Street);
-			if (st != null) {
-			trace(st);
-				return st.getIsEnd();
-			} else {
-				return false;
-			}
-		})[0];
+		return this.streets[this.streets.length-1];
 	}
 
 	public function createStreetPath(start: Vec4, length: Int, setEnd: Bool = false)

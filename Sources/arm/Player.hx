@@ -3,6 +3,8 @@ package arm;
 import kha.FastFloat;
 import iron.system.Input;
 
+import armory.trait.physics.RigidBody;
+import armory.trait.physics.PhysicsWorld;
 
 @:enum
 abstract StepConfig(FastFloat) 
@@ -17,23 +19,44 @@ class Player extends GameTrait
 	private var stepX = cast(PLAYER_STEP_X, FastFloat);
 	private var stepY = cast(PLAYER_STEP_Y, FastFloat);
 
+	private var physics:PhysicsWorld;
+	private var body: RigidBody;
+
 	public function new()
 	{
 		super();
 
+		notifyOnInit(function() {
+			this.physics = PhysicsWorld.active;
+			this.body = this.object.getTrait(RigidBody);
+		});
+
 		notifyOnUpdate(function() {
-			if (game.state != PLAYING) return;
+			if (this.game.state != PLAYING) return;
+			if (!this.body.ready) return;
 			
-			if (kb.started("up") || kb.started("w")) jumpForward();
-			// if (kb.started("down") || kb.started("s")) jumpBackward();
-			if (kb.started("left") || kb.started("a")) jumpLeft();
-			if (kb.started("right") || kb.started("d")) jumpRight();
+			if (this.kb.started("up") || this.kb.started("w")) jumpForward();
+			// if (this.kb.started("down") || this.kb.started("s")) jumpBackward();
+			if (this.kb.started("left") || this.kb.started("a")) jumpLeft();
+			if (this.kb.started("right") || this.kb.started("d")) jumpRight();
+			
+			this.body.syncTransform();
+
+			var collisionObjects = physics.getContacts(this.body);
+
+			if (collisionObjects != null) {
+				for (cObject in collisionObjects) {
+					if (cObject.object.getTrait(Vehicle) != null) {
+						trace("DEAD");
+					}
+				}
+			}
 		});
 	}
 
 	private function jumpForward() 
 	{
-		object.transform.translate(0, stepY, 0);
+		this.object.transform.translate(0, stepY, 0);
 	}
 
 	private function jumpBackward() 

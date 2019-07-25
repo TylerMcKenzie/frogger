@@ -73,11 +73,11 @@ class GameSystem extends iron.Trait
 			var finish = streetSystem.getFinish();
 
 			if (finish != null) {
-				trace(player.transform.world.getLoc().y);
-				trace(finish.transform.world.getLoc().y);
 				if (player.transform.world.getLoc().y >= finish.transform.world.getLoc().y) {
 
 					trace("FINISH");
+					// Show Finish screen
+					// Switch to endless mode
 				}
 			}
 			// vehicleSystem.update();
