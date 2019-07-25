@@ -47,7 +47,8 @@ class Player extends GameTrait
 			if (collisionObjects != null) {
 				for (cObject in collisionObjects) {
 					if (cObject.object.getTrait(Vehicle) != null) {
-						trace("DEAD");
+						trace("DEAD"); // IN SCENE 1
+						trace("FLING CAR") // IN SCENE 2
 					}
 				}
 			}
