@@ -50,10 +50,10 @@ class StreetSystem
 			var street = (i % 2 == 1) ? this.getStreet(ROAD) : this.getStreet(GRASS);
 			street.transform.loc.setFrom(path[i]);
 			street.transform.buildMatrix();
+			var streetTrait = street.getTrait(Street);
 
 			if (setEnd && i == path.length) {
-				var st = street.getTrait(Street);
-				st.setIsEnd(true);
+				streetTrait.setIsEnd(true);
 			}
 
 			var rand = Math.round(Math.random()*2);
@@ -66,8 +66,9 @@ class StreetSystem
 			}
 
 			if (spawnObj != null) {
-				var spawner = spawnObj.getTrait(VehicleSpawner);
-				spawner.setActive(true);
+				streetTrait.setSpawner(spawnObj);
+				// var spawner = spawnObj.getTrait(VehicleSpawner);
+				// spawner.setActive(true);
 			}
 		}
 	}

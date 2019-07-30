@@ -70,11 +70,43 @@ class GameSystem extends iron.Trait
 				vehicleTrait.setActive(true);
 			}
 
+			for (vehicle in vehicleSystem.getVehicles()) {
+				if (
+					vehicle.object.transform.world.getLoc().y + 12 > player.transform.world.getLoc().y
+					&& vehicle.object.transform.world.getLoc().y - 6 > player.transform.world.getLoc().y
+
+				) {
+					vehicle.object.visible = true;
+				} else {
+					vehicle.object.visible = false;
+				}
+			}
+
+			for (street in streetSystem.getStreets()) {
+				var streetTrait = street.getTrait(Street);
+				if (
+					street.transform.world.getLoc().y + 18 > player.transform.world.getLoc().y
+					&& street.transform.world.getLoc().y - 6 > player.transform.world.getLoc().y
+				) {
+					// Activate spawns
+					if (streetTrait.getSpawner() != null) {
+						streetTrait.getSpawner().getTrait(VehicleSpawner).setActive(true);
+					}
+				} else {
+					if (streetTrait.getSpawner() != null) {
+						streetTrait.getSpawner().getTrait(VehicleSpawner).setActive(false);
+					}
+				}
+
+				if (player.transform.world.getLoc().y > street.transform.world.getLoc().y + 9) {
+					street.remove();
+				}
+			}
+
 			var finish = streetSystem.getFinish();
 
 			if (finish != null) {
 				if (player.transform.world.getLoc().y >= finish.transform.world.getLoc().y) {
-
 					trace("FINISH");
 					// Show Finish screen
 					// Switch to endless mode
@@ -105,7 +137,7 @@ class GameSystem extends iron.Trait
 					showGameObjects();
 
 					var start = scene.getChild("LEVEL_START");
-					streetSystem.createStreetPath(start.transform.world.getLoc(), 50);
+					streetSystem.createStreetPath(start.transform.world.getLoc(), 41);
 
 					
 				case GAME_OVER:

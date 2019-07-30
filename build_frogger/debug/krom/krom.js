@@ -419,20 +419,110 @@ var arm_GameSystem = function() {
 			vehicleTrait.setDirection(new iron_math_Vec4(0,-1,0));
 			vehicleTrait.setActive(true);
 		}
-		var finish = _gthis.streetSystem.getFinish();
-		if(finish != null) {
-			var _this1 = _gthis.player.transform.world;
+		var _g = 0;
+		var _g1 = _gthis.vehicleSystem.getVehicles();
+		while(_g < _g1.length) {
+			var vehicle = _g1[_g];
+			++_g;
+			var tmp;
+			var _this1 = vehicle.object.transform.world;
 			var inlVec4_x = _this1.self._30;
 			var inlVec4_y = _this1.self._31;
 			var inlVec4_z = _this1.self._32;
 			var inlVec4_w = _this1.self._33;
-			var _this2 = finish.transform.world;
+			var _this2 = _gthis.player.transform.world;
 			var inlVec4_x1 = _this2.self._30;
 			var inlVec4_y1 = _this2.self._31;
 			var inlVec4_z1 = _this2.self._32;
 			var inlVec4_w1 = _this2.self._33;
-			if(inlVec4_y >= inlVec4_y1) {
-				haxe_Log.trace("FINISH",{ fileName : "arm/GameSystem.hx", lineNumber : 78, className : "arm.GameSystem", methodName : "new"});
+			if(inlVec4_y + 12 > inlVec4_y1) {
+				var _this3 = vehicle.object.transform.world;
+				var inlVec4_x2 = _this3.self._30;
+				var inlVec4_y2 = _this3.self._31;
+				var inlVec4_z2 = _this3.self._32;
+				var inlVec4_w2 = _this3.self._33;
+				var _this4 = _gthis.player.transform.world;
+				var inlVec4_x3 = _this4.self._30;
+				var inlVec4_y3 = _this4.self._31;
+				var inlVec4_z3 = _this4.self._32;
+				var inlVec4_w3 = _this4.self._33;
+				tmp = inlVec4_y2 - 6 > inlVec4_y3;
+			} else {
+				tmp = false;
+			}
+			if(tmp) {
+				vehicle.object.visible = true;
+			} else {
+				vehicle.object.visible = false;
+			}
+		}
+		var _g2 = 0;
+		var _g3 = _gthis.streetSystem.getStreets();
+		while(_g2 < _g3.length) {
+			var street = _g3[_g2];
+			++_g2;
+			var streetTrait = street.getTrait(arm_Street);
+			var tmp1;
+			var _this5 = street.transform.world;
+			var inlVec4_x4 = _this5.self._30;
+			var inlVec4_y4 = _this5.self._31;
+			var inlVec4_z4 = _this5.self._32;
+			var inlVec4_w4 = _this5.self._33;
+			var _this6 = _gthis.player.transform.world;
+			var inlVec4_x5 = _this6.self._30;
+			var inlVec4_y5 = _this6.self._31;
+			var inlVec4_z5 = _this6.self._32;
+			var inlVec4_w5 = _this6.self._33;
+			if(inlVec4_y4 + 18 > inlVec4_y5) {
+				var _this7 = street.transform.world;
+				var inlVec4_x6 = _this7.self._30;
+				var inlVec4_y6 = _this7.self._31;
+				var inlVec4_z6 = _this7.self._32;
+				var inlVec4_w6 = _this7.self._33;
+				var _this8 = _gthis.player.transform.world;
+				var inlVec4_x7 = _this8.self._30;
+				var inlVec4_y7 = _this8.self._31;
+				var inlVec4_z7 = _this8.self._32;
+				var inlVec4_w7 = _this8.self._33;
+				tmp1 = inlVec4_y6 - 6 > inlVec4_y7;
+			} else {
+				tmp1 = false;
+			}
+			if(tmp1) {
+				if(streetTrait.getSpawner() != null) {
+					streetTrait.getSpawner().getTrait(arm_VehicleSpawner).setActive(true);
+				}
+			} else if(streetTrait.getSpawner() != null) {
+				streetTrait.getSpawner().getTrait(arm_VehicleSpawner).setActive(false);
+			}
+			var _this9 = _gthis.player.transform.world;
+			var inlVec4_x8 = _this9.self._30;
+			var inlVec4_y8 = _this9.self._31;
+			var inlVec4_z8 = _this9.self._32;
+			var inlVec4_w8 = _this9.self._33;
+			var _this10 = street.transform.world;
+			var inlVec4_x9 = _this10.self._30;
+			var inlVec4_y9 = _this10.self._31;
+			var inlVec4_z9 = _this10.self._32;
+			var inlVec4_w9 = _this10.self._33;
+			if(inlVec4_y8 > inlVec4_y9 + 9) {
+				street.remove();
+			}
+		}
+		var finish = _gthis.streetSystem.getFinish();
+		if(finish != null) {
+			var _this11 = _gthis.player.transform.world;
+			var inlVec4_x10 = _this11.self._30;
+			var inlVec4_y10 = _this11.self._31;
+			var inlVec4_z10 = _this11.self._32;
+			var inlVec4_w10 = _this11.self._33;
+			var _this12 = finish.transform.world;
+			var inlVec4_x11 = _this12.self._30;
+			var inlVec4_y11 = _this12.self._31;
+			var inlVec4_z11 = _this12.self._32;
+			var inlVec4_w11 = _this12.self._33;
+			if(inlVec4_y10 >= inlVec4_y11) {
+				haxe_Log.trace("FINISH",{ fileName : "arm/GameSystem.hx", lineNumber : 110, className : "arm.GameSystem", methodName : "new"});
 			}
 		}
 	});
@@ -468,7 +558,7 @@ arm_GameSystem.prototype = $extend(iron_Trait.prototype,{
 			this.showGameObjects();
 			var start = this.scene.getChild("LEVEL_START");
 			var _this = start.transform.world;
-			this.streetSystem.createStreetPath(new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33),50);
+			this.streetSystem.createStreetPath(new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33),41);
 			break;
 		case 3:
 			break;
@@ -616,6 +706,7 @@ var arm_Player = function() {
 				++_g;
 				if(cObject.object.getTrait(arm_Vehicle) != null) {
 					haxe_Log.trace("DEAD",{ fileName : "arm/Player.hx", lineNumber : 50, className : "arm.Player", methodName : "new"});
+					haxe_Log.trace("FLING CAR",{ fileName : "arm/Player.hx", lineNumber : 51, className : "arm.Player", methodName : "new"});
 				}
 			}
 		}
@@ -660,11 +751,18 @@ arm_Street.prototype = $extend(arm_GameTrait.prototype,{
 	system: null
 	,registered: null
 	,isEnd: null
+	,spawner: null
 	,getIsEnd: function() {
 		return this.isEnd;
 	}
 	,setIsEnd: function(bool) {
 		this.isEnd = bool;
+	}
+	,getSpawner: function() {
+		return this.spawner;
+	}
+	,setSpawner: function(o) {
+		this.spawner = o;
 	}
 	,__class__: arm_Street
 });
@@ -706,9 +804,9 @@ arm_StreetSystem.prototype = {
 			_this.z = v.z;
 			_this.w = v.w;
 			street.transform.buildMatrix();
+			var streetTrait = street.getTrait(arm_Street);
 			if(setEnd && i == path.length) {
-				var st = street.getTrait(arm_Street);
-				st.setIsEnd(true);
+				streetTrait.setIsEnd(true);
 			}
 			var rand = Math.round(Math.random() * 2);
 			var spawnObj = null;
@@ -718,8 +816,7 @@ arm_StreetSystem.prototype = {
 				spawnObj = street.getChild("TSPAWN_R");
 			}
 			if(spawnObj != null) {
-				var spawner = spawnObj.getTrait(arm_VehicleSpawner);
-				spawner.setActive(true);
+				streetTrait.setSpawner(spawnObj);
 			}
 		}
 	}
@@ -836,6 +933,9 @@ arm_VehicleSpawner.prototype = $extend(arm_GameTrait.prototype,{
 	,setActive: function(active) {
 		this.active = active;
 	}
+	,getActive: function() {
+		return this.active;
+	}
 	,randomFreq: function() {
 		return Math.random() * 2.5 + 0.5;
 	}
@@ -882,6 +982,9 @@ arm_VehicleSystem.prototype = {
 			vehicle = v;
 		});
 		return vehicle;
+	}
+	,getVehicles: function() {
+		return this.vehicles;
 	}
 	,getRandomVehicle: function() {
 		var randIndex = Math.round(Math.random() * (arm_VehicleSystem.VEHICLES.length - 1));

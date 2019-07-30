@@ -67,6 +67,11 @@ class VehicleSpawner extends GameTrait
 		this.active = active;
 	}
 
+	public function getActive(): Bool
+	{
+		return this.active;
+	}
+
 	private function randomFreq()
 	{
 		return Math.random()*(3 - 0.5) + 0.5;

@@ -49,6 +49,12 @@ class VehicleSystem
 		return vehicle;
 	}
 
+	public function getVehicles() : Array<Vehicle>
+	{
+		return this.vehicles;
+	}
+
+
 	public function getRandomVehicle() : Object
 	{
 		var randIndex = Math.round(Math.random()*(VEHICLES.length-1));
