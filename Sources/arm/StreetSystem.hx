@@ -83,6 +83,10 @@ class StreetSystem
 		this.streets.push(streetSection);
 	}
 
+	public function unregister(street){
+		this.streets.remove(street);
+	}
+
 	private function generatePath(start: Vec4, len: Int) : Array<Vec4>
 	{
 		var path = new Path(start);

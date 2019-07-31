@@ -72,9 +72,7 @@ class GameSystem extends iron.Trait
 
 			for (vehicle in vehicleSystem.getVehicles()) {
 				if (
-					vehicle.object.transform.world.getLoc().y + 12 > player.transform.world.getLoc().y
-					&& vehicle.object.transform.world.getLoc().y - 6 > player.transform.world.getLoc().y
-
+					vehicle.object.transform.world.getLoc().y < player.transform.world.getLoc().y + 24
 				) {
 					vehicle.object.visible = true;
 				} else {
@@ -85,8 +83,7 @@ class GameSystem extends iron.Trait
 			for (street in streetSystem.getStreets()) {
 				var streetTrait = street.getTrait(Street);
 				if (
-					street.transform.world.getLoc().y + 18 > player.transform.world.getLoc().y
-					&& street.transform.world.getLoc().y - 6 > player.transform.world.getLoc().y
+					street.transform.world.getLoc().y < player.transform.world.getLoc().y + 48
 				) {
 					// Activate spawns
 					if (streetTrait.getSpawner() != null) {
@@ -98,7 +95,7 @@ class GameSystem extends iron.Trait
 					}
 				}
 
-				if (player.transform.world.getLoc().y > street.transform.world.getLoc().y + 9) {
+				if (player.transform.world.getLoc().y - 12 > street.transform.world.getLoc().y) {
 					street.remove();
 				}
 			}

@@ -19,6 +19,10 @@ class Street extends GameTrait
 		notifyOnInit(function() {
 			this.system = this.game.streetSystem;
 		});
+
+		notifyOnRemove(function() {
+			this.system.unregister(this.object);
+		});
 	}
 
 	public function getIsEnd()

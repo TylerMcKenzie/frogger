@@ -56,27 +56,27 @@
 -D kha_version=1810
 -D kha_project_name=frogger
 -js krom/krom.js.temp
-arm.Street
---macro keep('arm.Street')
-arm.GameSystem
---macro keep('arm.GameSystem')
 armory.trait.physics.bullet.RigidBody
 --macro keep('armory.trait.physics.bullet.RigidBody')
-armory.trait.internal.DebugConsole
---macro keep('armory.trait.internal.DebugConsole')
+arm.Vehicle
+--macro keep('arm.Vehicle')
 armory.trait.FollowCamera
 --macro keep('armory.trait.FollowCamera')
-armory.trait.internal.Bridge
---macro keep('armory.trait.internal.Bridge')
-arm.FrogTitle
---macro keep('arm.FrogTitle')
+armory.trait.internal.DebugConsole
+--macro keep('armory.trait.internal.DebugConsole')
 arm.Player
 --macro keep('arm.Player')
 arm.VehicleSpawner
 --macro keep('arm.VehicleSpawner')
+armory.trait.internal.Bridge
+--macro keep('armory.trait.internal.Bridge')
+arm.GameSystem
+--macro keep('arm.GameSystem')
 armory.trait.physics.bullet.PhysicsWorld
 --macro keep('armory.trait.physics.bullet.PhysicsWorld')
-arm.Vehicle
---macro keep('arm.Vehicle')
+arm.FrogTitle
+--macro keep('arm.FrogTitle')
+arm.Street
+--macro keep('arm.Street')
 --times
 -main Main
