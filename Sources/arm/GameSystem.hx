@@ -4,6 +4,7 @@ import iron.math.Vec4;
 import iron.Scene;
 import iron.object.Object;
 
+
 @:enum
 abstract GAME_STATE(Int) 
 {
@@ -70,6 +71,7 @@ class GameSystem extends iron.Trait
 				vehicleTrait.setActive(true);
 			}
 
+			// vehicle visibility logic
 			for (vehicle in vehicleSystem.getVehicles()) {
 				if (
 					vehicle.object.transform.world.getLoc().y < player.transform.world.getLoc().y + 24
@@ -80,6 +82,7 @@ class GameSystem extends iron.Trait
 				}
 			}
 
+			// street visibility + spawner logic
 			for (street in streetSystem.getStreets()) {
 				var streetTrait = street.getTrait(Street);
 				if (
@@ -87,10 +90,12 @@ class GameSystem extends iron.Trait
 				) {
 					// Activate spawns
 					if (streetTrait.getSpawner() != null) {
+						street.visible = true;
 						streetTrait.getSpawner().getTrait(VehicleSpawner).setActive(true);
 					}
 				} else {
 					if (streetTrait.getSpawner() != null) {
+						street.visible = false;
 						streetTrait.getSpawner().getTrait(VehicleSpawner).setActive(false);
 					}
 				}
@@ -100,8 +105,8 @@ class GameSystem extends iron.Trait
 				}
 			}
 
+			// WIN LEVEL
 			var finish = streetSystem.getFinish();
-
 			if (finish != null) {
 				if (player.transform.world.getLoc().y >= finish.transform.world.getLoc().y) {
 					trace("FINISH");
@@ -109,7 +114,10 @@ class GameSystem extends iron.Trait
 					// Switch to endless mode
 				}
 			}
-			// vehicleSystem.update();
+
+			if (player.getTrait(Player).isDead()) {
+				trace("GAME OVER");
+			}
 		});
 	}
 

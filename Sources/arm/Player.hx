@@ -1,5 +1,6 @@
 package arm;
 
+import iron.Scene;
 import kha.FastFloat;
 import iron.system.Input;
 
@@ -21,6 +22,8 @@ class Player extends GameTrait
 
 	private var physics:PhysicsWorld;
 	private var body: RigidBody;
+
+	private var dead: Bool = false;
 
 	public function new()
 	{
@@ -47,8 +50,8 @@ class Player extends GameTrait
 			if (collisionObjects != null) {
 				for (cObject in collisionObjects) {
 					if (cObject.object.getTrait(Vehicle) != null) {
-						trace("DEAD"); // IN SCENE 1
-						trace("FLING CAR"); // IN SCENE 2
+						if (Scene.active.raw.name == "Game") this.dead = true; // IN SCENE 1
+						if (Scene.active.raw.name == "Game 2") trace("FLING CAR"); // IN SCENE 2
 					}
 				}
 			}
@@ -73,5 +76,10 @@ class Player extends GameTrait
 	private function jumpRight() 
 	{
 		object.transform.translate(stepX, 0, 0);
+	}
+
+	public function isDead()
+	{
+		return this.dead;
 	}
 }
