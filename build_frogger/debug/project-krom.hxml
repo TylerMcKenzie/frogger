@@ -35,6 +35,7 @@
 -D arm_ui
 -D arm_skin
 -D arm_particles
+-D arm_resizable
 -D sys_krom
 -D sys_g1
 -D sys_g2
@@ -56,27 +57,29 @@
 -D kha_version=1810
 -D kha_project_name=frogger
 -js krom/krom.js.temp
+arm.Street
+--macro keep('arm.Street')
 armory.trait.physics.bullet.RigidBody
 --macro keep('armory.trait.physics.bullet.RigidBody')
+arm.VehicleSpawner
+--macro keep('arm.VehicleSpawner')
+armory.trait.physics.bullet.PhysicsWorld
+--macro keep('armory.trait.physics.bullet.PhysicsWorld')
+arm.Player
+--macro keep('arm.Player')
+armory.trait.internal.DebugConsole
+--macro keep('armory.trait.internal.DebugConsole')
+arm.FrogTitle
+--macro keep('arm.FrogTitle')
+arm.GameSystem
+--macro keep('arm.GameSystem')
+armory.trait.WalkNavigation
+--macro keep('armory.trait.WalkNavigation')
+armory.trait.internal.Bridge
+--macro keep('armory.trait.internal.Bridge')
 arm.Vehicle
 --macro keep('arm.Vehicle')
 armory.trait.FollowCamera
 --macro keep('armory.trait.FollowCamera')
-armory.trait.internal.DebugConsole
---macro keep('armory.trait.internal.DebugConsole')
-arm.Player
---macro keep('arm.Player')
-arm.VehicleSpawner
---macro keep('arm.VehicleSpawner')
-armory.trait.internal.Bridge
---macro keep('armory.trait.internal.Bridge')
-arm.GameSystem
---macro keep('arm.GameSystem')
-armory.trait.physics.bullet.PhysicsWorld
---macro keep('armory.trait.physics.bullet.PhysicsWorld')
-arm.FrogTitle
---macro keep('arm.FrogTitle')
-arm.Street
---macro keep('arm.Street')
 --times
 -main Main

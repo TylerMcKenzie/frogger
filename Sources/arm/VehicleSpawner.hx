@@ -9,7 +9,7 @@ class VehicleSpawner extends GameTrait
 	private var system: VehicleSystem;
 
 	@prop
-	private var spawnFrequency: FastFloat;
+	private var spawnFrequency: FastFloat = -1.0;
 
 	@prop
 	private var spawnDirectionX: FastFloat = 0.0;
@@ -36,7 +36,7 @@ class VehicleSpawner extends GameTrait
 		super();
 		this.system = this.game.vehicleSystem;
 
-		if (this.spawnFrequency == null) {
+		if (this.spawnFrequency == -1) {
 			this.isRandomFrequency = true;
 			this.spawnFrequency = this.randomFreq();
 

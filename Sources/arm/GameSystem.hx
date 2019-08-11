@@ -12,6 +12,7 @@ abstract GAME_STATE(Int)
 	var MENU      = 1;
 	var PLAYING   = 2;
 	var GAME_OVER = 3;
+	var GAME_2    = 4;
 }
 
 class GameSystem extends iron.Trait 
@@ -109,14 +110,15 @@ class GameSystem extends iron.Trait
 			var finish = streetSystem.getFinish();
 			if (finish != null) {
 				if (player.transform.world.getLoc().y >= finish.transform.world.getLoc().y) {
-					trace("FINISH");
 					// Show Finish screen
+
 					// Switch to endless mode
+					this.setState(GAME_2);
 				}
 			}
 
-			if (player.getTrait(Player).isDead()) {
-				trace("GAME OVER");
+			if (player != null && player.getTrait(Player).isDead()) {
+				this.setState(GAME_OVER);
 			}
 		});
 	}
@@ -146,6 +148,9 @@ class GameSystem extends iron.Trait
 
 					
 				case GAME_OVER:
+					
+				case GAME_2:
+					Scene.setActive("Game 2");
 			}
 	}
 
@@ -187,7 +192,9 @@ class GameSystem extends iron.Trait
 	{
 		titleObjects.push(scene.getChild("Title"));
 		titleObjects.push(scene.getChild("Title_Frog"));
-		titleObjects.push(scene.getChild("Title_Street"));
+		for (titleStreet in scene.getGroup("TITLE_STREETS")) {
+			titleObjects.push(titleStreet);
+		}
 	}
 
 	private function hideGameObjects() 

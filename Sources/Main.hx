@@ -9,8 +9,8 @@ class Main {
         iron.object.LightObject.cascadeSplitFactor = 0.800000011920929;
         armory.system.Starter.main(
             'Game',
-            0,
-            false,
+            1,
+            true,
             true,
             false,
             1600,

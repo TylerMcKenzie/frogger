@@ -1,0 +1,22 @@
+#version 300 es
+
+uniform mediump mat4 W;
+uniform mediump mat3 N;
+uniform mediump mat4 WVP;
+uniform mediump vec3 eye;
+
+in mediump vec4 pos;
+out mediump vec3 wposition;
+out mediump vec3 wnormal;
+in mediump vec2 nor;
+out mediump vec3 eyeDir;
+
+void main()
+{
+    mediump vec4 spos = vec4(pos.xyz, 1.0);
+    wposition = vec4(W * spos).xyz;
+    wnormal = normalize(N * vec3(nor, pos.w));
+    gl_Position = WVP * spos;
+    eyeDir = eye - wposition;
+}
+
