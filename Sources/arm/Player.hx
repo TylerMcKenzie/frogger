@@ -58,6 +58,11 @@ class Player extends GameTrait
 		});
 	}
 
+	override public function reset()
+	{
+		this.dead = false;
+	}
+
 	private function jumpForward() 
 	{
 		this.object.transform.translate(0, stepY, 0);

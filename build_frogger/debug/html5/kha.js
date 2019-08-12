@@ -555,9 +555,28 @@ arm_GameSystem.prototype = $extend(iron_Trait.prototype,{
 			this.showGameObjects();
 			var start = this.scene.getChild("LEVEL_START");
 			var _this = start.transform.world;
-			this.streetSystem.createStreetPath(new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33),41);
+			var startLocation = new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33);
+			this.streetSystem.createStreetPath(startLocation,41);
+			this.player.transform.loc.x = startLocation.x;
+			this.player.transform.loc.y = startLocation.y;
+			this.player.transform.buildMatrix();
 			break;
 		case 3:
+			var _g = 0;
+			var _g1 = this.streetSystem.getStreets();
+			while(_g < _g1.length) {
+				var street = _g1[_g];
+				++_g;
+				var spawner = street.getTrait(arm_Street).getSpawner();
+				if(spawner != null) {
+					spawner.getTrait(arm_VehicleSpawner).setActive(false);
+				}
+			}
+			var gameOverText = this.scene.getChild("GAME_OVER_TEXT");
+			gameOverText.visible = true;
+			this.streetSystem.removeStreets();
+			this.player.getTrait(arm_Player).reset();
+			this.setState(2);
 			break;
 		case 4:
 			iron_Scene.setActive("Game 2");
@@ -649,6 +668,8 @@ arm_GameTrait.__name__ = "arm.GameTrait";
 arm_GameTrait.__super__ = iron_Trait;
 arm_GameTrait.prototype = $extend(iron_Trait.prototype,{
 	game: null
+	,reset: function() {
+	}
 	,__class__: arm_GameTrait
 });
 var arm_Path = function(startPosition) {
@@ -733,6 +754,9 @@ arm_Player.prototype = $extend(arm_GameTrait.prototype,{
 	,physics: null
 	,body: null
 	,dead: null
+	,reset: function() {
+		this.dead = false;
+	}
 	,jumpForward: function() {
 		this.object.transform.translate(0,this.stepY,0);
 	}
@@ -836,6 +860,15 @@ arm_StreetSystem.prototype = {
 			if(spawnObj != null) {
 				streetTrait.setSpawner(spawnObj);
 			}
+		}
+	}
+	,removeStreets: function() {
+		var _g = 0;
+		var _g1 = this.getStreets();
+		while(_g < _g1.length) {
+			var street = _g1[_g];
+			++_g;
+			street.remove();
 		}
 	}
 	,getStreets: function() {
@@ -952,11 +985,17 @@ arm_VehicleSpawner.prototype = $extend(arm_GameTrait.prototype,{
 	,spawnDirection: null
 	,spawnType: null
 	,lastSpawnTimer: null
+	,getActive: function() {
+		return this.active;
+	}
 	,setActive: function(active) {
 		this.active = active;
 	}
-	,getActive: function() {
-		return this.active;
+	,reset: function() {
+		this.isRandomFrequency = false;
+		this.active = false;
+		this.spawnDirection = null;
+		this.lastSpawnTimer = 0;
 	}
 	,randomFreq: function() {
 		return Math.random() * 2.5 + 0.5;

@@ -11,4 +11,9 @@ class GameTrait extends iron.Trait
 		super();
 		game = Scene.active.getTrait(GameSystem);
 	}
+
+	public function reset()
+	{
+
+	}
 }

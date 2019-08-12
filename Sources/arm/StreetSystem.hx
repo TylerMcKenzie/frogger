@@ -73,6 +73,13 @@ class StreetSystem
 		}
 	}
 
+	public function removeStreets()
+	{
+		for (street in this.getStreets()) {
+			street.remove();
+		}
+	}
+
 	public function getStreets(): Array<Object>
 	{
 		return this.streets;

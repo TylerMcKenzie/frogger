@@ -39,8 +39,6 @@ class GameSystem extends iron.Trait
 			getMenuObjects();
 			getTitleObjects();
 			getGameObjects();
-
-			// setState(PLAYING);
 		});
 
 		notifyOnUpdate(function() {
@@ -144,10 +142,30 @@ class GameSystem extends iron.Trait
 					showGameObjects();
 
 					var start = scene.getChild("LEVEL_START");
-					streetSystem.createStreetPath(start.transform.world.getLoc(), 41);
-
-					
+					var startLocation = start.transform.world.getLoc();
+					streetSystem.createStreetPath(startLocation, 41);
+					player.transform.loc.x = startLocation.x;
+					player.transform.loc.y = startLocation.y;
+					player.transform.buildMatrix();
 				case GAME_OVER:
+					// Disable spawners
+					for (street in streetSystem.getStreets()) {
+						var spawner = street.getTrait(Street).getSpawner();
+
+						if (spawner != null) {
+							spawner.getTrait(VehicleSpawner).setActive(false);
+						}
+					}
+
+					// Show game over text
+					var gameOverText = scene.getChild("GAME_OVER_TEXT");
+					gameOverText.visible = true;
+					// Reset game and go back to begining
+					streetSystem.removeStreets();
+
+					player.getTrait(Player).reset();
+					
+					this.setState(PLAYING);
 					
 				case GAME_2:
 					Scene.setActive("Game 2");

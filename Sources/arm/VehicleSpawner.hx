@@ -62,14 +62,22 @@ class VehicleSpawner extends GameTrait
 		});
 	}
 
+	public function getActive(): Bool
+	{
+		return this.active;
+	}
+
 	public function setActive(active: Bool)
 	{
 		this.active = active;
 	}
 
-	public function getActive(): Bool
+	override public function reset()
 	{
-		return this.active;
+		this.isRandomFrequency = false;
+		this.active = false;
+		this.spawnDirection = null;
+		this.lastSpawnTimer = 0;
 	}
 
 	private function randomFreq()
