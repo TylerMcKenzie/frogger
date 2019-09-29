@@ -1,19 +1,19 @@
--cp /home/tyler/armory_ext/armsdk/Kha/Sources
--cp /home/tyler/armory_ext/armsdk/Kha/Backends/HTML5
--cp /home/tyler/armory_projects/frogger/Sources
--cp /home/tyler/armory_ext/armsdk/armory/Sources
--cp /home/tyler/armory_ext/armsdk/iron/Sources
--cp /home/tyler/armory_ext/armsdk/lib/haxebullet/Sources
--cp /home/tyler/armory_ext/armsdk/lib/zui/Sources
--cp /home/tyler/armory_ext/armsdk/armory
--cp /home/tyler/armory_ext/armsdk/iron
--cp /home/tyler/armory_ext/armsdk/lib/haxebullet
--cp /home/tyler/armory_ext/armsdk/lib/zui
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/Kha/Sources
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/Kha/Backends/HTML5
+-cp /Users/tylermckenzie/frogger/Sources
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/armory/Sources
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/iron/Sources
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/lib/haxebullet/Sources
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/lib/zui/Sources
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/armory
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/iron
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/lib/haxebullet
+-cp /Users/tylermckenzie/Desktop/ArmorySDK/lib/zui
 -D hxcpp_smart_strings
--D /home/tyler/armory_ext/armsdk/armory
--D /home/tyler/armory_ext/armsdk/iron
--D /home/tyler/armory_ext/armsdk/lib/haxebullet
--D /home/tyler/armory_ext/armsdk/lib/zui
+-D /Users/tylermckenzie/Desktop/ArmorySDK/armory
+-D /Users/tylermckenzie/Desktop/ArmorySDK/iron
+-D /Users/tylermckenzie/Desktop/ArmorySDK/lib/haxebullet
+-D /Users/tylermckenzie/Desktop/ArmorySDK/lib/zui
 -D arm_csm
 -D rp_hdr
 -D rp_renderer=Forward
@@ -58,29 +58,29 @@
 -D kha_version=1810
 -D kha_project_name=frogger
 -js html5/kha.js
+arm.Player
+--macro keep('arm.Player')
+armory.trait.physics.bullet.PhysicsWorld
+--macro keep('armory.trait.physics.bullet.PhysicsWorld')
+arm.VehicleSpawner
+--macro keep('arm.VehicleSpawner')
+armory.trait.internal.DebugConsole
+--macro keep('armory.trait.internal.DebugConsole')
+armory.trait.WalkNavigation
+--macro keep('armory.trait.WalkNavigation')
+arm.Vehicle
+--macro keep('arm.Vehicle')
 armory.trait.FollowCamera
 --macro keep('armory.trait.FollowCamera')
 armory.trait.internal.Bridge
 --macro keep('armory.trait.internal.Bridge')
-arm.VehicleSpawner
---macro keep('arm.VehicleSpawner')
-arm.Street
---macro keep('arm.Street')
-armory.trait.physics.bullet.RigidBody
---macro keep('armory.trait.physics.bullet.RigidBody')
-armory.trait.WalkNavigation
---macro keep('armory.trait.WalkNavigation')
-arm.GameSystem
---macro keep('arm.GameSystem')
-arm.Vehicle
---macro keep('arm.Vehicle')
-armory.trait.physics.bullet.PhysicsWorld
---macro keep('armory.trait.physics.bullet.PhysicsWorld')
-arm.Player
---macro keep('arm.Player')
-armory.trait.internal.DebugConsole
---macro keep('armory.trait.internal.DebugConsole')
 arm.FrogTitle
 --macro keep('arm.FrogTitle')
+armory.trait.physics.bullet.RigidBody
+--macro keep('armory.trait.physics.bullet.RigidBody')
+arm.Street
+--macro keep('arm.Street')
+arm.GameSystem
+--macro keep('arm.GameSystem')
 --times
 -main Main

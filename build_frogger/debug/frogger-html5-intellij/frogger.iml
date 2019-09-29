@@ -15,26 +15,26 @@
     <output url="file://$MODULE_DIR$/../html5" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../..">
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/Kha/Sources" isTestSource="false" />
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/Kha/Backends/HTML5" isTestSource="false" />
-      <sourceFolder url="file:///home/tyler/armory_projects/frogger/Sources" isTestSource="false" />
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/armory/Sources" isTestSource="false" />
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/iron/Sources" isTestSource="false" />
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/lib/haxebullet/Sources" isTestSource="false" />
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/lib/zui/Sources" isTestSource="false" />
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/Kha/Sources" isTestSource="false" />
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/Kha/Backends/HTML5" isTestSource="false" />
+      <sourceFolder url="file:///Users/tylermckenzie/frogger/Sources" isTestSource="false" />
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/armory/Sources" isTestSource="false" />
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/iron/Sources" isTestSource="false" />
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/lib/haxebullet/Sources" isTestSource="false" />
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/lib/zui/Sources" isTestSource="false" />
 
     </content>
-    <content url="file:///home/tyler/armory_ext/armsdk/armory">
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/armory" isTestSource="false" />
+    <content url="file:///Users/tylermckenzie/Desktop/ArmorySDK/armory">
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/armory" isTestSource="false" />
     </content>
-    <content url="file:///home/tyler/armory_ext/armsdk/iron">
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/iron" isTestSource="false" />
+    <content url="file:///Users/tylermckenzie/Desktop/ArmorySDK/iron">
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/iron" isTestSource="false" />
     </content>
-    <content url="file:///home/tyler/armory_ext/armsdk/lib/haxebullet">
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/lib/haxebullet" isTestSource="false" />
+    <content url="file:///Users/tylermckenzie/Desktop/ArmorySDK/lib/haxebullet">
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/lib/haxebullet" isTestSource="false" />
     </content>
-    <content url="file:///home/tyler/armory_ext/armsdk/lib/zui">
-      <sourceFolder url="file:///home/tyler/armory_ext/armsdk/lib/zui" isTestSource="false" />
+    <content url="file:///Users/tylermckenzie/Desktop/ArmorySDK/lib/zui">
+      <sourceFolder url="file:///Users/tylermckenzie/Desktop/ArmorySDK/lib/zui" isTestSource="false" />
     </content>
     
     <orderEntry type="jdk" jdkName="Haxe 3.2.0" jdkType="Haxe toolkit" />

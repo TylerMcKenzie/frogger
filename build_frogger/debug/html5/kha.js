@@ -1368,9 +1368,12 @@ armory_renderpath_Inc.getDisplayp = function() {
 var armory_renderpath_RenderPathForward = function() { };
 $hxClasses["armory.renderpath.RenderPathForward"] = armory_renderpath_RenderPathForward;
 armory_renderpath_RenderPathForward.__name__ = "armory.renderpath.RenderPathForward";
+armory_renderpath_RenderPathForward.setTargetMeshes = function() {
+	armory_renderpath_RenderPathForward.path.setTarget("lbuffer0");
+};
 armory_renderpath_RenderPathForward.drawMeshes = function() {
 	armory_renderpath_RenderPathForward.path.drawMeshes("mesh");
-	armory_renderpath_RenderPathForward.setTargetMain();
+	armory_renderpath_RenderPathCreator.setTargetMeshes();
 	armory_renderpath_RenderPathForward.path.drawSkydome("shader_datas/world_pass/world_pass");
 };
 armory_renderpath_RenderPathForward.applyConfig = function() {
@@ -1419,12 +1422,9 @@ armory_renderpath_RenderPathForward.init = function(_path) {
 	armory_renderpath_RenderPathForward.path.loadShader("shader_datas/smaa_blend_weight/smaa_blend_weight");
 	armory_renderpath_RenderPathForward.path.loadShader("shader_datas/smaa_neighborhood_blend/smaa_neighborhood_blend");
 };
-armory_renderpath_RenderPathForward.setTargetMain = function() {
-	armory_renderpath_RenderPathForward.path.setTarget("lbuffer0");
-};
 armory_renderpath_RenderPathForward.commands = function() {
 	armory_renderpath_Inc.drawShadowMap();
-	armory_renderpath_RenderPathForward.setTargetMain();
+	armory_renderpath_RenderPathCreator.setTargetMeshes();
 	armory_renderpath_RenderPathForward.path.clearTarget(null,1.0);
 	armory_renderpath_Inc.bindShadowMap();
 	armory_renderpath_RenderPathCreator.drawMeshes();
@@ -4178,7 +4178,6 @@ iron_Scene.prototype = {
 		done(object);
 	}
 	,loadEmbeddedData: function(datas,done) {
-		var _gthis = this;
 		if(datas == null) {
 			done();
 			return;
@@ -4186,42 +4185,41 @@ iron_Scene.prototype = {
 		var loaded = 0;
 		var _g = 0;
 		while(_g < datas.length) {
-			var file = [datas[_g]];
+			var file = datas[_g];
 			++_g;
-			if(StringTools.endsWith(file[0],".raw")) {
-				iron_data_Data.getBlob(file[0],(function(file1) {
-					return function(blob) {
-						var b = blob.toBytes();
-						var w = (Math.pow(b.length,0.333333333333333315) | 0) + 1;
-						var image = kha_Image.fromBytes3D(b,w,w,w,1);
-						var _this = _gthis.embedded;
-						if(__map_reserved[file1[0]] != null) {
-							_this.setReserved(file1[0],image);
-						} else {
-							_this.h[file1[0]] = image;
-						}
-						loaded += 1;
-						if(loaded == datas.length) {
-							done();
-						}
-					};
-				})(file));
-			} else {
-				iron_data_Data.getImage(file[0],(function(file2) {
-					return function(image1) {
-						var _this1 = _gthis.embedded;
-						if(__map_reserved[file2[0]] != null) {
-							_this1.setReserved(file2[0],image1);
-						} else {
-							_this1.h[file2[0]] = image1;
-						}
-						loaded += 1;
-						if(loaded == datas.length) {
-							done();
-						}
-					};
-				})(file));
-			}
+			this.embedData(file,function() {
+				loaded += 1;
+				if(loaded == datas.length) {
+					done();
+				}
+			});
+		}
+	}
+	,embedData: function(file,done) {
+		var _gthis = this;
+		if(StringTools.endsWith(file,".raw")) {
+			iron_data_Data.getBlob(file,function(blob) {
+				var b = blob.toBytes();
+				var w = (Math.pow(b.length,0.333333333333333315) | 0) + 1;
+				var image = kha_Image.fromBytes3D(b,w,w,w,1);
+				var _this = _gthis.embedded;
+				if(__map_reserved[file] != null) {
+					_this.setReserved(file,image);
+				} else {
+					_this.h[file] = image;
+				}
+				done();
+			});
+		} else {
+			iron_data_Data.getImage(file,function(image1) {
+				var _this1 = _gthis.embedded;
+				if(__map_reserved[file] != null) {
+					_this1.setReserved(file,image1);
+				} else {
+					_this1.h[file] = image1;
+				}
+				done();
+			});
 		}
 	}
 	,notifyOnInit: function(f) {
@@ -5469,6 +5467,19 @@ armory_trait_internal_DebugDraw.prototype = {
 	}
 	,__class__: armory_trait_internal_DebugDraw
 };
+var armory_trait_physics_bullet_Hit = function(rb,pos,normal) {
+	this.rb = rb;
+	this.pos = pos;
+	this.normal = normal;
+};
+$hxClasses["armory.trait.physics.bullet.Hit"] = armory_trait_physics_bullet_Hit;
+armory_trait_physics_bullet_Hit.__name__ = "armory.trait.physics.bullet.Hit";
+armory_trait_physics_bullet_Hit.prototype = {
+	rb: null
+	,pos: null
+	,normal: null
+	,__class__: armory_trait_physics_bullet_Hit
+};
 var armory_trait_physics_bullet_ContactPair = function(a,b) {
 	this.a = a;
 	this.b = b;
@@ -5700,7 +5711,9 @@ armory_trait_physics_bullet_PhysicsWorld.prototype = $extend(iron_Trait.prototyp
 		var end = new iron_math_Vec4();
 		iron_math_RayCaster.getDirection(start,end,inputX,inputY,camera);
 		var _this = camera.transform.world;
-		return this.rayCast(new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33),end);
+		var hit = this.rayCast(new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33),end);
+		var rb = hit != null ? hit.rb : null;
+		return rb;
 	}
 	,rayCast: function(from,to) {
 		var rayFrom = armory_trait_physics_bullet_PhysicsWorld.vec1;
@@ -5712,6 +5725,7 @@ armory_trait_physics_bullet_PhysicsWorld.prototype = $extend(iron_Trait.prototyp
 		var worldCol = worldDyn;
 		worldCol.rayTest(rayFrom,rayTo,rayCallback);
 		var rb = null;
+		var hitInfo = null;
 		var rc = rayCallback;
 		if(rc.hasHit()) {
 			var co = rayCallback.get_m_collisionObject();
@@ -5735,9 +5749,10 @@ armory_trait_physics_bullet_PhysicsWorld.prototype = $extend(iron_Trait.prototyp
 			_this1.z = z1;
 			_this1.w = 1.0;
 			rb = this.rbMap.h[body.userIndex];
+			hitInfo = new armory_trait_physics_bullet_Hit(rb,this.hitPointWorld,this.hitNormalWorld);
 		}
 		Ammo.destroy(rayCallback);
-		return rb;
+		return hitInfo;
 	}
 	,notifyOnPreUpdate: function(f) {
 		if(this.preUpdates == null) {
@@ -10953,7 +10968,7 @@ iron_data_ShaderData.parse = function(file,name,done,overrideContext) {
 	iron_data_Data.getSceneRaw(file,function(format) {
 		var raw = iron_data_Data.getShaderRawByName(format.shader_datas,name);
 		if(raw == null) {
-			haxe_Log.trace("Shader data \"" + name + "\" not found!",{ fileName : "Sources/iron/data/ShaderData.hx", lineNumber : 49, className : "iron.data.ShaderData", methodName : "parse"});
+			haxe_Log.trace("Shader data \"" + name + "\" not found!",{ fileName : "Sources/iron/data/ShaderData.hx", lineNumber : 48, className : "iron.data.ShaderData", methodName : "parse"});
 			done(null);
 		}
 		new iron_data_ShaderData(raw,done,overrideContext);
@@ -12427,6 +12442,7 @@ var iron_object_Animation = function() {
 	this.blendAction = "";
 	this.blendCurrent = 0.0;
 	this.blendTime = 0.0;
+	this.frameTime = 0.0166666666666666664;
 	this.paused = false;
 	this.onComplete = null;
 	this.frameIndex = 0;
@@ -12435,7 +12451,9 @@ var iron_object_Animation = function() {
 	this.time = 0.0;
 	this.action = "";
 	iron_Scene.active.animations.push(this);
-	this.frameTime = iron_Scene.active.raw.frame_time;
+	if(iron_Scene.active.raw.frame_time != null) {
+		this.frameTime = iron_Scene.active.raw.frame_time;
+	}
 	this.play();
 };
 $hxClasses["iron.object.Animation"] = iron_object_Animation;
@@ -12484,6 +12502,8 @@ iron_object_Animation.prototype = {
 			this.blendTime = blendTime;
 			this.blendCurrent = 0.0;
 			this.blendAction = this.action;
+			this.frameIndex = 0;
+			this.time = 0.0;
 		} else {
 			this.frameIndex = -1;
 		}
@@ -17564,144 +17584,12 @@ iron_object_ObjectAnimation.prototype = $extend(iron_object_Animation.prototype,
 		iron_object_Animation.endProfile();
 	}
 	,updateObjectAnim: function() {
-		if(this.isSampled) {
-			this.updateTrack(this.oaction.anim);
-			this.updateAnimSampled(this.oaction.anim,this.object.transform.world);
-			var _this = this.object.transform.world;
-			var loc = this.object.transform.loc;
-			var quat = this.object.transform.rot;
-			var scale = this.object.transform.scale;
-			loc.x = _this.self._30;
-			loc.y = _this.self._31;
-			loc.z = _this.self._32;
-			var _this1 = iron_math_Mat4.helpVec;
-			_this1.x = _this.self._00;
-			_this1.y = _this.self._01;
-			_this1.z = _this.self._02;
-			_this1.w = 1.0;
-			var _this2 = _this1;
-			scale.x = Math.sqrt(_this2.x * _this2.x + _this2.y * _this2.y + _this2.z * _this2.z);
-			var _this3 = iron_math_Mat4.helpVec;
-			_this3.x = _this.self._10;
-			_this3.y = _this.self._11;
-			_this3.z = _this.self._12;
-			_this3.w = 1.0;
-			var _this4 = _this3;
-			scale.y = Math.sqrt(_this4.x * _this4.x + _this4.y * _this4.y + _this4.z * _this4.z);
-			var _this5 = iron_math_Mat4.helpVec;
-			_this5.x = _this.self._20;
-			_this5.y = _this.self._21;
-			_this5.z = _this.self._22;
-			_this5.w = 1.0;
-			var _this6 = _this5;
-			scale.z = Math.sqrt(_this6.x * _this6.x + _this6.y * _this6.y + _this6.z * _this6.z);
-			var _this7 = _this.self;
-			var m3 = _this7._12;
-			var m4 = _this7._22;
-			var m5 = _this7._32;
-			var m6 = _this7._13;
-			var m7 = _this7._23;
-			var m8 = _this7._33;
-			var c00 = _this7._11 * (m4 * m8 - m5 * m7) - _this7._21 * (m3 * m8 - m5 * m6) + _this7._31 * (m3 * m7 - m4 * m6);
-			var m31 = _this7._12;
-			var m41 = _this7._22;
-			var m51 = _this7._32;
-			var m61 = _this7._13;
-			var m71 = _this7._23;
-			var m81 = _this7._33;
-			var c01 = _this7._10 * (m41 * m81 - m51 * m71) - _this7._20 * (m31 * m81 - m51 * m61) + _this7._30 * (m31 * m71 - m41 * m61);
-			var m32 = _this7._11;
-			var m42 = _this7._21;
-			var m52 = _this7._31;
-			var m62 = _this7._13;
-			var m72 = _this7._23;
-			var m82 = _this7._33;
-			var c02 = _this7._10 * (m42 * m82 - m52 * m72) - _this7._20 * (m32 * m82 - m52 * m62) + _this7._30 * (m32 * m72 - m42 * m62);
-			var m33 = _this7._11;
-			var m43 = _this7._21;
-			var m53 = _this7._31;
-			var m63 = _this7._12;
-			var m73 = _this7._22;
-			var m83 = _this7._32;
-			var c03 = _this7._10 * (m43 * m83 - m53 * m73) - _this7._20 * (m33 * m83 - m53 * m63) + _this7._30 * (m33 * m73 - m43 * m63);
-			if(_this7._00 * c00 - _this7._01 * c01 + _this7._02 * c02 - _this7._03 * c03 < 0.0) {
-				scale.x = -scale.x;
-			}
-			var invs = 1.0 / scale.x;
-			iron_math_Mat4.helpMat.self._00 = _this.self._00 * invs;
-			iron_math_Mat4.helpMat.self._01 = _this.self._01 * invs;
-			iron_math_Mat4.helpMat.self._02 = _this.self._02 * invs;
-			invs = 1.0 / scale.y;
-			iron_math_Mat4.helpMat.self._10 = _this.self._10 * invs;
-			iron_math_Mat4.helpMat.self._11 = _this.self._11 * invs;
-			iron_math_Mat4.helpMat.self._12 = _this.self._12 * invs;
-			invs = 1.0 / scale.z;
-			iron_math_Mat4.helpMat.self._20 = _this.self._20 * invs;
-			iron_math_Mat4.helpMat.self._21 = _this.self._21 * invs;
-			iron_math_Mat4.helpMat.self._22 = _this.self._22 * invs;
-			var m = iron_math_Mat4.helpMat;
-			var m11 = m.self._00;
-			var m12 = m.self._10;
-			var m13 = m.self._20;
-			var m21 = m.self._01;
-			var m22 = m.self._11;
-			var m23 = m.self._21;
-			var m311 = m.self._02;
-			var m321 = m.self._12;
-			var m331 = m.self._22;
-			var tr = m11 + m22 + m331;
-			var s = 0.0;
-			if(tr > 0) {
-				s = 0.5 / Math.sqrt(tr + 1.0);
-				quat.w = 0.25 / s;
-				quat.x = (m321 - m23) * s;
-				quat.y = (m13 - m311) * s;
-				quat.z = (m21 - m12) * s;
-			} else if(m11 > m22 && m11 > m331) {
-				s = 2.0 * Math.sqrt(1.0 + m11 - m22 - m331);
-				quat.w = (m321 - m23) / s;
-				quat.x = 0.25 * s;
-				quat.y = (m12 + m21) / s;
-				quat.z = (m13 + m311) / s;
-			} else if(m22 > m331) {
-				s = 2.0 * Math.sqrt(1.0 + m22 - m11 - m331);
-				quat.w = (m13 - m311) / s;
-				quat.x = (m12 + m21) / s;
-				quat.y = 0.25 * s;
-				quat.z = (m23 + m321) / s;
-			} else {
-				s = 2.0 * Math.sqrt(1.0 + m331 - m11 - m22);
-				quat.w = (m21 - m12) / s;
-				quat.x = (m13 + m311) / s;
-				quat.y = (m23 + m321) / s;
-				quat.z = 0.25 * s;
-			}
-			var _g = 0;
-			var _g1 = this.object.children;
-			while(_g < _g1.length) {
-				var c = _g1[_g];
-				++_g;
-				c.transform.buildMatrix();
-			}
-		} else {
-			this.updateAnimNonSampled(this.oaction.anim,this.object.transform);
-			this.object.transform.buildMatrix();
-		}
+		this.updateTransformAnim(this.oaction.anim,this.object.transform);
+		this.object.transform.buildMatrix();
 	}
 	,interpolateLinear: function(t,t1,t2,v1,v2) {
 		var s = (t - t1) / (t2 - t1);
 		return (1.0 - s) * v1 + s * v2;
-	}
-	,interpolateBezier: function(t,t1,t2,v1,v2,c1,c2,p1,p2) {
-		if(this.frameIndex != this.bezierFrameIndex) {
-			this.bezierFrameIndex = this.frameIndex;
-			this.s0 = (t - t1) / (t2 - t1);
-		}
-		var a = (t2 - 3 * c2 + 3 * c1 - t1) * (this.s0 * this.s0 * this.s0) + 3 * (c2 - 2 * c1 + t1) * (this.s0 * this.s0) + 3 * (c1 - t1) * this.s0 + t1 - t;
-		var b = 3 * (t2 - 3 * c2 + 3 * c1 - t1) * (this.s0 * this.s0) + 6 * (c2 - 2 * c1 + t1) * this.s0 + 3 * (c1 - t1);
-		var s = this.s0 - a / b;
-		this.s0 = s;
-		return (1 - s) * (1 - s) * (1 - s) * v1 + 3 * s * (1 - s) * (1 - s) * p1 + 3 * (s * s) * (1 - s) * p2 + s * s * s * v2;
 	}
 	,isTrackEnd: function(track) {
 		if(this.speed > 0) {
@@ -17723,7 +17611,7 @@ iron_object_ObjectAnimation.prototype = $extend(iron_object_Animation.prototype,
 			return false;
 		}
 	}
-	,updateAnimNonSampled: function(anim,transform) {
+	,updateTransformAnim: function(anim,transform) {
 		if(anim == null) {
 			return;
 		}
@@ -17784,82 +17672,86 @@ iron_object_ObjectAnimation.prototype = $extend(iron_object_Animation.prototype,
 			var t2 = track.frames[ti + sign] * this.frameTime;
 			var v1 = track.values[ti];
 			var v2 = track.values[ti + sign];
-			var v = 0.0;
-			switch(track.curve) {
-			case "bezier":
-				var c1 = track.frames_control_plus[ti] * this.frameTime;
-				var c2 = track.frames_control_minus[ti + sign] * this.frameTime;
-				var p1 = track.values_control_plus[ti];
-				var p2 = track.values_control_minus[ti + sign];
-				if(this.frameIndex != this.bezierFrameIndex) {
-					this.bezierFrameIndex = this.frameIndex;
-					this.s0 = (t1 - t11) / (t2 - t11);
-				}
-				var a = (t2 - 3 * c2 + 3 * c1 - t11) * (this.s0 * this.s0 * this.s0) + 3 * (c2 - 2 * c1 + t11) * (this.s0 * this.s0) + 3 * (c1 - t11) * this.s0 + t11 - t1;
-				var b = 3 * (t2 - 3 * c2 + 3 * c1 - t11) * (this.s0 * this.s0) + 6 * (c2 - 2 * c1 + t11) * this.s0 + 3 * (c1 - t11);
-				var s = this.s0 - a / b;
-				this.s0 = s;
-				v = (1 - s) * (1 - s) * (1 - s) * v1 + 3 * s * (1 - s) * (1 - s) * p1 + 3 * (s * s) * (1 - s) * p2 + s * s * s * v2;
-				break;
-			case "linear":
-				var s1 = (t1 - t11) / (t2 - t11);
-				v = (1.0 - s1) * v1 + s1 * v2;
-				break;
-			}
+			var s = (t1 - t11) / (t2 - t11);
+			var value = (1.0 - s) * v1 + s * v2;
 			switch(track.target) {
+			case "dqwrot":
+				transform.drot.w = value;
+				break;
+			case "dqxrot":
+				transform.drot.x = value;
+				break;
+			case "dqyrot":
+				transform.drot.y = value;
+				break;
+			case "dqzrot":
+				transform.drot.z = value;
+				break;
 			case "dxloc":
-				transform.dloc.x = v;
+				transform.dloc.x = value;
 				break;
 			case "dxrot":
-				transform._deulerX = v;
+				transform._deulerX = value;
 				break;
 			case "dxscl":
-				transform.dscale.x = v;
+				transform.dscale.x = value;
 				break;
 			case "dyloc":
-				transform.dloc.y = v;
+				transform.dloc.y = value;
 				break;
 			case "dyrot":
-				transform._deulerY = v;
+				transform._deulerY = value;
 				break;
 			case "dyscl":
-				transform.dscale.y = v;
+				transform.dscale.y = value;
 				break;
 			case "dzloc":
-				transform.dloc.z = v;
+				transform.dloc.z = value;
 				break;
 			case "dzrot":
-				transform._deulerZ = v;
+				transform._deulerZ = value;
 				break;
 			case "dzscl":
-				transform.dscale.z = v;
+				transform.dscale.z = value;
+				break;
+			case "qwrot":
+				transform.rot.w = value;
+				break;
+			case "qxrot":
+				transform.rot.x = value;
+				break;
+			case "qyrot":
+				transform.rot.y = value;
+				break;
+			case "qzrot":
+				transform.rot.z = value;
 				break;
 			case "xloc":
-				transform.loc.x = v;
+				transform.loc.x = value;
 				break;
 			case "xrot":
-				transform.setRotation(v,transform._eulerY,transform._eulerZ);
+				transform.setRotation(value,transform._eulerY,transform._eulerZ);
 				break;
 			case "xscl":
-				transform.scale.x = v;
+				transform.scale.x = value;
 				break;
 			case "yloc":
-				transform.loc.y = v;
+				transform.loc.y = value;
 				break;
 			case "yrot":
-				transform.setRotation(transform._eulerX,v,transform._eulerZ);
+				transform.setRotation(transform._eulerX,value,transform._eulerZ);
 				break;
 			case "yscl":
-				transform.scale.y = v;
+				transform.scale.y = value;
 				break;
 			case "zloc":
-				transform.loc.z = v;
+				transform.loc.z = value;
 				break;
 			case "zrot":
-				transform.setRotation(transform._eulerX,transform._eulerY,v);
+				transform.setRotation(transform._eulerX,transform._eulerY,value);
 				break;
 			case "zscl":
-				transform.scale.z = v;
+				transform.scale.z = value;
 				break;
 			}
 		}
@@ -19063,6 +18955,7 @@ iron_object_Transform.prototype = {
 	}
 	,applyParent: function() {
 		var pt = this.object.parent.transform;
+		pt.buildMatrix();
 		var _this = this.local;
 		var m = pt.world;
 		var a00 = _this.self._00;
@@ -19114,6 +19007,7 @@ iron_object_Transform.prototype = {
 		_this.self._23 = a20 * b0 + a21 * b1 + a22 * b2 + a23 * b3;
 		_this.self._33 = a30 * b0 + a31 * b1 + a32 * b2 + a33 * b3;
 		this.decompose();
+		this.buildMatrix();
 	}
 	,diff: function() {
 		if(this.lastWorld == null) {
@@ -19339,7 +19233,7 @@ iron_object_Uniforms.bindRenderTarget = function(g,rt,context,samplerID,attachDe
 				var isImage = tus[j].is_image != null && tus[j].is_image;
 				var paramsSet = false;
 				if(rt.raw.depth > 1) {
-					g.setTexture3DParameters(context.textureUnits[j],2,2,2,1,0,2);
+					g.setTexture3DParameters(context.textureUnits[j],2,2,2,1,2,2);
 					paramsSet = true;
 				}
 				if(isImage) {
@@ -19377,10 +19271,11 @@ iron_object_Uniforms.bindRenderTarget = function(g,rt,context,samplerID,attachDe
 				}
 				if(!paramsSet) {
 					var oc = context.overrideContext;
-					var addressing = oc != null && oc.addressing == "repeat" ? 0 : 2;
-					var allowParams = oc == null || oc.shared_sampler != true;
+					var allowParams = oc == null || oc.shared_sampler == null || oc.shared_sampler == samplerID;
 					if(allowParams) {
-						g.setTextureParameters(context.textureUnits[j],addressing,addressing,1,1,0);
+						var addressing = oc != null && oc.addressing == "repeat" ? 0 : 2;
+						var filter = oc != null && oc.filter == "point" ? 0 : iron_object_Uniforms.defaultFilter;
+						g.setTextureParameters(context.textureUnits[j],addressing,addressing,filter,filter,0);
 					}
 					paramsSet = true;
 				}
@@ -22332,7 +22227,7 @@ iron_system_ArmPack.write = function(o,d) {
 			o.writeByte(221);
 			o.writeInt32(d.length);
 			var isInt16 = ((d) instanceof Int16Array);
-			var isInt = js_Boot.__instanceof(d[0],Int);
+			var isInt = js_Boot.__instanceof(d[0],Int) && !((d) instanceof Float32Array);
 			var isFloat = typeof(d[0]) == "number";
 			if(isInt16) {
 				o.writeByte(209);
@@ -22372,7 +22267,7 @@ iron_system_ArmPack.write = function(o,d) {
 				o.writeByte(221);
 				o.writeInt32(d.length);
 				var isInt161 = ((d) instanceof Int16Array);
-				var isInt1 = js_Boot.__instanceof(d[0],Int);
+				var isInt1 = js_Boot.__instanceof(d[0],Int) && !((d) instanceof Float32Array);
 				var isFloat1 = typeof(d[0]) == "number";
 				if(isInt161) {
 					o.writeByte(209);
@@ -24558,23 +24453,7 @@ var kha_KravurImage = function(size,ascent,descent,lineGap,width,height,chars,pi
 		++_g;
 		char.yoff += this.baseline;
 	}
-	this.texture = kha_Image.create(width,height,1);
-	var bytes = this.texture.lock();
-	var pos = 0;
-	var _g1 = 0;
-	var _g2 = height;
-	while(_g1 < _g2) {
-		var y = _g1++;
-		var _g11 = 0;
-		var _g21 = width;
-		while(_g11 < _g21) {
-			var x = _g11++;
-			var v = pixels.readU8(pos);
-			bytes.b[pos] = v;
-			++pos;
-		}
-	}
-	this.texture.unlock();
+	this.texture = kha_Image.fromBytes(pixels.toBytes(),width,height,1);
 };
 $hxClasses["kha.KravurImage"] = kha_KravurImage;
 kha_KravurImage.__name__ = "kha.KravurImage";
@@ -26509,7 +26388,7 @@ kha_SystemImpl.loadFinished = function(defaultWidth,defaultHeight) {
 			}
 		}
 		kha_Scheduler.executeFrame();
-		if(canvas.getContext != null) {
+		if($bind(canvas,canvas.getContext)) {
 			var displayWidth = canvas.clientWidth;
 			var displayHeight = canvas.clientHeight;
 			if(canvas.width != displayWidth || canvas.height != displayHeight) {
@@ -27901,6 +27780,12 @@ kha_arrays__$Float32Array_Float32Array_$Impl_$.get = function(this1,index) {
 };
 kha_arrays__$Float32Array_Float32Array_$Impl_$.data = function(this1) {
 	return this1;
+};
+kha_arrays__$Float32Array_Float32Array_$Impl_$.arrayRead = function(this1,index) {
+	return this1[index];
+};
+kha_arrays__$Float32Array_Float32Array_$Impl_$.arrayWrite = function(this1,index,value) {
+	return this1[index] = value;
 };
 kha_arrays__$Float32Array_Float32Array_$Impl_$.subarray = function(this1,start,end) {
 	return this1.subarray(start,end);
@@ -43399,9 +43284,16 @@ var zui_Zui = function(ops) {
 		zui_Zui.copyReceiver = this;
 		kha_System.notifyOnCutCopyPaste($bind(this,this.onCut),$bind(this,this.onCopy),$bind(this,this.onPaste));
 		kha_System.notifyOnFrames(function(frames) {
-			zui_Zui.isCopy = zui_Zui.isCut = zui_Zui.isPaste = false;
+			if((zui_Zui.isCopy || zui_Zui.isPaste) && ++zui_Zui.copyFrame > 1) {
+				zui_Zui.isCopy = zui_Zui.isCut = zui_Zui.isPaste = false;
+				zui_Zui.copyFrame = 0;
+			}
 		});
 	}
+	var rtTextVS = kha_graphics4_Graphics2.createTextVertexStructure();
+	this.rtTextPipeline = kha_graphics4_Graphics2.createTextPipeline(rtTextVS);
+	this.rtTextPipeline.alphaBlendSource = 1;
+	this.rtTextPipeline.compile();
 };
 $hxClasses["zui.Zui"] = zui_Zui;
 zui_Zui.__name__ = "zui.Zui";
@@ -43450,6 +43342,7 @@ zui_Zui.prototype = {
 	,wBeforeSplit: null
 	,g: null
 	,globalG: null
+	,rtTextPipeline: null
 	,t: null
 	,SCALE: null
 	,ops: null
@@ -43990,10 +43883,12 @@ zui_Zui.prototype = {
 		}
 		if(!this.isVisible(this.t.ELEMENT_H * this.SCALE)) {
 			this.endElement();
-			return;
+			return 0;
 		}
-		this.getReleased();
-		this.getHover();
+		var started = this.getStarted();
+		var down = this.getPushed();
+		var released = this.getReleased();
+		var hover = this.getHover();
 		if(bg != 0) {
 			this.g.set_color(bg);
 			this.g.fillRect(this._x + this.buttonOffsetY,this._y + this.buttonOffsetY,this._w - this.buttonOffsetY * 2,this.t.BUTTON_H * this.SCALE);
@@ -44001,6 +43896,15 @@ zui_Zui.prototype = {
 		this.g.set_color(this.t.TEXT_COL);
 		this.drawString(this.g,text,this.t.TEXT_OFFSET,0,align);
 		this.endElement();
+		if(started) {
+			return 1;
+		} else if(released) {
+			return 3;
+		} else if(down) {
+			return 2;
+		} else {
+			return 0;
+		}
 	}
 	,startTextEdit: function(handle) {
 		this.isTyping = true;
@@ -44245,6 +44149,7 @@ zui_Zui.prototype = {
 		this.g.set_color(this.t.BUTTON_TEXT_COL);
 		this.drawString(this.g,text,this.t.TEXT_OFFSET,0,align);
 		if(label != "") {
+			this.g.set_color(this.t.LABEL_COL);
 			this.drawString(this.g,label,this.t.TEXT_OFFSET,0,align == 2 ? 0 : 2);
 		}
 		this.endElement();
@@ -44327,7 +44232,7 @@ zui_Zui.prototype = {
 				this.comboSelectedTexts = texts;
 				this.comboSelectedLabel = label;
 				this.comboSelectedX = this._x + this._windowX | 0;
-				this.comboSelectedY = this._y + this._windowY + this.t.ELEMENT_H * this.SCALE + this.t.ELEMENT_OFFSET * this.SCALE | 0;
+				this.comboSelectedY = this._y + this._windowY + this.t.ELEMENT_H * this.SCALE | 0;
 				this.comboSelectedW = this._w | 0;
 			}
 		}
@@ -44552,7 +44457,8 @@ zui_Zui.prototype = {
 			if(!this.enabled) {
 				this.fadeColor();
 			}
-			this.g.drawImage(this.checkSelectImage,x + this.checkSelectOffsetX,y + this.checkSelectOffsetY);
+			var size = this.t.CHECK_SELECT_SIZE * this.SCALE | 0;
+			this.g.drawScaledImage(this.checkSelectImage,x + this.checkSelectOffsetX,y + this.checkSelectOffsetY,size,size);
 		}
 	}
 	,drawRadio: function(selected,hover) {
@@ -44641,16 +44547,25 @@ zui_Zui.prototype = {
 		var comboH = (this.comboSelectedTexts.length + 1) * elementSize;
 		this.globalG.begin(false);
 		var outOfScreen = this.comboSelectedY + comboH > kha_System.windowHeight();
-		var comboY = outOfScreen ? this.comboSelectedY - comboH - elementSize : this.comboSelectedY;
+		var comboY = outOfScreen ? this.comboSelectedY - comboH - (this.t.ELEMENT_H * this.SCALE | 0) : this.comboSelectedY;
 		this.globalG.fillRect(this.comboSelectedX,comboY,this.comboSelectedW,comboH);
 		this.beginLayout(this.globalG,this.comboSelectedX,comboY,this.comboSelectedW);
+		if(outOfScreen) {
+			this.g.set_color(this.t.LABEL_COL);
+			this.drawString(this.g,this.comboSelectedLabel,null,0,2);
+			this._y += elementSize;
+			this.fill(0,0,this._w,this.SCALE,this.t.ACCENT_SELECT_COL);
+		}
 		this.inputEnabled = true;
+		var BUTTON_COL = this.t.BUTTON_COL;
 		var _g1 = 0;
 		var _g11 = this.comboSelectedTexts.length;
 		while(_g1 < _g11) {
 			var i = _g1++;
-			if(this.button(this.comboSelectedTexts[i],this.comboSelectedAlign)) {
-				this.comboToSubmit = i;
+			var j = outOfScreen ? this.comboSelectedTexts.length - 1 - i : i;
+			this.t.BUTTON_COL = j == this.comboSelectedHandle.position ? this.t.PANEL_BG_COL : this.t.SEPARATOR_COL;
+			if(this.button(this.comboSelectedTexts[j],this.comboSelectedAlign)) {
+				this.comboToSubmit = j;
 				this.submitComboHandle = this.comboSelectedHandle;
 				if(this.comboSelectedWindow != null) {
 					this.comboSelectedWindow.redraws = 2;
@@ -44658,7 +44573,12 @@ zui_Zui.prototype = {
 				break;
 			}
 		}
-		this.text(this.comboSelectedLabel);
+		this.t.BUTTON_COL = BUTTON_COL;
+		if(!outOfScreen) {
+			this.fill(0,0,this._w,this.SCALE,this.t.ACCENT_SELECT_COL);
+			this.g.set_color(this.t.LABEL_COL);
+			this.drawString(this.g,this.comboSelectedLabel,null,0,2);
+		}
 		if((this.inputReleased || this.isEscapeDown) && !zui_Zui.comboFirst) {
 			this.comboSelectedHandle = null;
 			zui_Zui.comboFirst = true;
@@ -44741,7 +44661,9 @@ zui_Zui.prototype = {
 		if(!this.enabled) {
 			this.fadeColor();
 		}
+		g.set_pipeline(this.rtTextPipeline);
 		g.drawString(text,this._x + xOffset,this._y + this.fontOffsetY + yOffset);
+		g.set_pipeline(null);
 	}
 	,endElement: function(elementSize) {
 		if(this.currentWindow == null) {
@@ -45128,13 +45050,15 @@ zui_Handle.prototype = {
 	,children: null
 	,nest: function(i,ops) {
 		if(this.children == null) {
-			this.children = [];
+			this.children = new haxe_ds_IntMap();
 		}
-		while(this.children.length <= i) this.children.push(null);
-		if(this.children[i] == null) {
-			this.children[i] = new zui_Handle(ops);
+		var c = this.children.h[i];
+		if(c == null) {
+			var this1 = this.children;
+			c = new zui_Handle(ops);
+			this1.h[i] = c;
 		}
-		return this.children[i];
+		return c;
 	}
 	,__class__: zui_Handle
 };
@@ -45174,6 +45098,7 @@ armory_renderpath_Inc.superSample = 1.0;
 armory_renderpath_Inc.pointIndex = 0;
 armory_renderpath_Inc.spotIndex = 0;
 armory_renderpath_Inc.lastFrame = -1;
+armory_renderpath_RenderPathCreator.setTargetMeshes = armory_renderpath_RenderPathForward.setTargetMeshes;
 armory_renderpath_RenderPathCreator.drawMeshes = armory_renderpath_RenderPathForward.drawMeshes;
 armory_renderpath_RenderPathCreator.applyConfig = armory_renderpath_RenderPathForward.applyConfig;
 armory_system_Event.events = new haxe_ds_StringMap();
@@ -45343,6 +45268,7 @@ iron_object_Uniforms.helpMat3 = new iron_math_Mat3(1,0,0,0,1,0,0,0,1);
 iron_object_Uniforms.helpVec = new iron_math_Vec4();
 iron_object_Uniforms.helpVec2 = new iron_math_Vec4();
 iron_object_Uniforms.helpQuat = new iron_math_Quat();
+iron_object_Uniforms.defaultFilter = 1;
 iron_system_Mouse.buttons = ["left","right","middle"];
 iron_system_Pen.buttons = ["tip"];
 iron_system_Keyboard.keys = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9","period","comma","space","backspace","tab","enter","shift","control","alt","escape","delete","back","up","right","left","down","f1","f2","f3","f4","f5","f6","f7","f8","f9","f10","f11","f12"];
@@ -45426,10 +45352,10 @@ kha_CompilerDefines.arm_debug = "1";
 kha_CompilerDefines.arm_csm = "1";
 kha_CompilerDefines.arm_bullet = "1";
 kha_CompilerDefines.arm_audio = "1";
-kha_CompilerDefines["/home/tyler/armory_ext/armsdk/lib/zui"] = "1";
-kha_CompilerDefines["/home/tyler/armory_ext/armsdk/lib/haxebullet"] = "1";
-kha_CompilerDefines["/home/tyler/armory_ext/armsdk/iron"] = "1";
-kha_CompilerDefines["/home/tyler/armory_ext/armsdk/armory"] = "1";
+kha_CompilerDefines["/Users/tylermckenzie/Desktop/ArmorySDK/lib/zui"] = "1";
+kha_CompilerDefines["/Users/tylermckenzie/Desktop/ArmorySDK/lib/haxebullet"] = "1";
+kha_CompilerDefines["/Users/tylermckenzie/Desktop/ArmorySDK/iron"] = "1";
+kha_CompilerDefines["/Users/tylermckenzie/Desktop/ArmorySDK/armory"] = "1";
 kha_Display.instance = new kha_Display();
 kha_Scheduler.timeWarpSaveTime = 10.0;
 kha_Scheduler.DIF_COUNT = 3;
@@ -45724,7 +45650,7 @@ kha_netsync_Session.RPC_ALL = 1;
 kha_netsync_SyncBuilder.nextId = 0;
 kha_netsync_SyncBuilder.objects = [];
 zui_Id.i = 0;
-zui_Themes.dark = { FONT_SIZE : 13, ELEMENT_W : 100, ELEMENT_H : 22, ELEMENT_OFFSET : 4, ARROW_SIZE : 5, BUTTON_H : 17, CHECK_SIZE : 15, CHECK_SELECT_SIZE : 8, SCROLL_W : 6, TEXT_OFFSET : 8, TAB_W : 12, LINE_STRENGTH : 1, FILL_WINDOW_BG : false, FILL_BUTTON_BG : true, FILL_ACCENT_BG : false, WINDOW_BG_COL : -13421773, WINDOW_TINT_COL : -1, ACCENT_COL : -12303292, ACCENT_HOVER_COL : -12040120, ACCENT_SELECT_COL : -10461088, PANEL_BG_COL : -13421773, PANEL_TEXT_COL : -3487289, BUTTON_COL : -12040120, BUTTON_TEXT_COL : -3487289, BUTTON_HOVER_COL : -12895429, BUTTON_PRESSED_COL : -15000805, TEXT_COL : -3487289, LABEL_COL : -5592406, ARROW_COL : -3487289, SEPARATOR_COL : -14211289, HIGHLIGHT_COL : -14656100};
+zui_Themes.dark = { FONT_SIZE : 13, ELEMENT_W : 100, ELEMENT_H : 22, ELEMENT_OFFSET : 4, ARROW_SIZE : 5, BUTTON_H : 17, CHECK_SIZE : 15, CHECK_SELECT_SIZE : 8, SCROLL_W : 6, TEXT_OFFSET : 8, TAB_W : 12, LINE_STRENGTH : 1, FILL_WINDOW_BG : false, FILL_BUTTON_BG : true, FILL_ACCENT_BG : false, WINDOW_BG_COL : -13421773, WINDOW_TINT_COL : -1, ACCENT_COL : -12303292, ACCENT_HOVER_COL : -12040120, ACCENT_SELECT_COL : -10461088, PANEL_BG_COL : -13421773, PANEL_TEXT_COL : -1513499, BUTTON_COL : -12040120, BUTTON_TEXT_COL : -1513499, BUTTON_HOVER_COL : -12895429, BUTTON_PRESSED_COL : -15000805, TEXT_COL : -1513499, LABEL_COL : -3618616, ARROW_COL : -1513499, SEPARATOR_COL : -14211289, HIGHLIGHT_COL : -14656100};
 zui_Themes.light = { FONT_SIZE : 26, ELEMENT_W : 200, ELEMENT_H : 44, ELEMENT_OFFSET : 4, ARROW_SIZE : 10, BUTTON_H : 34, CHECK_SIZE : 30, CHECK_SELECT_SIZE : 16, SCROLL_W : 12, TEXT_OFFSET : 16, TAB_W : 24, LINE_STRENGTH : 2, FILL_WINDOW_BG : false, FILL_BUTTON_BG : true, FILL_ACCENT_BG : false, WINDOW_BG_COL : -1052689, WINDOW_TINT_COL : -14540254, ACCENT_COL : -1118482, ACCENT_HOVER_COL : -4473925, ACCENT_SELECT_COL : -5592406, PANEL_BG_COL : -1, PANEL_TEXT_COL : -14540254, BUTTON_COL : -3355444, BUTTON_TEXT_COL : -14540254, BUTTON_HOVER_COL : -5000269, BUTTON_PRESSED_COL : -5131855, TEXT_COL : -6710887, LABEL_COL : -5592406, ARROW_COL : -3487289, SEPARATOR_COL : -6710887, HIGHLIGHT_COL : -14656100};
 zui_Zui.alwaysRedrawWindow = true;
 zui_Zui.textToPaste = "";
@@ -45732,6 +45658,7 @@ zui_Zui.textToCopy = "";
 zui_Zui.isCut = false;
 zui_Zui.isCopy = false;
 zui_Zui.isPaste = false;
+zui_Zui.copyFrame = 0;
 zui_Zui.comboFirst = true;
 zui_Handle.global = new zui_Handle();
 Main.main();
