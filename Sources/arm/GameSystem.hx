@@ -117,6 +117,7 @@ class GameSystem extends iron.Trait
 
 			if (player != null && player.getTrait(Player).isDead()) {
 				this.setState(GAME_OVER);
+				trace("OVER?");
 			}
 		});
 	}

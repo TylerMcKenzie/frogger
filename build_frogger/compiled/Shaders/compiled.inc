@@ -4,6 +4,7 @@
 #define _EnvCol
 #define _EnvClouds
 #define _EnvStr
+#define _Deferred
 #define _ShadowMap
 #define _CSM
 #define _Sun

@@ -1,14 +1,23 @@
 ## Code things
-    - Create timer?
-        - more like a wait 
-        - promise like?
+    ☐ Create timer?
+        ☐ more like a wait 
+        ☐ promise like?
 
-    - Use canvas
-        - game menu
-        - options
+    ☐ Use canvas
+        ☐ game menu
+        ☐ options
+
+    ☐ Um collision detection is broken? or not detecting collisions so theres that
+        ☐ find out why collisions aren't being detected post armory update
 ## Game logic
-    - Show game over 
-        - wait 3 seconds
-        - reset game
+    ☐ Show game over 
+        ☐ wait 3 seconds
+        ☐ reset game
     
-    - update vehicle
+    ☐ update vehicle
+
+## ASSETS
+    ☐ create frog asset
+        ☐ model
+        ☐ uv-map
+        ☐ texture
