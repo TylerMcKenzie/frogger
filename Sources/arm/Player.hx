@@ -7,12 +7,7 @@ import iron.system.Input;
 import armory.trait.physics.RigidBody;
 import armory.trait.physics.PhysicsWorld;
 
-@:enum
-abstract StepConfig(FastFloat) 
-{
-	var PLAYER_STEP_X = 3.0;
-	var PLAYER_STEP_Y = 6.0;
-}
+import arm.Enum.StepConfig;
 
 class Player extends GameTrait 
 {

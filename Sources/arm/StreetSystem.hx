@@ -4,13 +4,7 @@ import iron.math.Vec4;
 import iron.object.Object;
 
 import armory.system.Event;
-
-@:enum
-abstract STREET_TYPES(String) 
-{
-	var ROAD  = "Street";
-	var GRASS = "Street_Grass";
-}
+import arm.Enum.STREET_TYPES;
 
 class StreetSystem 
 {

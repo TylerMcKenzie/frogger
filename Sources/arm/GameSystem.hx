@@ -3,17 +3,7 @@ package arm;
 import iron.math.Vec4;
 import iron.Scene;
 import iron.object.Object;
-
-
-@:enum
-abstract GAME_STATE(Int) 
-{
-	var TITLE     = 0;
-	var MENU      = 1;
-	var PLAYING   = 2;
-	var GAME_OVER = 3;
-	var GAME_2    = 4;
-}
+import arm.Enum.GAME_STATE;
 
 class GameSystem extends iron.Trait 
 {
