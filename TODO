@@ -1,23 +1,89 @@
-## Code things
-    ☐ Create timer?
-        ☐ more like a wait 
-        ☐ promise like?
-
-    ☐ Use canvas
-        ☐ game menu
-        ☐ options
-
-    ☐ Um collision detection is broken? or not detecting collisions so theres that
-        ☐ find out why collisions aren't being detected post armory update
-## Game logic
-    ☐ Show game over 
-        ☐ wait 3 seconds
-        ☐ reset game
-    
-    ☐ update vehicle
-
-## ASSETS
-    ☐ create frog asset
-        ☐ model
-        ☐ uv-map
-        ☐ texture
+---- 11/22/19 ----: 
+Game notes:
+    CLEAN UP/REFACTOR/ADD:
+        GameSystem:
+            ☐ Move game logic from trait to static class
+                ☐ Easier to pass from scene to scene
+                ☐ Persistent state
+                ☐ Global access
+            ☐ Make trait call static class
+            ✔ Move enum abstract to own file @done(19-11-22 14:57)
+                ✔ Increase visibility into configs @done(19-11-22 14:57)
+            ☐ Move visibility logic to a trait
+                ☐ Add player target for render distance
+        Player:
+            ☐ TODO
+            ☐ Finish rigging
+            ☐ Add simple hop animation
+            ☐ Hop sound
+            ☐ Death sound
+            ☐ Squish
+            ☐ Mech stomping sound
+        Vehicle:
+            ☐ Rig vehicle
+                ☐ 1 bone
+                    ☐ Squash stretch animation?
+            ☐ Add smoke anim?
+                ☐ Polygon particles?
+            ☐ Add collision 
+            ☐ Make s, m, l vehicle models
+            ☐ Vehicle sounds
+            ☐ Collision sounds
+                ☐ Player hit(thud)
+                ☐ Player hit(crash) <- when player is in mech
+        VehicleSystem:
+            ☐ Move enum to configs location
+            ☐ Remove useless code
+            ☐ Set vehicle.registered = true when ‘register()’ is called
+        Street:
+            ☐ Remove todo
+        StreetSystem:
+            ☐ Move enum to configs
+            ☐ Remove commented code
+            ☐ Add street generation script from path
+            ☐ Add add method for endless runner
+            ☐ Can create randomizer params
+        Path:
+            ☐ Remove?
+            ☐ Move generation script to streetsystem 
+    Create Canvas:
+        Title:
+            ☐ Name as frog title
+            ☐ Remove FrogTitle trait?
+            ☐ Play button
+            ☐ Quit button
+            ☐ Settings?
+            ☐ Game Over Screen
+                ☐ Retry
+                    ☐ Goes to state you died on
+                        ☐ So frog -> frog : mech -> mech
+                ☐ Quit to title
+        New Features:
+            ☐ music
+            ☐ Power ups
+            ☐ Power Stack
+            ☐ overwrite 
+            ☐ additive
+            ☐ Increased speed
+            ☐ Rocket pack
+            ☐ Forward momentum
+            ☐ BIG SHOES
+            ☐ strafe
+            ☐ Rockets?
+            ☐ Laser?
+            ☐ JUMP
+            ☐ Train shovel thing
+            ☐ MOAR POINTS
+            ☐ CLAW
+            ☐ PICK UP VEHICLE?
+            ☐ Throw that boi
+        Shop:
+            ☐ Means currency
+            ☐ UI
+        How to lose endless mode?:
+            ☐ Vehicles deal damage to mech?
+            ☐ Can get power ups to increase durability
+            ☐ Environment dangers
+            ☐ Holes
+            ☐ Construction?
+            ☐ BIG TREE?
