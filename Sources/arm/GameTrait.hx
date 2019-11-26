@@ -4,16 +4,11 @@ import iron.Scene;
 
 class GameTrait extends iron.Trait 
 {
-	public var game:GameSystem;
+	public var game:GameController;
 
 	public function new()
 	{
 		super();
-		game = Scene.active.getTrait(GameSystem);
-	}
-
-	public function reset()
-	{
-
+		game = Scene.active.getTrait(GameController.getInstance());
 	}
 }

@@ -1,4 +1,4 @@
-package arm.Enum;
+package arm.ObjectStructs;
 
 enum abstract GAME_STATE(Int) 
 {

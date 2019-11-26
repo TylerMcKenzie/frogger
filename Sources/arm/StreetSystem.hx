@@ -4,11 +4,11 @@ import iron.math.Vec4;
 import iron.object.Object;
 
 import armory.system.Event;
-import arm.Enum.STREET_TYPES;
+import STREET_TYPES;
 
 class StreetSystem 
 {
-	private var game: GameSystem;
+	private var game: GameController;
 	private var streets: Array<Object> = [];
 
 	public function new(gameSystem) 

@@ -1,4 +1,4 @@
-package arm.Enum;
+package arm;
 
 enum abstract StepConfig(FastFloat) 
 {

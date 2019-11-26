@@ -1,7 +1,7 @@
 package arm;
 
 import iron.object.Object;
-import arm.Enum.VEHICLE_TYPE;
+import VEHICLE_TYPE;
 
 class VehicleSystem
 {
@@ -11,11 +11,11 @@ class VehicleSystem
 		TRUCK_S
 	];
 
-	private var game: GameSystem;
+	private var game: GameController;
 
 	private var vehicles: Array<Vehicle> = [];
 
-	public function new(gameSystem: GameSystem)
+	public function new(gameSystem: GameController)
 	{
 		this.game = gameSystem;
 	}

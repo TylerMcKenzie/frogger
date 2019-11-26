@@ -1,8 +1,35 @@
 package arm;
 
+import ObjectStructs.GAME_STATE;
+
 class GameController
-{   
+{
+	public static var state: GAME_STATE;
+
+	public static var scene: Scene;
+
     public static var keyboard:Keyboard = null;
+
+	private static var player: Object;
+
+    public static var streetSystem: StreetSystem;
+	public static var vehicleSystem: VehicleSystem;
+
+	private static var menuObjects = [];
+	private static var titleObjects = [];
+	private static var gameObjects = [];
+
+
+    public static function init()
+    {
+        scene         = Scene.active;
+		streetSystem  = new StreetSystem(createInstance());
+		vehicleSystem = new VehicleSystem(createInstance());
+        player        = scene.getChild("Player_Frog");
+        getMenuObjects();
+        getTitleObjects();
+        getGameObjects();
+    }
 
     public static function update()
     {
@@ -81,8 +108,128 @@ class GameController
         }
 
         if (player != null && player.getTrait(Player).isDead()) {
-            this.setState(GAME_OVER);
+            setState(GAME_OVER);
             trace("OVER?");
         }
-    } 
+    }
+
+    public static function createInstance()
+    {
+        return Type.createEmptyInstance(GameController);
+    }
+
+    private static function setState(s: GAME_STATE)
+	{
+		state = s;
+
+		switch state {
+            case TITLE:
+                hideGameObjects();
+                hideMenuObjects();
+
+                showTitleObjects();
+            case MENU:
+                hideGameObjects();
+                hideTitleObjects();
+
+                showMenuObjects();
+            case PLAYING:
+                hideTitleObjects();
+                hideMenuObjects();
+                showGameObjects();
+
+                var start = scene.getChild("LEVEL_START");
+                var startLocation = start.transform.world.getLoc();
+                streetSystem.createStreetPath(startLocation, 41);
+                player.transform.loc.x = startLocation.x;
+                player.transform.loc.y = startLocation.y;
+                player.transform.buildMatrix();
+            case GAME_OVER:
+                // Disable spawners
+                for (street in streetSystem.getStreets()) {
+                    var spawner = street.getTrait(Street).getSpawner();
+
+                    if (spawner != null) {
+                        spawner.getTrait(VehicleSpawner).setActive(false);
+                    }
+                }
+
+                // Show game over text
+                var gameOverText = scene.getChild("GAME_OVER_TEXT");
+                gameOverText.visible = true;
+                // Reset game and go back to begining
+                streetSystem.removeStreets();
+
+                player.getTrait(Player).reset();
+                
+                setState(PLAYING);
+                
+            case GAME_2:
+                Scene.setActive("Game 2");
+        }
+	}
+
+    private static function hideMenuObjects() 
+	{
+		for (mo in menuObjects) {
+			mo.visible = false;
+		}
+	}
+
+	private static function showMenuObjects() 
+	{
+		for (mo in menuObjects) {
+			mo.visible = true;
+		}
+	}
+
+	private static function getMenuObjects() 
+	{
+		menuObjects.push(scene.getChild("EXIT_TEXT"));
+		menuObjects.push(scene.getChild("START_GAME_TEXT"));
+	}
+
+	private static function hideTitleObjects() 
+	{
+		for (to in titleObjects) {
+			to.visible = false;
+		}
+	}
+
+	private static function showTitleObjects() 
+	{
+		for (to in titleObjects) {
+			to.visible = true;
+		}
+	}
+
+	private static function getTitleObjects() 
+	{
+		titleObjects.push(scene.getChild("Title"));
+		titleObjects.push(scene.getChild("Title_Frog"));
+		for (titleStreet in scene.getGroup("TITLE_STREETS")) {
+			titleObjects.push(titleStreet);
+		}
+	}
+
+	private static function hideGameObjects() 
+	{
+		for (go in gameObjects) {
+			go.visible = false;
+		}
+	}
+
+	private static function showGameObjects() 
+	{
+		for (go in gameObjects) {
+			go.visible = true;
+		}
+	}
+	
+	private static function getGameObjects() 
+	{
+		gameObjects.push(player);
+		gameObjects.push(scene.getChild("Street"));
+		gameObjects.push(scene.getChild("Street_Grass"));
+	}
 }
