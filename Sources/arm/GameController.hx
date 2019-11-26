@@ -5,8 +5,6 @@ import iron.system.Input;
 class GameController
 {
     public static var keyboard: Keyboard = null;
-	public static var scene: Scene;
-	public static var state: GAME_STATE;
     public static var streetSystem: StreetSystem;
 	public static var vehicleSystem: VehicleSystem;
 
@@ -14,6 +12,8 @@ class GameController
 	private static var menuObjects = [];
 	private static var player: Object;
 	private static var physics:PhysicsWorld;
+	private static var state: GAME_STATE;
+	private static var scene: Scene;
 	private static var titleObjects = [];
 
     // TODO: REPLACE THESE WITH SETTERS TO ALLOW CUSTOM SCENE SETUP
@@ -114,7 +114,22 @@ class GameController
         return Type.createEmptyInstance(GameController);
     }
 
-    private static function setState(s: GAME_STATE)
+    public static function getScene(): Scene
+    {
+        return scene;
+    }
+
+    public static function getState(): GAME_STATE
+    {
+        return state;
+    }
+
+    public static function setScene(s: Scene)
+    {
+        scene = s;
+    }
+
+    public static function setState(s: GAME_STATE)
 	{
 		state = s;
 

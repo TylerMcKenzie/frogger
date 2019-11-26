@@ -31,5 +31,4 @@ class Path
 
 		return path;
 	}
-
 }

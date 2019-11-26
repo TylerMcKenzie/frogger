@@ -5,15 +5,14 @@ import kha.FastFloat;
 import iron.system.Input;
 
 import armory.trait.physics.RigidBody;
-import armory.trait.physics.PhysicsWorld;
 
 class Player extends GameTrait 
 {
-	private var kb = Input.getKeyboard();
-	private var stepX = cast(PLAYER_STEP_X, FastFloat);
-	private var stepY = cast(PLAYER_STEP_Y, FastFloat);
+	private var kb: Keyboard = Input.getKeyboard();
+	private var stepX: FastFloat = cast PLAYER_STEP_X;
+	private var stepY: FastFloat = cast PLAYER_STEP_Y;
 
-	private var physics:PhysicsWorld;
+	private var physics: PhysicsWorld;
 	private var body: RigidBody;
 
 	private var dead: Bool = false;
@@ -23,12 +22,11 @@ class Player extends GameTrait
 		super();
 
 		notifyOnInit(function() {
-			this.physics = PhysicsWorld.active;
 			this.body = this.object.getTrait(RigidBody);
 		});
 
 		notifyOnUpdate(function() {
-			if (this.game.state != PLAYING) return;
+			if (this.game.getState() != PLAYING) return;
 			if (!this.body.ready) return;
 			
 			if (this.kb.started("up") || this.kb.started("w")) jumpForward();
@@ -39,17 +37,17 @@ class Player extends GameTrait
 			this.body.syncTransform();
 			
 			// TODO: move collision checks to GameController
-			var collisionObjects = physics.getContacts(this.body);
+			// var collisionObjects = physics.getContacts(this.body);
 
-			if (collisionObjects != null) {
-				trace(collisionObjects.length);
-				for (cObject in collisionObjects) {
-					if (cObject.object.getTrait(Vehicle) != null) {
-						if (Scene.active.raw.name == "Game") this.dead = true; // IN SCENE 1
-						if (Scene.active.raw.name == "Game 2") trace("FLING CAR"); // IN SCENE 2
-					}
-				}
-			}
+			// if (collisionObjects != null) {
+			// 	trace(collisionObjects.length);
+			// 	for (cObject in collisionObjects) {
+			// 		if (cObject.object.getTrait(Vehicle) != null) {
+			// 			if (Scene.active.raw.name == "Game") this.dead = true; // IN SCENE 1
+			// 			if (Scene.active.raw.name == "Game 2") trace("FLING CAR"); // IN SCENE 2
+			// 		}
+			// 	 }
+			// }
 		});
 	}
 

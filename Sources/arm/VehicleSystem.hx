@@ -14,9 +14,9 @@ class VehicleSystem
 
 	private var vehicles: Array<Vehicle> = [];
 
-	public function new(gameSystem: GameController)
+	public function new(gameController: GameController)
 	{
-		this.game = gameSystem;
+		this.game = gameController;
 	}
 
 	public function update()
@@ -30,7 +30,7 @@ class VehicleSystem
 	{
 		var vehicle;
 
-		this.game.scene.spawnObject(
+		this.game.getScene().spawnObject(
 			cast(type, String),
 			null,
 			function(v) {

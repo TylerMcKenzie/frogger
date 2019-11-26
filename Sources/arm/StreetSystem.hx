@@ -10,15 +10,15 @@ class StreetSystem
 	private var game: GameController;
 	private var streets: Array<Object> = [];
 
-	public function new(gameSystem) 
+	public function new(gameController) 
 	{
-		this.game = gameSystem;
+		this.game = gameController;
 	}
 
 	public function getStreet(type) : Object
 	{
 		var street;
-		this.game.scene.spawnObject(
+		this.game.getScene().spawnObject(
 			cast(type, String), 
 			null, 
 			function(streetObject) {
