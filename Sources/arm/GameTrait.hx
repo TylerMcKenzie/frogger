@@ -9,4 +9,6 @@ class GameTrait extends iron.Trait
 		super();
 		game = GameController.getInstance();
 	}
+
+	public function reset(){}
 }
