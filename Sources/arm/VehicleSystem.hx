@@ -1,7 +1,6 @@
 package arm;
 
 import iron.object.Object;
-import VEHICLE_TYPE;
 
 class VehicleSystem
 {

@@ -7,8 +7,6 @@ import iron.system.Input;
 import armory.trait.physics.RigidBody;
 import armory.trait.physics.PhysicsWorld;
 
-import arm.Enum.StepConfig;
-
 class Player extends GameTrait 
 {
 	private var kb = Input.getKeyboard();
@@ -39,7 +37,8 @@ class Player extends GameTrait
 			if (this.kb.started("right") || this.kb.started("d")) jumpRight();
 			
 			this.body.syncTransform();
-
+			
+			// TODO: move collision checks to GameController
 			var collisionObjects = physics.getContacts(this.body);
 
 			if (collisionObjects != null) {

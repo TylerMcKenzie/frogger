@@ -1,44 +1,47 @@
 package arm;
 
-import ObjectStructs.GAME_STATE;
+import iron.system.Input;
 
 class GameController
 {
-	public static var state: GAME_STATE;
-
+    public static var keyboard: Keyboard = null;
 	public static var scene: Scene;
-
-    public static var keyboard:Keyboard = null;
-
-	private static var player: Object;
-
+	public static var state: GAME_STATE;
     public static var streetSystem: StreetSystem;
 	public static var vehicleSystem: VehicleSystem;
 
-	private static var menuObjects = [];
-	private static var titleObjects = [];
 	private static var gameObjects = [];
+	private static var menuObjects = [];
+	private static var player: Object;
+	private static var physics:PhysicsWorld;
+	private static var titleObjects = [];
 
-
+    // TODO: REPLACE THESE WITH SETTERS TO ALLOW CUSTOM SCENE SETUP
     public static function init()
     {
-        scene         = Scene.active;
-		streetSystem  = new StreetSystem(createInstance());
-		vehicleSystem = new VehicleSystem(createInstance());
+        // These should be instanced to each scene, will need setters
+        scene   = Scene.active;
+        physics = PhysicsWorld.active;
+
+		streetSystem  = new StreetSystem(getInstance());
+		vehicleSystem = new VehicleSystem(getInstance());
         player        = scene.getChild("Player_Frog");
+        // TODO: REMOVE THESE
         getMenuObjects();
         getTitleObjects();
         getGameObjects();
+        // TODO: REMOVE THESE
     }
 
     public static function update()
     {
-        if (keyboard == null ) keyboard = iron.system.Input.getKeyboard();
+        if (keyboard == null ) keyboard = Input.getKeyboard();
 
-        //DEBUG
+        // REMOVE THIS SWITCHING TO SCENE MANAGER
         if (keyboard.started("1")) {
             setState(TITLE);
         }
+        // REMOVE THIS SWITCHING TO SCENE MANAGER
 
         if (keyboard.started("2")) {
             setState(MENU);
@@ -52,16 +55,7 @@ class GameController
             setState(GAME_OVER);
         }
 
-        if (keyboard.started("5")) {
-            var spawnLoc = new Vec4(0,0,0);
-            var v = vehicleSystem.getRandomVehicle();
-            v.transform.loc.setFrom(spawnLoc);
-            v.transform.buildMatrix();
-            var vehicleTrait = v.getTrait(Vehicle);
-            vehicleTrait.setDirection(new Vec4(0, -1, 0));
-            vehicleTrait.setActive(true);
-        }
-
+        // MOVE THIS TO A TRAIT or adjust scene stream? camera render distance?
         // vehicle visibility logic
         for (vehicle in vehicleSystem.getVehicles()) {
             if (
@@ -95,12 +89,14 @@ class GameController
                 street.remove();
             }
         }
+        // MOVE THIS TO A TRAIT
+
 
         // WIN LEVEL
         var finish = streetSystem.getFinish();
         if (finish != null) {
             if (player.transform.world.getLoc().y >= finish.transform.world.getLoc().y) {
-                // Show Finish screen
+                // Show Finish screen - Canvas
 
                 // Switch to endless mode
                 this.setState(GAME_2);
@@ -113,7 +109,7 @@ class GameController
         }
     }
 
-    public static function createInstance()
+    public static function getInstance()
     {
         return Type.createEmptyInstance(GameController);
     }
@@ -232,4 +228,20 @@ class GameController
 		gameObjects.push(scene.getChild("Street"));
 		gameObjects.push(scene.getChild("Street_Grass"));
 	}
+
+    private static function getPlayerCollision()
+    {
+        // TODO: move collision checks to GameController
+        var collisionObjects = physics.getContacts(this.body);
+
+        if (collisionObjects != null) {
+            trace(collisionObjects.length);
+            for (cObject in collisionObjects) {
+                if (cObject.object.getTrait(Vehicle) != null) {
+                    if (Scene.active.raw.name == "Game") this.dead = true; // IN SCENE 1
+                    if (Scene.active.raw.name == "Game 2") trace("FLING CAR"); // IN SCENE 2
+                }
+            }
+        }
+    }
 }
