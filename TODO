@@ -1,18 +1,24 @@
 ---- 11/22/19 ----: 
 Game notes:
     CLEAN UP/REFACTOR/ADD:
+        Scenes:
+            ☐ Move title into its own blender scene
+            ☐ move "Frogger" section to its own scene
+            ☐ create scene "Mech Runner" for the Mech runner scene
         GameSystem:
-            ☐ Move game logic from trait to static class
-                ☐ Easier to pass from scene to scene
-                ☐ Persistent state
-                ☐ Global access
+            ☐ add scene loader? 
+                # lets me separate scene logic from game logic? or are scenes bad?
+            ✔ Move game logic from trait to static class @done(19-11-26 10:06)
+                ✔ Easier to pass from scene to scene @done(19-11-26 10:06)
+                ✔ Persistent state @done(19-11-26 10:06)
+                ✔ Global access @done(19-11-26 10:06)
             ☐ Make trait call static class
             ✔ Move enum abstract to own file @done(19-11-22 14:57)
                 ✔ Increase visibility into configs @done(19-11-22 14:57)
             ☐ Move visibility logic to a trait
+                # Maybe just need to adjust scene render distance? TEST
                 ☐ Add player target for render distance
         Player:
-            ☐ TODO
             ☐ Finish rigging
             ☐ Add simple hop animation
             ☐ Hop sound
