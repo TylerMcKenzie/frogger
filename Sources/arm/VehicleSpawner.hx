@@ -1,14 +1,11 @@
 package arm;
 
-import arm.system.VehicleSystem;
 import iron.math.Vec4;
 import iron.system.Time;
 import kha.FastFloat;
 
 class VehicleSpawner extends GameTrait
 {
-	private var system: VehicleSystem;
-
 	@prop
 	private var spawnFrequency: FastFloat = -1.0;
 
@@ -35,7 +32,6 @@ class VehicleSpawner extends GameTrait
 	public function new()
 	{
 		super();
-		this.system = this.game.vehicleSystem;
 
 		if (this.spawnFrequency == -1) {
 			this.isRandomFrequency = true;
@@ -88,7 +84,7 @@ class VehicleSpawner extends GameTrait
 
 	private function spawnVehicle()
 	{
-		var vehicleObject = this.system.getRandomVehicle();
+		var vehicleObject = GameController.vehicleSystem.getRandomVehicle();
 		var vehicleTrait = vehicleObject.getTrait(Vehicle);
 		vehicleObject.transform.loc.setFrom(object.transform.world.getLoc());
 		vehicleObject.transform.buildMatrix();

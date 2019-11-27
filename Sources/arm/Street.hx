@@ -1,13 +1,11 @@
 package arm;
 
-import arm.system.StreetSystem;
 import iron.object.Object;
 import kha.FastFloat;
 
 class Street extends GameTrait 
 {
 	public static var STREET_SIZE: FastFloat = 6;
-	private var system: StreetSystem;
 	private var registered: Bool = false;
 	private var isEnd: Bool = false;
 	private var spawner: Object;
@@ -17,12 +15,10 @@ class Street extends GameTrait
 	{
 		super();
 		// TODO ADD REMOVE FROM SYSTEM LOGIC
-		notifyOnInit(function() {
-			this.system = this.game.streetSystem;
-		});
+		notifyOnInit(function() {});
 
 		notifyOnRemove(function() {
-			this.system.unregister(this.object);
+			GameController.streetSystem.unregister(this.object);
 		});
 	}
 

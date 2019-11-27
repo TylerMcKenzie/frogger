@@ -11,14 +11,9 @@ class VehicleSystem
 		TRUCK_S
 	];
 
-	private var game: GameController;
-
 	private var vehicles: Array<Vehicle> = [];
 
-	public function new(gameController: GameController)
-	{
-		this.game = gameController;
-	}
+	public function new() {}
 
 	public function update()
 	{

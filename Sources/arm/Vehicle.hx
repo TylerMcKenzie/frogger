@@ -1,7 +1,6 @@
 package arm;
 
 import armory.trait.physics.RigidBody;
-import arm.system.VehicleSystem;
 import iron.system.Time;
 import iron.math.Vec4;
 
@@ -18,7 +17,6 @@ class Vehicle extends GameTrait
 
 	private var direction: Vec4;
 	private var speed: FastFloat = 0.5;
-	private var system: VehicleSystem;
 
 	private var body: RigidBody;
 
@@ -27,8 +25,7 @@ class Vehicle extends GameTrait
 		super();
 
 		notifyOnInit(function() {
-			this.system = this.game.vehicleSystem;
-			this.system.register(this);
+			GameController.vehicleSystem.register(this);
 
 			this.body = this.object.getTrait(RigidBody);
 		});
@@ -52,7 +49,7 @@ class Vehicle extends GameTrait
 		});
 
 		notifyOnRemove(function() {
-			this.system.unregister(this);
+			GameController.vehicleSystem.unregister(this);
 		});
 	}
 

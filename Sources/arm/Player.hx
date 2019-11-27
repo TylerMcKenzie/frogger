@@ -1,12 +1,11 @@
 package arm;
 
-import iron.Scene;
 import kha.FastFloat;
 import iron.system.Input;
 
 import armory.trait.physics.RigidBody;
 
-class Player extends GameTrait 
+class Player extends iron.Trait 
 {
 	private var kb: Keyboard = Input.getKeyboard();
 	private var stepX: FastFloat = cast PLAYER_STEP_X;
@@ -21,30 +20,30 @@ class Player extends GameTrait
 		super();
 
 		notifyOnInit(function() {
-			this.body = this.object.getTrait(RigidBody);
+			body = object.getTrait(RigidBody);
 		});
 
 		notifyOnUpdate(function() {
-			if (this.game.getState() != PLAYING) return;
-			if (!this.body.ready) return;
+			if (GameController.getState() != PLAYING) return;
+			if (!body.ready) return;
 			
-			if (this.kb.started("up") || this.kb.started("w")) jumpForward();
-			// if (this.kb.started("down") || this.kb.started("s")) jumpBackward();
-			if (this.kb.started("left") || this.kb.started("a")) jumpLeft();
-			if (this.kb.started("right") || this.kb.started("d")) jumpRight();
+			if (kb.started("up") || kb.started("w")) jumpForward();
+			// if (kb.started("down") || kb.started("s")) jumpBackward();
+			if (kb.started("left") || kb.started("a")) jumpLeft();
+			if (kb.started("right") || kb.started("d")) jumpRight();
 			
-			this.body.syncTransform();
+			body.syncTransform();
 		});
 	}
 
 	override public function reset()
 	{
-		this.dead = false;
+		dead = false;
 	}
 
 	private function jumpForward() 
 	{
-		this.object.transform.translate(0, stepY, 0);
+		object.transform.translate(0, stepY, 0);
 	}
 
 	private function jumpBackward() 
@@ -64,6 +63,6 @@ class Player extends GameTrait
 
 	public function isDead()
 	{
-		return this.dead;
+		return dead;
 	}
 }

@@ -2,24 +2,18 @@ package arm.system;
 
 import iron.math.Vec4;
 import iron.object.Object;
-
-import armory.system.Event;
 import arm.config.STREET_TYPES;
 
 class StreetSystem 
 {
-	private var game: GameController;
 	private var streets: Array<Object> = [];
 
-	public function new(gameController) 
-	{
-		this.game = gameController;
-	}
+	public function new() {}
 
 	public function getStreet(type) : Object
 	{
 		var street;
-		this.game.getScene().spawnObject(
+		GameController.getScene().spawnObject(
 			cast(type, String), 
 			null, 
 			function(streetObject) {
