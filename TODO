@@ -8,6 +8,21 @@ Game notes:
         GameSystem:
             ☐ add scene loader? 
                 # lets me separate scene logic from game logic? or are scenes bad?
+                ☐ Create scene controllers
+            ☐ move game logic into new scene controllers
+                ☐ Title
+                    ☐ standard menu
+                        ☐ start
+                        ☐ quit
+                        ☐ setting?
+                ☐ Frogger
+                    ☐ show death text
+                    ☐ control vehicle spawns and rendering
+                ☐ Runner
+                    ☐ show death text
+                    ☐ control vehicle spawns and rendering
+                    ☐ points
+                    ☐ power up energy level
             ✔ Move game logic from trait to static class @done(19-11-26 10:06)
                 ✔ Easier to pass from scene to scene @done(19-11-26 10:06)
                 ✔ Persistent state @done(19-11-26 10:06)
@@ -38,7 +53,7 @@ Game notes:
                 ☐ Player hit(thud)
                 ☐ Player hit(crash) <- when player is in mech
         VehicleSystem:
-            ☐ Move enum to configs location
+            ✔ Move enum to configs location @done(19-11-27 12:37)
             ☐ Remove useless code
             ☐ Set vehicle.registered = true when ‘register()’ is called
         Street:
