@@ -12,13 +12,10 @@ class GameController
     public static var streetSystem: StreetSystem;
 	public static var vehicleSystem: VehicleSystem;
 
-	private static var gameObjects = [];
-	private static var menuObjects = [];
 	private static var player: Object;
 	private static var physics: PhysicsWorld;
 	private static var state: GAME_STATE;
 	private static var scene: Scene;
-	private static var titleObjects = [];
 
     // TODO: REPLACE THESE WITH SETTERS TO ALLOW CUSTOM SCENE SETUP
     public static function init()
@@ -30,11 +27,6 @@ class GameController
 		streetSystem  = new StreetSystem(getInstance());
 		vehicleSystem = new VehicleSystem(getInstance());
         player        = scene.getChild("Player_Frog");
-        // TODO: REMOVE THESE
-        getMenuObjects();
-        getTitleObjects();
-        getGameObjects();
-        // TODO: REMOVE THESE
     }
 
     public static function update()
@@ -103,7 +95,7 @@ class GameController
                 // Show Finish screen - Canvas
 
                 // Switch to endless mode
-                this.setState(GAME_2);
+                setState(GAME_2);
             }
         }
 
@@ -138,21 +130,7 @@ class GameController
 		state = s;
 
 		switch state {
-            case TITLE:
-                hideGameObjects();
-                hideMenuObjects();
-
-                showTitleObjects();
-            case MENU:
-                hideGameObjects();
-                hideTitleObjects();
-
-                showMenuObjects();
             case PLAYING:
-                hideTitleObjects();
-                hideMenuObjects();
-                showGameObjects();
-
                 var start = scene.getChild("LEVEL_START");
                 var startLocation = start.transform.world.getLoc();
                 streetSystem.createStreetPath(startLocation, 41);
@@ -182,70 +160,6 @@ class GameController
             case GAME_2:
                 Scene.setActive("Game 2");
         }
-	}
-
-    private static function hideMenuObjects() 
-	{
-		for (mo in menuObjects) {
-			mo.visible = false;
-		}
-	}
-
-	private static function showMenuObjects() 
-	{
-		for (mo in menuObjects) {
-			mo.visible = true;
-		}
-	}
-
-	private static function getMenuObjects() 
-	{
-		menuObjects.push(scene.getChild("EXIT_TEXT"));
-		menuObjects.push(scene.getChild("START_GAME_TEXT"));
-	}
-
-	private static function hideTitleObjects() 
-	{
-		for (to in titleObjects) {
-			to.visible = false;
-		}
-	}
-
-	private static function showTitleObjects() 
-	{
-		for (to in titleObjects) {
-			to.visible = true;
-		}
-	}
-
-	private static function getTitleObjects() 
-	{
-		titleObjects.push(scene.getChild("Title"));
-		titleObjects.push(scene.getChild("Title_Frog"));
-		for (titleStreet in scene.getGroup("TITLE_STREETS")) {
-			titleObjects.push(titleStreet);
-		}
-	}
-
-	private static function hideGameObjects() 
-	{
-		for (go in gameObjects) {
-			go.visible = false;
-		}
-	}
-
-	private static function showGameObjects() 
-	{
-		for (go in gameObjects) {
-			go.visible = true;
-		}
-	}
-	
-	private static function getGameObjects() 
-	{
-		gameObjects.push(player);
-		gameObjects.push(scene.getChild("Street"));
-		gameObjects.push(scene.getChild("Street_Grass"));
 	}
 
     private static function getPlayerCollision()
