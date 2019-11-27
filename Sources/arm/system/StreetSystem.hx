@@ -1,9 +1,10 @@
-package arm;
+package arm.system;
 
 import iron.math.Vec4;
 import iron.object.Object;
 
 import armory.system.Event;
+import arm.config.STREET_TYPES;
 
 class StreetSystem 
 {

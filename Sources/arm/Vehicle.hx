@@ -1,6 +1,7 @@
 package arm;
 
 import armory.trait.physics.RigidBody;
+import arm.system.VehicleSystem;
 import iron.system.Time;
 import iron.math.Vec4;
 

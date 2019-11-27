@@ -1,6 +1,10 @@
 package arm;
 
+import arm.config.GAME_STATE;
+import arm.system.StreetSystem;
+import arm.system.VehicleSystem;
 import iron.system.Input;
+
 
 class GameController
 {
@@ -11,7 +15,7 @@ class GameController
 	private static var gameObjects = [];
 	private static var menuObjects = [];
 	private static var player: Object;
-	private static var physics:PhysicsWorld;
+	private static var physics: PhysicsWorld;
 	private static var state: GAME_STATE;
 	private static var scene: Scene;
 	private static var titleObjects = [];

@@ -1,4 +1,4 @@
-package arm;
+package arm.config;
 
 enum abstract STREET_TYPES(String) 
 {

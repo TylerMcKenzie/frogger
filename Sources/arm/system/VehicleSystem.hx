@@ -1,5 +1,6 @@
-package arm;
+package arm.system;
 
+import arm.config.VEHICLE_TYPE;
 import iron.object.Object;
 
 class VehicleSystem

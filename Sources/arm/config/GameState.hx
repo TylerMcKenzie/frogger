@@ -1,4 +1,4 @@
-package arm;
+package arm.config;
 
 enum abstract GAME_STATE(Int) 
 {

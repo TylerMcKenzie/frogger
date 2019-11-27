@@ -12,7 +12,6 @@ class Player extends GameTrait
 	private var stepX: FastFloat = cast PLAYER_STEP_X;
 	private var stepY: FastFloat = cast PLAYER_STEP_Y;
 
-	private var physics: PhysicsWorld;
 	private var body: RigidBody;
 
 	private var dead: Bool = false;
@@ -35,19 +34,6 @@ class Player extends GameTrait
 			if (this.kb.started("right") || this.kb.started("d")) jumpRight();
 			
 			this.body.syncTransform();
-			
-			// TODO: move collision checks to GameController
-			// var collisionObjects = physics.getContacts(this.body);
-
-			// if (collisionObjects != null) {
-			// 	trace(collisionObjects.length);
-			// 	for (cObject in collisionObjects) {
-			// 		if (cObject.object.getTrait(Vehicle) != null) {
-			// 			if (Scene.active.raw.name == "Game") this.dead = true; // IN SCENE 1
-			// 			if (Scene.active.raw.name == "Game 2") trace("FLING CAR"); // IN SCENE 2
-			// 		}
-			// 	 }
-			// }
 		});
 	}
 
