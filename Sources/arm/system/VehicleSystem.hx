@@ -1,11 +1,12 @@
 package arm.system;
 
-import arm.config.VEHICLE_TYPE;
+import arm.config.VehicleType;
 import iron.object.Object;
+import iron.Scene;
 
 class VehicleSystem
 {
-	public static var VEHICLES: Array<VEHICLE_TYPE> = [
+	public static var VEHICLES: Array<VehicleType> = [
 		TRUCK_L,
 		TRUCK_M,
 		TRUCK_S
@@ -26,7 +27,7 @@ class VehicleSystem
 	{
 		var vehicle;
 
-		this.game.getScene().spawnObject(
+		Scene.active.spawnObject(
 			cast(type, String),
 			null,
 			function(v) {

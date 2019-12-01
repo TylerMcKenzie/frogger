@@ -2,7 +2,8 @@ package arm.system;
 
 import iron.math.Vec4;
 import iron.object.Object;
-import arm.config.STREET_TYPES;
+import iron.Scene;
+import arm.config.StreetTypes;
 
 class StreetSystem 
 {
@@ -13,7 +14,7 @@ class StreetSystem
 	public function getStreet(type) : Object
 	{
 		var street;
-		GameController.getScene().spawnObject(
+		Scene.active.spawnObject(
 			cast(type, String), 
 			null, 
 			function(streetObject) {

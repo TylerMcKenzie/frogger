@@ -6,7 +6,7 @@ import iron.math.Vec4;
 
 import kha.FastFloat;
 
-class Vehicle extends GameTrait
+class Vehicle extends iron.Trait
 {
 	private var type: String;
 

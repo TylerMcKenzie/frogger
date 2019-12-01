@@ -4,7 +4,7 @@ import iron.math.Vec4;
 import iron.system.Time;
 import kha.FastFloat;
 
-class VehicleSpawner extends GameTrait
+class VehicleSpawner extends iron.Trait
 {
 	@prop
 	private var spawnFrequency: FastFloat = -1.0;
@@ -69,7 +69,7 @@ class VehicleSpawner extends GameTrait
 		this.active = active;
 	}
 
-	override public function reset()
+	public function reset()
 	{
 		this.isRandomFrequency = false;
 		this.active = false;

@@ -3,7 +3,7 @@ package arm;
 import iron.object.Object;
 import kha.FastFloat;
 
-class Street extends GameTrait 
+class Street extends iron.Trait 
 {
 	public static var STREET_SIZE: FastFloat = 6;
 	private var registered: Bool = false;

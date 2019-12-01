@@ -1,15 +1,22 @@
 package arm.scenes;
 
 import armory.trait.physics.PhysicsWorld;
+import iron.object.Object;
+import iron.system.Input;
+import iron.Scene;
 
 class Frogger extends iron.Trait
 {
     private var physics: PhysicsWorld;
 
+    private var player: Object;
+
+    private var keyboard: Keyboard;
+
     public function new()
     {
         super();
-        notifyonInit(init);
+        notifyOnInit(init);
         notifyOnUpdate(update);
     }
 
@@ -18,33 +25,22 @@ class Frogger extends iron.Trait
         // These should be instanced to each scene, will need setters
         physics = PhysicsWorld.active;
         player  = Scene.active.getChild("Player_Frog");
+        GameController.setState(PLAYING);
+        var start = Scene.active.getChild("LEVEL_START");
+        var startLocation = start.transform.world.getLoc();
+        GameController.streetSystem.createStreetPath(startLocation, 31);
+        player.transform.loc.x = startLocation.x;
+        player.transform.loc.y = startLocation.y;
+        player.transform.buildMatrix();
     }
 
     public function update()
     {
         if (keyboard == null ) keyboard = Input.getKeyboard();
 
-        // REMOVE THIS SWITCHING TO SCENE MANAGER
-        if (keyboard.started("1")) {
-            setState(TITLE);
-        }
-        // REMOVE THIS SWITCHING TO SCENE MANAGER
-
-        if (keyboard.started("2")) {
-            setState(MENU);
-        }
-
-        if (keyboard.started("3")) {
-            setState(PLAYING);
-        }
-
-        if (keyboard.started("4")) {
-            setState(GAME_OVER);
-        }
-
         // MOVE THIS TO A TRAIT or adjust scene stream? camera render distance?
         // vehicle visibility logic
-        for (vehicle in vehicleSystem.getVehicles()) {
+        for (vehicle in GameController.vehicleSystem.getVehicles()) {
             if (
                 vehicle.object.transform.world.getLoc().y < player.transform.world.getLoc().y + 24
             ) {
@@ -55,7 +51,7 @@ class Frogger extends iron.Trait
         }
 
         // street visibility + spawner logic
-        for (street in streetSystem.getStreets()) {
+        for (street in GameController.streetSystem.getStreets()) {
             var streetTrait = street.getTrait(Street);
             if (
                 street.transform.world.getLoc().y < player.transform.world.getLoc().y + 48
@@ -80,67 +76,70 @@ class Frogger extends iron.Trait
 
 
         // WIN LEVEL
-        var finish = streetSystem.getFinish();
+        var finish = GameController.streetSystem.getFinish();
         if (finish != null) {
             if (player.transform.world.getLoc().y >= finish.transform.world.getLoc().y) {
                 // Show Finish screen - Canvas
 
                 // Switch to endless mode
-                setState(GAME_2);
+                // setState(GAME_2);
+                trace("Go to mech mode, disable this mode.");
             }
         }
 
         if (player != null && player.getTrait(Player).isDead()) {
-            setState(GAME_OVER);
+            GameController.setState(GAME_OVER);
             trace("OVER?");
         }
 
-        // switch state {
-        //     case PLAYING:
-        //         var start = Scene.active.getChild("LEVEL_START");
-        //         var startLocation = start.transform.world.getLoc();
-        //         streetSystem.createStreetPath(startLocation, 41);
-        //         player.transform.loc.x = startLocation.x;
-        //         player.transform.loc.y = startLocation.y;
-        //         player.transform.buildMatrix();
-        //     case GAME_OVER:
-        //         // Disable spawners
-        //         for (street in streetSystem.getStreets()) {
-        //             var spawner = street.getTrait(Street).getSpawner();
+        var state = GameController.getState();
+        switch state {
+            case PLAYING:
+                if (getPlayerCollision() == true) trace("message revieved");
+            case GAME_OVER:
+                // Disable spawners
+                for (street in GameController.streetSystem.getStreets()) {
+                    var spawner = street.getTrait(Street).getSpawner();
 
-        //             if (spawner != null) {
-        //                 spawner.getTrait(VehicleSpawner).setActive(false);
-        //             }
-        //         }
+                    if (spawner != null) {
+                        spawner.getTrait(VehicleSpawner).setActive(false);
+                    }
+                }
 
-        //         // Show game over text
-        //         var gameOverText = Scene.active.getChild("GAME_OVER_TEXT");
-        //         gameOverText.visible = true;
-        //         // Reset game and go back to begining
-        //         streetSystem.removeStreets();
+                // Show game over text
+                var gameOverText = Scene.active.getChild("GAME_OVER_TEXT");
+                gameOverText.visible = true;
+                // Reset game and go back to begining
+                GameController.streetSystem.removeStreets();
 
-        //         player.getTrait(Player).reset();
+                player.getTrait(Player).reset();
                 
-        //         setState(PLAYING);
+                GameController.setState(PLAYING);
                 
-        //     case GAME_2:
-        //         Scene.setActive("Game 2");
-        // }
+            // case GAME_2:
+            //     Scene.setActive("03_Runner");
+        }
     }
     
-    private static function getPlayerCollision()
+    private function getPlayerCollision()
     {
         // TODO: move collision checks to GameController
-        var collisionObjects = physics.getContacts(this.body);
+        var collisionObjects = physics.getContacts(player.getTrait(Player).getBody());
 
         if (collisionObjects != null) {
             trace(collisionObjects.length);
             for (cObject in collisionObjects) {
                 if (cObject.object.getTrait(Vehicle) != null) {
-                    if (Scene.active.raw.name == "Game") this.dead = true; // IN SCENE 1
-                    if (Scene.active.raw.name == "Game 2") trace("FLING CAR"); // IN SCENE 2
+                    if (Scene.active.raw.name == "02_Frogger") {
+                        trace("Player dead"); // IN SCENE 1
+                        return true;
+                    }
+
+                    if (Scene.active.raw.name == "03_Runner") trace("FLING CAR"); // IN SCENE 2
                 }
             }
         }
+
+        return false;
     }
 }

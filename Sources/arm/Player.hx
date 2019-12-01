@@ -4,6 +4,7 @@ import kha.FastFloat;
 import iron.system.Input;
 
 import armory.trait.physics.RigidBody;
+import arm.config.StepConfig;
 
 class Player extends iron.Trait 
 {
@@ -36,9 +37,14 @@ class Player extends iron.Trait
 		});
 	}
 
-	override public function reset()
+	public function reset()
 	{
 		dead = false;
+	}
+
+	public function getBody()
+	{
+		return this.body;
 	}
 
 	private function jumpForward() 

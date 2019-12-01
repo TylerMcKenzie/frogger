@@ -1,6 +1,6 @@
 package arm.config;
 
-enum abstract VEHICLE_TYPE(String)
+enum abstract VehicleType(String)
 {
 	var TRUCK_L = "Truck_L";
 	var TRUCK_M = "Truck_M";
