@@ -27,6 +27,7 @@
 -D rp_antialiasing=SMAA
 -D rp_supersampling=1
 -D rp_ssgi=SSAO
+-D rp_dynres
 -D arm_audio
 -D arm_physics
 -D arm_bullet
@@ -59,31 +60,31 @@
 -D kha_version=1810
 -D kha_project_name=frogger
 -js html5/kha.js
-arm.Player
---macro keep('arm.Player')
-arm.Street
---macro keep('arm.Street')
-arm.scenes.Title
---macro keep('arm.scenes.Title')
-arm.VehicleSpawner
---macro keep('arm.VehicleSpawner')
-armory.trait.FollowCamera
---macro keep('armory.trait.FollowCamera')
-arm.scenes.Frogger
---macro keep('arm.scenes.Frogger')
 armory.trait.internal.CanvasScript
 --macro keep('armory.trait.internal.CanvasScript')
-armory.trait.WalkNavigation
---macro keep('armory.trait.WalkNavigation')
-arm.Vehicle
---macro keep('arm.Vehicle')
-armory.trait.physics.bullet.RigidBody
---macro keep('armory.trait.physics.bullet.RigidBody')
 armory.trait.internal.DebugConsole
 --macro keep('armory.trait.internal.DebugConsole')
+arm.Player
+--macro keep('arm.Player')
+arm.scenes.Frogger
+--macro keep('arm.scenes.Frogger')
+arm.VehicleSpawner
+--macro keep('arm.VehicleSpawner')
+armory.trait.physics.bullet.RigidBody
+--macro keep('armory.trait.physics.bullet.RigidBody')
+arm.Street
+--macro keep('arm.Street')
+armory.trait.WalkNavigation
+--macro keep('armory.trait.WalkNavigation')
+arm.scenes.Title
+--macro keep('arm.scenes.Title')
+arm.Vehicle
+--macro keep('arm.Vehicle')
 armory.trait.internal.Bridge
 --macro keep('armory.trait.internal.Bridge')
 armory.trait.physics.bullet.PhysicsWorld
 --macro keep('armory.trait.physics.bullet.PhysicsWorld')
+armory.trait.FollowCamera
+--macro keep('armory.trait.FollowCamera')
 --times
 -main Main

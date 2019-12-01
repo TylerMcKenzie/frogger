@@ -1670,28 +1670,8 @@
 			],
 			"uniforms": [
 				{
-					"name": "scloudsBase",
-					"type": "sampler3D"
-				},
-				{
-					"name": "scloudsMap",
-					"type": "sampler2D"
-				},
-				{
-					"name": "scloudsDetail",
-					"type": "sampler3D"
-				},
-				{
-					"name": "time",
-					"type": "float"
-				},
-				{
 					"name": "backgroundCol",
 					"type": "vec3"
-				},
-				{
-					"name": "envmapStrength",
-					"type": "float"
 				}
 			],
 			"types": []

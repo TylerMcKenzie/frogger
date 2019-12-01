@@ -54,7 +54,7 @@ class Frogger extends iron.Trait
         for (street in GameController.streetSystem.getStreets()) {
             var streetTrait = street.getTrait(Street);
             if (
-                street.transform.world.getLoc().y < player.transform.world.getLoc().y + 48
+                street.transform.world.getLoc().y < player.transform.world.getLoc().y + 24
             ) {
                 // Activate spawns
                 if (streetTrait.getSpawner() != null) {
@@ -95,7 +95,7 @@ class Frogger extends iron.Trait
         var state = GameController.getState();
         switch state {
             case PLAYING:
-                if (getPlayerCollision() == true) trace("message revieved");
+                if (getPlayerCollision() == true) trace("message received");
             case GAME_OVER:
                 // Disable spawners
                 for (street in GameController.streetSystem.getStreets()) {
@@ -107,35 +107,24 @@ class Frogger extends iron.Trait
                 }
 
                 // Show game over text
-                var gameOverText = Scene.active.getChild("GAME_OVER_TEXT");
-                gameOverText.visible = true;
+                // TODO CANVAS STUFF
                 // Reset game and go back to begining
                 GameController.streetSystem.removeStreets();
 
                 player.getTrait(Player).reset();
                 
                 GameController.setState(PLAYING);
-                
-            // case GAME_2:
-            //     Scene.setActive("03_Runner");
         }
     }
     
     private function getPlayerCollision()
     {
-        // TODO: move collision checks to GameController
         var collisionObjects = physics.getContacts(player.getTrait(Player).getBody());
 
         if (collisionObjects != null) {
-            trace(collisionObjects.length);
             for (cObject in collisionObjects) {
                 if (cObject.object.getTrait(Vehicle) != null) {
-                    if (Scene.active.raw.name == "02_Frogger") {
-                        trace("Player dead"); // IN SCENE 1
-                        return true;
-                    }
-
-                    if (Scene.active.raw.name == "03_Runner") trace("FLING CAR"); // IN SCENE 2
+                    return true;
                 }
             }
         }
