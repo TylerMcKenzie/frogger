@@ -111,7 +111,7 @@ Main.main = function() {
 	iron_object_BoneAnimation.skinMaxBones = 8;
 	iron_object_LightObject.cascadeCount = 4;
 	iron_object_LightObject.cascadeSplitFactor = 0.800000011920929;
-	armory_system_Starter.main("02_Frogger",1,true,true,false,1600,1080,1,true,armory_renderpath_RenderPathCreator.get);
+	armory_system_Starter.main("01_Title",1,true,true,false,1600,1080,1,true,armory_renderpath_RenderPathCreator.get);
 };
 Math.__name__ = "Math";
 var Reflect = function() { };
