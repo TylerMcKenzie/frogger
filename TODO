@@ -2,18 +2,18 @@
 Game notes:
     CLEAN UP/REFACTOR/ADD:
         Scenes:
-            ☐ Move title into its own blender scene
-            ☐ move "Frogger" section to its own scene
-            ☐ create scene "Mech Runner" for the Mech runner scene
+            ✔ Move title into its own blender scene @done(19-12-02 12:50)
+            ✔ move "Frogger" section to its own scene @done(19-12-02 12:50)
+            ✔ create scene "Mech Runner" for the Mech runner scene @done(19-12-02 12:50)
         GameSystem:
             ☐ add scene loader? 
                 # lets me separate scene logic from game logic? or are scenes bad?
-                ☐ Create scene controllers
+                ✔ Create scene controllers @done(19-12-02 12:51)
             ☐ move game logic into new scene controllers
                 ☐ Title
                     ☐ standard menu
-                        ☐ start
-                        ☐ quit
+                        ✔ start @done(19-12-02 12:51)
+                        ✔ quit @done(19-12-02 12:51)
                         ☐ setting?
                 ☐ Frogger
                     ☐ show death text
@@ -27,7 +27,7 @@ Game notes:
                 ✔ Easier to pass from scene to scene @done(19-11-26 10:06)
                 ✔ Persistent state @done(19-11-26 10:06)
                 ✔ Global access @done(19-11-26 10:06)
-            ☐ Make trait call static class
+            ✔ Make trait call static class @done(19-12-02 12:53)
             ✔ Move enum abstract to own file @done(19-11-22 14:57)
                 ✔ Increase visibility into configs @done(19-11-22 14:57)
             ☐ Move visibility logic to a trait
@@ -59,8 +59,8 @@ Game notes:
         Street:
             ☐ Remove todo
         StreetSystem:
-            ☐ Move enum to configs
-            ☐ Remove commented code
+            ✔ Move enum to configs @done(19-12-02 12:54)
+            ✔ Remove commented code @done(19-12-02 12:54)
             ☐ Add street generation script from path
             ☐ Add add method for endless runner
             ☐ Can create randomizer params
@@ -71,8 +71,8 @@ Game notes:
         Title:
             ☐ Name as frog title
             ☐ Remove FrogTitle trait?
-            ☐ Play button
-            ☐ Quit button
+            ✔ Play button @done(19-12-02 12:54)
+            ✔ Quit button @done(19-12-02 12:54)
             ☐ Settings?
             ☐ Game Over Screen
                 ☐ Retry
