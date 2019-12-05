@@ -124,6 +124,7 @@ class Frogger extends iron.Trait
         if (collisionObjects != null) {
             for (cObject in collisionObjects) {
                 if (cObject.object.getTrait(Vehicle) != null) {
+                    trace("hit");
                     return true;
                 }
             }

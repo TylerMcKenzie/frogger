@@ -34,6 +34,12 @@ class Vehicle extends iron.Trait
 			if (this.active && this.alive) {
 				if (!this.body.ready) return;
 
+				if (this.direction.x > 0) {
+					this.object.transform.setRotation(0, 0, 0);
+				} else {
+					this.object.transform.setRotation(0, 0, 3.14);
+				}
+
 				this.object.transform.translate(direction.x * speed, direction.y * speed, direction.z * speed);
 				this.body.syncTransform();
 
