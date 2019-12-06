@@ -9,7 +9,7 @@ class Main {
         iron.object.LightObject.cascadeSplitFactor = 0.800000011920929;
         armory.system.Starter.main(
             '02_Frogger',
-            1,
+            0,
             true,
             true,
             false,
