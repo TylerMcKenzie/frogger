@@ -86,7 +86,8 @@ class VehicleSpawner extends iron.Trait
 	{
 		var vehicleObject = GameController.vehicleSystem.getRandomVehicle();
 		var vehicleTrait = vehicleObject.getTrait(Vehicle);
-		vehicleObject.transform.loc.setFrom(object.transform.world.getLoc());
+		var spawnLoc = object.transform.world.getLoc();
+		vehicleObject.transform.loc.set(spawnLoc.x, spawnLoc.y, vehicleObject.transform.loc.z);
 		vehicleObject.transform.buildMatrix();
 		vehicleTrait.setDirection(
 			new Vec4(
@@ -95,7 +96,7 @@ class VehicleSpawner extends iron.Trait
 				this.spawnDirectionZ
 			)
 		);
-		vehicleTrait.setLifeTime(8);
+		vehicleTrait.setLifeTime(3.25);
 		vehicleTrait.setActive(true);
 	}
 }

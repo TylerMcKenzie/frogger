@@ -39,6 +39,8 @@ project.addAssets("build_frogger/compiled/Shaders/*.arm", { notinlist: true });
 project.addAssets("/home/tyler/armory_ext/armsdk/armory/Assets/brdf.png", { notinlist: true });
 project.addAssets("/home/tyler/armory_ext/armsdk/armory/Assets/smaa_area.png", { notinlist: true });
 project.addAssets("/home/tyler/armory_ext/armsdk/armory/Assets/smaa_search.png", { notinlist: true });
+project.addAssets("Bundled/canvas/Frogger.files", { notinlist: true });
+project.addAssets("Bundled/canvas/Frogger.json", { notinlist: true });
 project.addAssets("Bundled/canvas/TitleCanvas.files", { notinlist: true });
 project.addAssets("Bundled/canvas/TitleCanvas.json", { notinlist: true });
 project.addShaders("/home/tyler/armory_ext/armsdk/armory/Shaders/debug_draw/**");

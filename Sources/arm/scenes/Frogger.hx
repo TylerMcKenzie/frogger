@@ -1,6 +1,8 @@
 package arm.scenes;
 
 import armory.trait.physics.PhysicsWorld;
+import armory.trait.internal.CanvasScript;
+import armory.system.Event;
 import iron.object.Object;
 import iron.system.Input;
 import iron.Scene;
@@ -12,6 +14,8 @@ class Frogger extends iron.Trait
     private var player: Object;
 
     private var keyboard: Keyboard;
+
+    private var gameOverCanvas: CanvasScript;
 
     public function new()
     {
@@ -25,6 +29,9 @@ class Frogger extends iron.Trait
         // These should be instanced to each scene, will need setters
         physics = PhysicsWorld.active;
         player  = Scene.active.getChild("Player_Frog");
+        gameOverCanvas = new CanvasScript("Frogger");
+        gameOverCanvas.setCanvasVisibility(true);
+        gameOverCanvas.getElement("gameOverParent").visible = false;
         GameController.setState(PLAYING);
         var start = Scene.active.getChild("LEVEL_START");
         var startLocation = start.transform.world.getLoc();
@@ -87,15 +94,13 @@ class Frogger extends iron.Trait
             }
         }
 
-        if (player != null && player.getTrait(Player).isDead()) {
-            GameController.setState(GAME_OVER);
-            trace("OVER?");
-        }
-
         var state = GameController.getState();
         switch state {
             case PLAYING:
-                if (getPlayerCollision() == true) trace("message received");
+                if (getPlayerCollision() == true) {
+                    trace("message received");
+                    gameOverCanvas.getElement("gameOverParent").visible = true;
+                }
             case GAME_OVER:
                 // Disable spawners
                 for (street in GameController.streetSystem.getStreets()) {
@@ -124,7 +129,6 @@ class Frogger extends iron.Trait
         if (collisionObjects != null) {
             for (cObject in collisionObjects) {
                 if (cObject.object.getTrait(Vehicle) != null) {
-                    trace("hit");
                     return true;
                 }
             }
