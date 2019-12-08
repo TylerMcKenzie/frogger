@@ -22,24 +22,30 @@ class Frogger extends iron.Trait
     public function new()
     {
         super();
-        notifyOnInit(init);
-        notifyOnUpdate(update);
+
+        notifyOnInit(onInit);
+        notifyOnUpdate(onUpdate);
+        notifyOnRemove(onRemove);
     }
 
-    public function init()
+    public function onInit()
     {
         // These should be instanced to each scene, will need setters
         // physics = PhysicsWorld.active;
         player  = Scene.active.getChild("Player_Frog");
 
         // Canvas stuff
-        gameOverCanvas = new CanvasScript("Frogger");
+        gameOverCanvas = Scene.active.getTrait(CanvasScript);
         gameOverCanvas.setCanvasVisibility(true);
         gameOverCanvas.getElement("gameOverParent").visible = false;
 
-        Event.add("reset-frogger", function() {});
-        Event.add("quit", function() {
-            System.stop();
+        Event.add("reset-frogger", function() {
+            // Wow this worked, but it feels hacky. Leaving it here until proved bad.
+            Scene.setActive("02_Frogger");
+        });
+
+        Event.add("goto-main-menu", function() {
+            Scene.setActive("01_Title");
         });
 
         GameController.setState(cast PLAYING);
@@ -73,7 +79,7 @@ class Frogger extends iron.Trait
         });
     }
 
-    public function update()
+    public function onUpdate()
     {
         if (player.getTrait(Player).isDead() == true) {
             GameController.setState(cast GAME_OVER);
@@ -127,5 +133,11 @@ class Frogger extends iron.Trait
                 trace("Go to mech mode, disable this mode.");
             }
         }
+    }
+
+    public function onRemove()
+    {
+        Event.remove("goto-menu");
+        Event.remove("reset-frogger");
     }
 }

@@ -87,7 +87,7 @@ Main.main = function() {
 	iron_object_BoneAnimation.skinMaxBones = 8;
 	iron_object_LightObject.cascadeCount = 4;
 	iron_object_LightObject.cascadeSplitFactor = 0.800000011920929;
-	armory_system_Starter.main("02_Frogger",0,true,true,false,1600,1080,1,true,armory_renderpath_RenderPathCreator.get);
+	armory_system_Starter.main("01_Title",0,true,true,false,1600,1080,1,true,armory_renderpath_RenderPathCreator.get);
 };
 Math.__name__ = "Math";
 var Reflect = function() { };
@@ -573,7 +573,6 @@ arm_Player.prototype = $extend(iron_Trait.prototype,{
 	,getVehicleCollision: function() {
 		var collisionObjects = this.physics.getContacts(this.body);
 		if(collisionObjects != null) {
-			haxe_Log.trace(collisionObjects.length,{ fileName : "arm/Player.hx", lineNumber : 51, className : "arm.Player", methodName : "getVehicleCollision"});
 			var _g = 0;
 			while(_g < collisionObjects.length) {
 				var cObject = collisionObjects[_g];
@@ -789,8 +788,9 @@ arm_VehicleSpawner.prototype = $extend(iron_Trait.prototype,{
 });
 var arm_scenes_Frogger = function() {
 	iron_Trait.call(this);
-	this.notifyOnInit($bind(this,this.init));
-	this.notifyOnUpdate($bind(this,this.update));
+	this.notifyOnInit($bind(this,this.onInit));
+	this.notifyOnUpdate($bind(this,this.onUpdate));
+	this.notifyOnRemove($bind(this,this.onRemove));
 };
 $hxClasses["arm.scenes.Frogger"] = arm_scenes_Frogger;
 arm_scenes_Frogger.__name__ = "arm.scenes.Frogger";
@@ -800,16 +800,17 @@ arm_scenes_Frogger.prototype = $extend(iron_Trait.prototype,{
 	,player: null
 	,keyboard: null
 	,gameOverCanvas: null
-	,init: function() {
+	,onInit: function() {
 		var _gthis = this;
 		this.player = iron_Scene.active.getChild("Player_Frog");
-		this.gameOverCanvas = new armory_trait_internal_CanvasScript("Frogger");
+		this.gameOverCanvas = iron_Scene.active.getTrait(armory_trait_internal_CanvasScript);
 		this.gameOverCanvas.setCanvasVisibility(true);
 		this.gameOverCanvas.getElement("gameOverParent").visible = false;
 		armory_system_Event.add("reset-frogger",function() {
+			iron_Scene.setActive("02_Frogger");
 		});
-		armory_system_Event.add("quit",function() {
-			kha_System.stop();
+		armory_system_Event.add("goto-main-menu",function() {
+			iron_Scene.setActive("01_Title");
 		});
 		arm_GameController.setState("PLAYING");
 		var start = iron_Scene.active.getChild("LEVEL_START");
@@ -821,7 +822,7 @@ arm_scenes_Frogger.prototype = $extend(iron_Trait.prototype,{
 		this.player.transform.buildMatrix();
 		arm_GameController.onStateChange(function(change) {
 			if(change.state == js_Boot.__cast("GAME_OVER" , String) && change.prevState == js_Boot.__cast("PLAYING" , String)) {
-				haxe_Log.trace("message received",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 57, className : "arm.scenes.Frogger", methodName : "init"});
+				haxe_Log.trace("message received",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 63, className : "arm.scenes.Frogger", methodName : "onInit"});
 				var gameOverTextParent = _gthis.gameOverCanvas.getElement("gameOverParent");
 				gameOverTextParent.x = kha_System.windowWidth() / 2 - gameOverTextParent.width / 2;
 				gameOverTextParent.y = kha_System.windowHeight() / 2 - gameOverTextParent.height / 2;
@@ -833,14 +834,14 @@ arm_scenes_Frogger.prototype = $extend(iron_Trait.prototype,{
 					++_g;
 					var spawner = street.getTrait(arm_Street).getSpawner();
 					if(spawner != null) {
-						haxe_Log.trace("disabling spawners",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 68, className : "arm.scenes.Frogger", methodName : "init"});
+						haxe_Log.trace("disabling spawners",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 74, className : "arm.scenes.Frogger", methodName : "onInit"});
 						spawner.getTrait(arm_VehicleSpawner).setActive(false);
 					}
 				}
 			}
 		});
 	}
-	,update: function() {
+	,onUpdate: function() {
 		if(this.player.getTrait(arm_Player).isDead() == true) {
 			arm_GameController.setState("GAME_OVER");
 		}
@@ -1045,9 +1046,13 @@ arm_scenes_Frogger.prototype = $extend(iron_Trait.prototype,{
 			var inlVec4_z7 = z7;
 			var inlVec4_w7 = w7;
 			if(inlVec4_y6 >= inlVec4_y7) {
-				haxe_Log.trace("Go to mech mode, disable this mode.",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 127, className : "arm.scenes.Frogger", methodName : "update"});
+				haxe_Log.trace("Go to mech mode, disable this mode.",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 133, className : "arm.scenes.Frogger", methodName : "onUpdate"});
 			}
 		}
+	}
+	,onRemove: function() {
+		armory_system_Event.remove("goto-menu");
+		armory_system_Event.remove("reset-frogger");
 	}
 	,__class__: arm_scenes_Frogger
 });
@@ -1058,6 +1063,10 @@ var arm_scenes_Title = function() {
 		_gthis.canvas = iron_Scene.active.getTrait(armory_trait_internal_CanvasScript);
 		armory_system_Event.add("start",$bind(_gthis,_gthis.start));
 		armory_system_Event.add("quit",$bind(_gthis,_gthis.quit));
+	});
+	this.notifyOnRemove(function() {
+		armory_system_Event.remove("start");
+		armory_system_Event.remove("quit");
 	});
 };
 $hxClasses["arm.scenes.Title"] = arm_scenes_Title;
@@ -8146,14 +8155,14 @@ armory_trait_physics_bullet_RigidBody.prototype = $extend(iron_Trait.prototype,{
 			this.setAngularFactor(this.angularFactors[0],this.angularFactors[1],this.angularFactors[2]);
 		}
 		if(this.trigger) {
-			bodyColl.setCollisionFlags(bodyColl.getCollisionFlags() | 4);
+			bodyColl.setCollisionFlags(bodyColl.getCollisionFlags() | armory_trait_physics_bullet_RigidBody.CF_NO_CONTACT_RESPONSE);
 		}
 		if(this.animated) {
-			bodyColl.setCollisionFlags(bodyColl.getCollisionFlags() | 2);
-			bodyColl.setCollisionFlags(bodyColl.getCollisionFlags() & -2);
+			bodyColl.setCollisionFlags(bodyColl.getCollisionFlags() | armory_trait_physics_bullet_RigidBody.CF_KINEMATIC_OBJECT);
+			bodyColl.setCollisionFlags(bodyColl.getCollisionFlags() & ~armory_trait_physics_bullet_RigidBody.CF_STATIC_OBJECT);
 		}
 		if(this.staticObj && !this.animated) {
-			bodyColl.setCollisionFlags(bodyColl.getCollisionFlags() | 1);
+			bodyColl.setCollisionFlags(bodyColl.getCollisionFlags() | armory_trait_physics_bullet_RigidBody.CF_STATIC_OBJECT);
 		}
 		if(this.ccd) {
 			this.setCcd(this.transform.radius);
@@ -8437,7 +8446,7 @@ armory_trait_physics_bullet_RigidBody.prototype = $extend(iron_Trait.prototype,{
 		if(this.animated) {
 			this.body.getMotionState().setWorldTransform(armory_trait_physics_bullet_RigidBody.trans1);
 		} else {
-			this.body.setWorldTransform(armory_trait_physics_bullet_RigidBody.trans1);
+			this.body.setCenterOfMassTransform(armory_trait_physics_bullet_RigidBody.trans1);
 		}
 		if(this.currentScaleX != t.scale.x || this.currentScaleY != t.scale.y || this.currentScaleZ != t.scale.z) {
 			this.setScale(t.scale);
@@ -25664,170 +25673,175 @@ kha_Shaders.init = function() {
 	blobs5.push(kha_internal_BytesBlob.fromBytes(bytes5));
 	kha_Shaders.STREET_001_mesh_frag = new kha_graphics4_FragmentShader(blobs5,["STREET_001_mesh.frag.glsl"]);
 	var blobs6 = [];
-	var data6 = Reflect.field(kha_Shaders,"STREET_GRASS_001_mesh_fragData" + 0);
+	var data6 = Reflect.field(kha_Shaders,"STREET_001_mesh_vertData" + 0);
 	var bytes6 = haxe_Unserializer.run(data6);
 	blobs6.push(kha_internal_BytesBlob.fromBytes(bytes6));
-	kha_Shaders.STREET_GRASS_001_mesh_frag = new kha_graphics4_FragmentShader(blobs6,["STREET_GRASS_001_mesh.frag.glsl"]);
+	kha_Shaders.STREET_001_mesh_vert = new kha_graphics4_VertexShader(blobs6,["STREET_001_mesh.vert.glsl"]);
 	var blobs7 = [];
-	var data7 = Reflect.field(kha_Shaders,"STREET_GRASS_mesh_fragData" + 0);
+	var data7 = Reflect.field(kha_Shaders,"STREET_001_shadowmap_vertData" + 0);
 	var bytes7 = haxe_Unserializer.run(data7);
 	blobs7.push(kha_internal_BytesBlob.fromBytes(bytes7));
-	kha_Shaders.STREET_GRASS_mesh_frag = new kha_graphics4_FragmentShader(blobs7,["STREET_GRASS_mesh.frag.glsl"]);
+	kha_Shaders.STREET_001_shadowmap_vert = new kha_graphics4_VertexShader(blobs7,["STREET_001_shadowmap.vert.glsl"]);
 	var blobs8 = [];
-	var data8 = Reflect.field(kha_Shaders,"STREET_mesh_fragData" + 0);
+	var data8 = Reflect.field(kha_Shaders,"STREET_GRASS_001_mesh_fragData" + 0);
 	var bytes8 = haxe_Unserializer.run(data8);
 	blobs8.push(kha_internal_BytesBlob.fromBytes(bytes8));
-	kha_Shaders.STREET_mesh_frag = new kha_graphics4_FragmentShader(blobs8,["STREET_mesh.frag.glsl"]);
+	kha_Shaders.STREET_GRASS_001_mesh_frag = new kha_graphics4_FragmentShader(blobs8,["STREET_GRASS_001_mesh.frag.glsl"]);
 	var blobs9 = [];
-	var data9 = Reflect.field(kha_Shaders,"Truck_L_vehicles_blend_mesh_fragData" + 0);
+	var data9 = Reflect.field(kha_Shaders,"STREET_GRASS_mesh_fragData" + 0);
 	var bytes9 = haxe_Unserializer.run(data9);
 	blobs9.push(kha_internal_BytesBlob.fromBytes(bytes9));
-	kha_Shaders.Truck_L_vehicles_blend_mesh_frag = new kha_graphics4_FragmentShader(blobs9,["Truck_L_vehicles_blend_mesh.frag.glsl"]);
+	kha_Shaders.STREET_GRASS_mesh_frag = new kha_graphics4_FragmentShader(blobs9,["STREET_GRASS_mesh.frag.glsl"]);
 	var blobs10 = [];
-	var data10 = Reflect.field(kha_Shaders,"Truck_M_vehicles_blend_mesh_fragData" + 0);
+	var data10 = Reflect.field(kha_Shaders,"STREET_mesh_fragData" + 0);
 	var bytes10 = haxe_Unserializer.run(data10);
 	blobs10.push(kha_internal_BytesBlob.fromBytes(bytes10));
-	kha_Shaders.Truck_M_vehicles_blend_mesh_frag = new kha_graphics4_FragmentShader(blobs10,["Truck_M_vehicles_blend_mesh.frag.glsl"]);
+	kha_Shaders.STREET_mesh_frag = new kha_graphics4_FragmentShader(blobs10,["STREET_mesh.frag.glsl"]);
 	var blobs11 = [];
-	var data11 = Reflect.field(kha_Shaders,"Truck_S_vehicles_blend_mesh_fragData" + 0);
+	var data11 = Reflect.field(kha_Shaders,"Truck_L_vehicles_blend_mesh_fragData" + 0);
 	var bytes11 = haxe_Unserializer.run(data11);
 	blobs11.push(kha_internal_BytesBlob.fromBytes(bytes11));
-	kha_Shaders.Truck_S_vehicles_blend_mesh_frag = new kha_graphics4_FragmentShader(blobs11,["Truck_S_vehicles_blend_mesh.frag.glsl"]);
+	kha_Shaders.Truck_L_vehicles_blend_mesh_frag = new kha_graphics4_FragmentShader(blobs11,["Truck_L_vehicles_blend_mesh.frag.glsl"]);
 	var blobs12 = [];
-	var data12 = Reflect.field(kha_Shaders,"armdefault_mesh_fragData" + 0);
+	var data12 = Reflect.field(kha_Shaders,"Truck_M_vehicles_blend_mesh_fragData" + 0);
 	var bytes12 = haxe_Unserializer.run(data12);
 	blobs12.push(kha_internal_BytesBlob.fromBytes(bytes12));
-	kha_Shaders.armdefault_mesh_frag = new kha_graphics4_FragmentShader(blobs12,["armdefault_mesh.frag.glsl"]);
+	kha_Shaders.Truck_M_vehicles_blend_mesh_frag = new kha_graphics4_FragmentShader(blobs12,["Truck_M_vehicles_blend_mesh.frag.glsl"]);
 	var blobs13 = [];
-	var data13 = Reflect.field(kha_Shaders,"blur_edge_pass_fragData" + 0);
+	var data13 = Reflect.field(kha_Shaders,"Truck_S_vehicles_blend_mesh_fragData" + 0);
 	var bytes13 = haxe_Unserializer.run(data13);
 	blobs13.push(kha_internal_BytesBlob.fromBytes(bytes13));
-	kha_Shaders.blur_edge_pass_frag = new kha_graphics4_FragmentShader(blobs13,["blur_edge_pass.frag.glsl"]);
+	kha_Shaders.Truck_S_vehicles_blend_mesh_frag = new kha_graphics4_FragmentShader(blobs13,["Truck_S_vehicles_blend_mesh.frag.glsl"]);
 	var blobs14 = [];
-	var data14 = Reflect.field(kha_Shaders,"compositor_pass_fragData" + 0);
+	var data14 = Reflect.field(kha_Shaders,"blur_edge_pass_fragData" + 0);
 	var bytes14 = haxe_Unserializer.run(data14);
 	blobs14.push(kha_internal_BytesBlob.fromBytes(bytes14));
-	kha_Shaders.compositor_pass_frag = new kha_graphics4_FragmentShader(blobs14,["compositor_pass.frag.glsl"]);
+	kha_Shaders.blur_edge_pass_frag = new kha_graphics4_FragmentShader(blobs14,["blur_edge_pass.frag.glsl"]);
 	var blobs15 = [];
-	var data15 = Reflect.field(kha_Shaders,"compositor_pass_vertData" + 0);
+	var data15 = Reflect.field(kha_Shaders,"compositor_pass_fragData" + 0);
 	var bytes15 = haxe_Unserializer.run(data15);
 	blobs15.push(kha_internal_BytesBlob.fromBytes(bytes15));
-	kha_Shaders.compositor_pass_vert = new kha_graphics4_VertexShader(blobs15,["compositor_pass.vert.glsl"]);
+	kha_Shaders.compositor_pass_frag = new kha_graphics4_FragmentShader(blobs15,["compositor_pass.frag.glsl"]);
 	var blobs16 = [];
-	var data16 = Reflect.field(kha_Shaders,"deferred_light_fragData" + 0);
+	var data16 = Reflect.field(kha_Shaders,"compositor_pass_vertData" + 0);
 	var bytes16 = haxe_Unserializer.run(data16);
 	blobs16.push(kha_internal_BytesBlob.fromBytes(bytes16));
-	kha_Shaders.deferred_light_frag = new kha_graphics4_FragmentShader(blobs16,["deferred_light.frag.glsl"]);
+	kha_Shaders.compositor_pass_vert = new kha_graphics4_VertexShader(blobs16,["compositor_pass.vert.glsl"]);
 	var blobs17 = [];
-	var data17 = Reflect.field(kha_Shaders,"line_deferred_fragData" + 0);
+	var data17 = Reflect.field(kha_Shaders,"deferred_light_fragData" + 0);
 	var bytes17 = haxe_Unserializer.run(data17);
 	blobs17.push(kha_internal_BytesBlob.fromBytes(bytes17));
-	kha_Shaders.line_deferred_frag = new kha_graphics4_FragmentShader(blobs17,["line_deferred.frag.glsl"]);
+	kha_Shaders.deferred_light_frag = new kha_graphics4_FragmentShader(blobs17,["deferred_light.frag.glsl"]);
 	var blobs18 = [];
-	var data18 = Reflect.field(kha_Shaders,"line_fragData" + 0);
+	var data18 = Reflect.field(kha_Shaders,"line_deferred_fragData" + 0);
 	var bytes18 = haxe_Unserializer.run(data18);
 	blobs18.push(kha_internal_BytesBlob.fromBytes(bytes18));
-	kha_Shaders.line_frag = new kha_graphics4_FragmentShader(blobs18,["line.frag.glsl"]);
+	kha_Shaders.line_deferred_frag = new kha_graphics4_FragmentShader(blobs18,["line_deferred.frag.glsl"]);
 	var blobs19 = [];
-	var data19 = Reflect.field(kha_Shaders,"line_vertData" + 0);
+	var data19 = Reflect.field(kha_Shaders,"line_fragData" + 0);
 	var bytes19 = haxe_Unserializer.run(data19);
 	blobs19.push(kha_internal_BytesBlob.fromBytes(bytes19));
-	kha_Shaders.line_vert = new kha_graphics4_VertexShader(blobs19,["line.vert.glsl"]);
+	kha_Shaders.line_frag = new kha_graphics4_FragmentShader(blobs19,["line.frag.glsl"]);
 	var blobs20 = [];
-	var data20 = Reflect.field(kha_Shaders,"painter_colored_fragData" + 0);
+	var data20 = Reflect.field(kha_Shaders,"line_vertData" + 0);
 	var bytes20 = haxe_Unserializer.run(data20);
 	blobs20.push(kha_internal_BytesBlob.fromBytes(bytes20));
-	kha_Shaders.painter_colored_frag = new kha_graphics4_FragmentShader(blobs20,["painter-colored.frag.glsl"]);
+	kha_Shaders.line_vert = new kha_graphics4_VertexShader(blobs20,["line.vert.glsl"]);
 	var blobs21 = [];
-	var data21 = Reflect.field(kha_Shaders,"painter_colored_vertData" + 0);
+	var data21 = Reflect.field(kha_Shaders,"painter_colored_fragData" + 0);
 	var bytes21 = haxe_Unserializer.run(data21);
 	blobs21.push(kha_internal_BytesBlob.fromBytes(bytes21));
-	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(blobs21,["painter-colored.vert.glsl"]);
+	kha_Shaders.painter_colored_frag = new kha_graphics4_FragmentShader(blobs21,["painter-colored.frag.glsl"]);
 	var blobs22 = [];
-	var data22 = Reflect.field(kha_Shaders,"painter_image_fragData" + 0);
+	var data22 = Reflect.field(kha_Shaders,"painter_colored_vertData" + 0);
 	var bytes22 = haxe_Unserializer.run(data22);
 	blobs22.push(kha_internal_BytesBlob.fromBytes(bytes22));
-	kha_Shaders.painter_image_frag = new kha_graphics4_FragmentShader(blobs22,["painter-image.frag.glsl"]);
+	kha_Shaders.painter_colored_vert = new kha_graphics4_VertexShader(blobs22,["painter-colored.vert.glsl"]);
 	var blobs23 = [];
-	var data23 = Reflect.field(kha_Shaders,"painter_image_vertData" + 0);
+	var data23 = Reflect.field(kha_Shaders,"painter_image_fragData" + 0);
 	var bytes23 = haxe_Unserializer.run(data23);
 	blobs23.push(kha_internal_BytesBlob.fromBytes(bytes23));
-	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(blobs23,["painter-image.vert.glsl"]);
+	kha_Shaders.painter_image_frag = new kha_graphics4_FragmentShader(blobs23,["painter-image.frag.glsl"]);
 	var blobs24 = [];
-	var data24 = Reflect.field(kha_Shaders,"painter_text_fragData" + 0);
+	var data24 = Reflect.field(kha_Shaders,"painter_image_vertData" + 0);
 	var bytes24 = haxe_Unserializer.run(data24);
 	blobs24.push(kha_internal_BytesBlob.fromBytes(bytes24));
-	kha_Shaders.painter_text_frag = new kha_graphics4_FragmentShader(blobs24,["painter-text.frag.glsl"]);
+	kha_Shaders.painter_image_vert = new kha_graphics4_VertexShader(blobs24,["painter-image.vert.glsl"]);
 	var blobs25 = [];
-	var data25 = Reflect.field(kha_Shaders,"painter_text_vertData" + 0);
+	var data25 = Reflect.field(kha_Shaders,"painter_text_fragData" + 0);
 	var bytes25 = haxe_Unserializer.run(data25);
 	blobs25.push(kha_internal_BytesBlob.fromBytes(bytes25));
-	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(blobs25,["painter-text.vert.glsl"]);
+	kha_Shaders.painter_text_frag = new kha_graphics4_FragmentShader(blobs25,["painter-text.frag.glsl"]);
 	var blobs26 = [];
-	var data26 = Reflect.field(kha_Shaders,"painter_video_fragData" + 0);
+	var data26 = Reflect.field(kha_Shaders,"painter_text_vertData" + 0);
 	var bytes26 = haxe_Unserializer.run(data26);
 	blobs26.push(kha_internal_BytesBlob.fromBytes(bytes26));
-	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(blobs26,["painter-video.frag.glsl"]);
+	kha_Shaders.painter_text_vert = new kha_graphics4_VertexShader(blobs26,["painter-text.vert.glsl"]);
 	var blobs27 = [];
-	var data27 = Reflect.field(kha_Shaders,"painter_video_vertData" + 0);
+	var data27 = Reflect.field(kha_Shaders,"painter_video_fragData" + 0);
 	var bytes27 = haxe_Unserializer.run(data27);
 	blobs27.push(kha_internal_BytesBlob.fromBytes(bytes27));
-	kha_Shaders.painter_video_vert = new kha_graphics4_VertexShader(blobs27,["painter-video.vert.glsl"]);
+	kha_Shaders.painter_video_frag = new kha_graphics4_FragmentShader(blobs27,["painter-video.frag.glsl"]);
 	var blobs28 = [];
-	var data28 = Reflect.field(kha_Shaders,"pass_vertData" + 0);
+	var data28 = Reflect.field(kha_Shaders,"painter_video_vertData" + 0);
 	var bytes28 = haxe_Unserializer.run(data28);
 	blobs28.push(kha_internal_BytesBlob.fromBytes(bytes28));
-	kha_Shaders.pass_vert = new kha_graphics4_VertexShader(blobs28,["pass.vert.glsl"]);
+	kha_Shaders.painter_video_vert = new kha_graphics4_VertexShader(blobs28,["painter-video.vert.glsl"]);
 	var blobs29 = [];
-	var data29 = Reflect.field(kha_Shaders,"pass_viewray_vertData" + 0);
+	var data29 = Reflect.field(kha_Shaders,"pass_vertData" + 0);
 	var bytes29 = haxe_Unserializer.run(data29);
 	blobs29.push(kha_internal_BytesBlob.fromBytes(bytes29));
-	kha_Shaders.pass_viewray_vert = new kha_graphics4_VertexShader(blobs29,["pass_viewray.vert.glsl"]);
+	kha_Shaders.pass_vert = new kha_graphics4_VertexShader(blobs29,["pass.vert.glsl"]);
 	var blobs30 = [];
-	var data30 = Reflect.field(kha_Shaders,"smaa_blend_weight_fragData" + 0);
+	var data30 = Reflect.field(kha_Shaders,"pass_viewray_vertData" + 0);
 	var bytes30 = haxe_Unserializer.run(data30);
 	blobs30.push(kha_internal_BytesBlob.fromBytes(bytes30));
-	kha_Shaders.smaa_blend_weight_frag = new kha_graphics4_FragmentShader(blobs30,["smaa_blend_weight.frag.glsl"]);
+	kha_Shaders.pass_viewray_vert = new kha_graphics4_VertexShader(blobs30,["pass_viewray.vert.glsl"]);
 	var blobs31 = [];
-	var data31 = Reflect.field(kha_Shaders,"smaa_blend_weight_vertData" + 0);
+	var data31 = Reflect.field(kha_Shaders,"smaa_blend_weight_fragData" + 0);
 	var bytes31 = haxe_Unserializer.run(data31);
 	blobs31.push(kha_internal_BytesBlob.fromBytes(bytes31));
-	kha_Shaders.smaa_blend_weight_vert = new kha_graphics4_VertexShader(blobs31,["smaa_blend_weight.vert.glsl"]);
+	kha_Shaders.smaa_blend_weight_frag = new kha_graphics4_FragmentShader(blobs31,["smaa_blend_weight.frag.glsl"]);
 	var blobs32 = [];
-	var data32 = Reflect.field(kha_Shaders,"smaa_edge_detect_fragData" + 0);
+	var data32 = Reflect.field(kha_Shaders,"smaa_blend_weight_vertData" + 0);
 	var bytes32 = haxe_Unserializer.run(data32);
 	blobs32.push(kha_internal_BytesBlob.fromBytes(bytes32));
-	kha_Shaders.smaa_edge_detect_frag = new kha_graphics4_FragmentShader(blobs32,["smaa_edge_detect.frag.glsl"]);
+	kha_Shaders.smaa_blend_weight_vert = new kha_graphics4_VertexShader(blobs32,["smaa_blend_weight.vert.glsl"]);
 	var blobs33 = [];
-	var data33 = Reflect.field(kha_Shaders,"smaa_edge_detect_vertData" + 0);
+	var data33 = Reflect.field(kha_Shaders,"smaa_edge_detect_fragData" + 0);
 	var bytes33 = haxe_Unserializer.run(data33);
 	blobs33.push(kha_internal_BytesBlob.fromBytes(bytes33));
-	kha_Shaders.smaa_edge_detect_vert = new kha_graphics4_VertexShader(blobs33,["smaa_edge_detect.vert.glsl"]);
+	kha_Shaders.smaa_edge_detect_frag = new kha_graphics4_FragmentShader(blobs33,["smaa_edge_detect.frag.glsl"]);
 	var blobs34 = [];
-	var data34 = Reflect.field(kha_Shaders,"smaa_neighborhood_blend_fragData" + 0);
+	var data34 = Reflect.field(kha_Shaders,"smaa_edge_detect_vertData" + 0);
 	var bytes34 = haxe_Unserializer.run(data34);
 	blobs34.push(kha_internal_BytesBlob.fromBytes(bytes34));
-	kha_Shaders.smaa_neighborhood_blend_frag = new kha_graphics4_FragmentShader(blobs34,["smaa_neighborhood_blend.frag.glsl"]);
+	kha_Shaders.smaa_edge_detect_vert = new kha_graphics4_VertexShader(blobs34,["smaa_edge_detect.vert.glsl"]);
 	var blobs35 = [];
-	var data35 = Reflect.field(kha_Shaders,"smaa_neighborhood_blend_vertData" + 0);
+	var data35 = Reflect.field(kha_Shaders,"smaa_neighborhood_blend_fragData" + 0);
 	var bytes35 = haxe_Unserializer.run(data35);
 	blobs35.push(kha_internal_BytesBlob.fromBytes(bytes35));
-	kha_Shaders.smaa_neighborhood_blend_vert = new kha_graphics4_VertexShader(blobs35,["smaa_neighborhood_blend.vert.glsl"]);
+	kha_Shaders.smaa_neighborhood_blend_frag = new kha_graphics4_FragmentShader(blobs35,["smaa_neighborhood_blend.frag.glsl"]);
 	var blobs36 = [];
-	var data36 = Reflect.field(kha_Shaders,"ssao_pass_fragData" + 0);
+	var data36 = Reflect.field(kha_Shaders,"smaa_neighborhood_blend_vertData" + 0);
 	var bytes36 = haxe_Unserializer.run(data36);
 	blobs36.push(kha_internal_BytesBlob.fromBytes(bytes36));
-	kha_Shaders.ssao_pass_frag = new kha_graphics4_FragmentShader(blobs36,["ssao_pass.frag.glsl"]);
+	kha_Shaders.smaa_neighborhood_blend_vert = new kha_graphics4_VertexShader(blobs36,["smaa_neighborhood_blend.vert.glsl"]);
 	var blobs37 = [];
-	var data37 = Reflect.field(kha_Shaders,"world_pass_fragData" + 0);
+	var data37 = Reflect.field(kha_Shaders,"ssao_pass_fragData" + 0);
 	var bytes37 = haxe_Unserializer.run(data37);
 	blobs37.push(kha_internal_BytesBlob.fromBytes(bytes37));
-	kha_Shaders.world_pass_frag = new kha_graphics4_FragmentShader(blobs37,["world_pass.frag.glsl"]);
+	kha_Shaders.ssao_pass_frag = new kha_graphics4_FragmentShader(blobs37,["ssao_pass.frag.glsl"]);
 	var blobs38 = [];
-	var data38 = Reflect.field(kha_Shaders,"world_pass_vertData" + 0);
+	var data38 = Reflect.field(kha_Shaders,"world_pass_fragData" + 0);
 	var bytes38 = haxe_Unserializer.run(data38);
 	blobs38.push(kha_internal_BytesBlob.fromBytes(bytes38));
-	kha_Shaders.world_pass_vert = new kha_graphics4_VertexShader(blobs38,["world_pass.vert.glsl"]);
+	kha_Shaders.world_pass_frag = new kha_graphics4_FragmentShader(blobs38,["world_pass.frag.glsl"]);
+	var blobs39 = [];
+	var data39 = Reflect.field(kha_Shaders,"world_pass_vertData" + 0);
+	var bytes39 = haxe_Unserializer.run(data39);
+	blobs39.push(kha_internal_BytesBlob.fromBytes(bytes39));
+	kha_Shaders.world_pass_vert = new kha_graphics4_VertexShader(blobs39,["world_pass.vert.glsl"]);
 };
 var kha_Sound = function() {
 	this.sampleRate = 0;
@@ -43898,6 +43912,10 @@ armory_trait_physics_bullet_RigidBody.nextId = 0;
 armory_trait_physics_bullet_RigidBody.ammoArray = -1;
 armory_trait_physics_bullet_RigidBody.nullvec = true;
 armory_trait_physics_bullet_RigidBody.quat = new iron_math_Quat();
+armory_trait_physics_bullet_RigidBody.CF_STATIC_OBJECT = 1;
+armory_trait_physics_bullet_RigidBody.CF_KINEMATIC_OBJECT = 2;
+armory_trait_physics_bullet_RigidBody.CF_NO_CONTACT_RESPONSE = 4;
+armory_trait_physics_bullet_RigidBody.CF_CHARACTER_OBJECT = 16;
 armory_trait_physics_bullet_RigidBody.convexHullCache = new haxe_ds_ObjectMap();
 armory_trait_physics_bullet_RigidBody.triangleMeshCache = new haxe_ds_ObjectMap();
 armory_trait_physics_bullet_RigidBody.usersCache = new haxe_ds_ObjectMap();
@@ -44007,13 +44025,14 @@ kha_Shaders.Material_002_mesh_vertData0 = "s431:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9B
 kha_Shaders.Material_002_shadowmap_fragData0 = "s174:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp2b2lkIG1haW4oKQp7Cn0KCg";
 kha_Shaders.Material_002_shadowmap_vertData0 = "s308:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIG1hdDQgTFdWUDsKCmluIHZlYzQgcG9zOwoKdm9pZCBtYWluKCkKewogICAgdmVjNCBzcG9zID0gdmVjNChwb3MueHl6LCAxLjApOwogICAgZ2xfUG9zaXRpb24gPSBMV1ZQICogc3BvczsKfQoK";
 kha_Shaders.STREET_001_mesh_fragData0 = "s1466:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgppbiB2ZWMzIHdub3JtYWw7Cm91dCB2ZWM0IGZyYWdDb2xvclsyXTsKCnZlYzIgb2N0YWhlZHJvbldyYXAodmVjMiB2KQp7CiAgICByZXR1cm4gKHZlYzIoMS4wKSAtIGFicyh2Lnl4KSkgKiB2ZWMyKCh2LnggPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSwgKHYueSA%PSAwLjApID8gMS4wIDogKC0xLjApKTsKfQoKZmxvYXQgcGFja0Zsb2F0SW50MTYoZmxvYXQgZiwgdWludCBpKQp7CiAgICByZXR1cm4gKDAuMDYyNDg1Njk0ODg1MjUzOTA2MjUgKiBmKSArICgwLjA2MjUwMDk1MzY3NDMxNjQwNjI1ICogZmxvYXQoaSkpOwp9CgpmbG9hdCBwYWNrRmxvYXQyKGZsb2F0IGYxLCBmbG9hdCBmMikKewogICAgcmV0dXJuIGZsb29yKGYxICogMjU1LjApICsgbWluKGYyLCAwLjk5MDAwMDAwOTUzNjc0MzE2NDA2MjUpOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMzIG4gPSBub3JtYWxpemUod25vcm1hbCk7CiAgICB2ZWMzIGJhc2Vjb2wgPSB2ZWMzKDAuMDQ3MDAyNDUzMzU2OTgxMjc3NDY1ODIwMzEyNSk7CiAgICBmbG9hdCByb3VnaG5lc3MgPSAwLjQ5OTk5OTk3MDE5NzY3NzYxMjMwNDY4NzU7CiAgICBmbG9hdCBtZXRhbGxpYyA9IDAuMDsKICAgIGZsb2F0IG9jY2x1c2lvbiA9IDEuMDsKICAgIGZsb2F0IHNwZWN1bGFyID0gMS4wOwogICAgbiAvPSB2ZWMzKChhYnMobi54KSArIGFicyhuLnkpKSArIGFicyhuLnopKTsKICAgIHZlYzIgXzk0OwogICAgaWYgKG4ueiA%PSAwLjApCiAgICB7CiAgICAgICAgXzk0ID0gbi54eTsKICAgIH0KICAgIGVsc2UKICAgIHsKICAgICAgICBfOTQgPSBvY3RhaGVkcm9uV3JhcChuLnh5KTsKICAgIH0KICAgIG4gPSB2ZWMzKF85NC54LCBfOTQueSwgbi56KTsKICAgIGZyYWdDb2xvclswXSA9IHZlYzQobi54eSwgcm91Z2huZXNzLCBwYWNrRmxvYXRJbnQxNihtZXRhbGxpYywgMHUpKTsKICAgIGZyYWdDb2xvclsxXSA9IHZlYzQoYmFzZWNvbCwgcGFja0Zsb2F0MihvY2NsdXNpb24sIHNwZWN1bGFyKSk7Cn0KCg";
+kha_Shaders.STREET_001_mesh_vertData0 = "s431:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIG1hdDMgTjsKdW5pZm9ybSBtYXQ0IFdWUDsKCmluIHZlYzQgcG9zOwpvdXQgdmVjMyB3bm9ybWFsOwppbiB2ZWMyIG5vcjsKCnZvaWQgbWFpbigpCnsKICAgIHZlYzQgc3BvcyA9IHZlYzQocG9zLnh5eiwgMS4wKTsKICAgIHdub3JtYWwgPSBub3JtYWxpemUoTiAqIHZlYzMobm9yLCBwb3MudykpOwogICAgZ2xfUG9zaXRpb24gPSBXVlAgKiBzcG9zOwp9Cgo";
+kha_Shaders.STREET_001_shadowmap_vertData0 = "s308:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIG1hdDQgTFdWUDsKCmluIHZlYzQgcG9zOwoKdm9pZCBtYWluKCkKewogICAgdmVjNCBzcG9zID0gdmVjNChwb3MueHl6LCAxLjApOwogICAgZ2xfUG9zaXRpb24gPSBMV1ZQICogc3BvczsKfQoK";
 kha_Shaders.STREET_GRASS_001_mesh_fragData0 = "s1547:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgppbiB2ZWMzIHdub3JtYWw7Cm91dCB2ZWM0IGZyYWdDb2xvclsyXTsKCnZlYzIgb2N0YWhlZHJvbldyYXAodmVjMiB2KQp7CiAgICByZXR1cm4gKHZlYzIoMS4wKSAtIGFicyh2Lnl4KSkgKiB2ZWMyKCh2LnggPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSwgKHYueSA%PSAwLjApID8gMS4wIDogKC0xLjApKTsKfQoKZmxvYXQgcGFja0Zsb2F0SW50MTYoZmxvYXQgZiwgdWludCBpKQp7CiAgICByZXR1cm4gKDAuMDYyNDg1Njk0ODg1MjUzOTA2MjUgKiBmKSArICgwLjA2MjUwMDk1MzY3NDMxNjQwNjI1ICogZmxvYXQoaSkpOwp9CgpmbG9hdCBwYWNrRmxvYXQyKGZsb2F0IGYxLCBmbG9hdCBmMikKewogICAgcmV0dXJuIGZsb29yKGYxICogMjU1LjApICsgbWluKGYyLCAwLjk5MDAwMDAwOTUzNjc0MzE2NDA2MjUpOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMzIG4gPSBub3JtYWxpemUod25vcm1hbCk7CiAgICB2ZWMzIGJhc2Vjb2wgPSB2ZWMzKDAuMDA1MzU3NjY0MDc4NDc0MDQ0Nzk5ODA0Njg3NSwgMC4yMzc3MzAzMjQyNjgzNDEwNjQ0NTMxMjUsIDAuMDA0MzYzMjU1NTc1Mjk5MjYzMDAwNDg4MjgxMjUpOwogICAgZmxvYXQgcm91Z2huZXNzID0gMC40OTk5OTk5NzAxOTc2Nzc2MTIzMDQ2ODc1OwogICAgZmxvYXQgbWV0YWxsaWMgPSAwLjA7CiAgICBmbG9hdCBvY2NsdXNpb24gPSAxLjA7CiAgICBmbG9hdCBzcGVjdWxhciA9IDEuMDsKICAgIG4gLz0gdmVjMygoYWJzKG4ueCkgKyBhYnMobi55KSkgKyBhYnMobi56KSk7CiAgICB2ZWMyIF85NjsKICAgIGlmIChuLnogPj0gMC4wKQogICAgewogICAgICAgIF85NiA9IG4ueHk7CiAgICB9CiAgICBlbHNlCiAgICB7CiAgICAgICAgXzk2ID0gb2N0YWhlZHJvbldyYXAobi54eSk7CiAgICB9CiAgICBuID0gdmVjMyhfOTYueCwgXzk2LnksIG4ueik7CiAgICBmcmFnQ29sb3JbMF0gPSB2ZWM0KG4ueHksIHJvdWdobmVzcywgcGFja0Zsb2F0SW50MTYobWV0YWxsaWMsIDB1KSk7CiAgICBmcmFnQ29sb3JbMV0gPSB2ZWM0KGJhc2Vjb2wsIHBhY2tGbG9hdDIob2NjbHVzaW9uLCBzcGVjdWxhcikpOwp9Cgo";
 kha_Shaders.STREET_GRASS_mesh_fragData0 = "s1547:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgppbiB2ZWMzIHdub3JtYWw7Cm91dCB2ZWM0IGZyYWdDb2xvclsyXTsKCnZlYzIgb2N0YWhlZHJvbldyYXAodmVjMiB2KQp7CiAgICByZXR1cm4gKHZlYzIoMS4wKSAtIGFicyh2Lnl4KSkgKiB2ZWMyKCh2LnggPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSwgKHYueSA%PSAwLjApID8gMS4wIDogKC0xLjApKTsKfQoKZmxvYXQgcGFja0Zsb2F0SW50MTYoZmxvYXQgZiwgdWludCBpKQp7CiAgICByZXR1cm4gKDAuMDYyNDg1Njk0ODg1MjUzOTA2MjUgKiBmKSArICgwLjA2MjUwMDk1MzY3NDMxNjQwNjI1ICogZmxvYXQoaSkpOwp9CgpmbG9hdCBwYWNrRmxvYXQyKGZsb2F0IGYxLCBmbG9hdCBmMikKewogICAgcmV0dXJuIGZsb29yKGYxICogMjU1LjApICsgbWluKGYyLCAwLjk5MDAwMDAwOTUzNjc0MzE2NDA2MjUpOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMzIG4gPSBub3JtYWxpemUod25vcm1hbCk7CiAgICB2ZWMzIGJhc2Vjb2wgPSB2ZWMzKDAuMDA1MzU3NjY0MDc4NDc0MDQ0Nzk5ODA0Njg3NSwgMC4yMzc3MzAzMjQyNjgzNDEwNjQ0NTMxMjUsIDAuMDA0MzYzMjU1NTc1Mjk5MjYzMDAwNDg4MjgxMjUpOwogICAgZmxvYXQgcm91Z2huZXNzID0gMC40OTk5OTk5NzAxOTc2Nzc2MTIzMDQ2ODc1OwogICAgZmxvYXQgbWV0YWxsaWMgPSAwLjA7CiAgICBmbG9hdCBvY2NsdXNpb24gPSAxLjA7CiAgICBmbG9hdCBzcGVjdWxhciA9IDEuMDsKICAgIG4gLz0gdmVjMygoYWJzKG4ueCkgKyBhYnMobi55KSkgKyBhYnMobi56KSk7CiAgICB2ZWMyIF85NjsKICAgIGlmIChuLnogPj0gMC4wKQogICAgewogICAgICAgIF85NiA9IG4ueHk7CiAgICB9CiAgICBlbHNlCiAgICB7CiAgICAgICAgXzk2ID0gb2N0YWhlZHJvbldyYXAobi54eSk7CiAgICB9CiAgICBuID0gdmVjMyhfOTYueCwgXzk2LnksIG4ueik7CiAgICBmcmFnQ29sb3JbMF0gPSB2ZWM0KG4ueHksIHJvdWdobmVzcywgcGFja0Zsb2F0SW50MTYobWV0YWxsaWMsIDB1KSk7CiAgICBmcmFnQ29sb3JbMV0gPSB2ZWM0KGJhc2Vjb2wsIHBhY2tGbG9hdDIob2NjbHVzaW9uLCBzcGVjdWxhcikpOwp9Cgo";
 kha_Shaders.STREET_mesh_fragData0 = "s1466:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgppbiB2ZWMzIHdub3JtYWw7Cm91dCB2ZWM0IGZyYWdDb2xvclsyXTsKCnZlYzIgb2N0YWhlZHJvbldyYXAodmVjMiB2KQp7CiAgICByZXR1cm4gKHZlYzIoMS4wKSAtIGFicyh2Lnl4KSkgKiB2ZWMyKCh2LnggPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSwgKHYueSA%PSAwLjApID8gMS4wIDogKC0xLjApKTsKfQoKZmxvYXQgcGFja0Zsb2F0SW50MTYoZmxvYXQgZiwgdWludCBpKQp7CiAgICByZXR1cm4gKDAuMDYyNDg1Njk0ODg1MjUzOTA2MjUgKiBmKSArICgwLjA2MjUwMDk1MzY3NDMxNjQwNjI1ICogZmxvYXQoaSkpOwp9CgpmbG9hdCBwYWNrRmxvYXQyKGZsb2F0IGYxLCBmbG9hdCBmMikKewogICAgcmV0dXJuIGZsb29yKGYxICogMjU1LjApICsgbWluKGYyLCAwLjk5MDAwMDAwOTUzNjc0MzE2NDA2MjUpOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMzIG4gPSBub3JtYWxpemUod25vcm1hbCk7CiAgICB2ZWMzIGJhc2Vjb2wgPSB2ZWMzKDAuMDQ3MDAyNDUzMzU2OTgxMjc3NDY1ODIwMzEyNSk7CiAgICBmbG9hdCByb3VnaG5lc3MgPSAwLjQ5OTk5OTk3MDE5NzY3NzYxMjMwNDY4NzU7CiAgICBmbG9hdCBtZXRhbGxpYyA9IDAuMDsKICAgIGZsb2F0IG9jY2x1c2lvbiA9IDEuMDsKICAgIGZsb2F0IHNwZWN1bGFyID0gMS4wOwogICAgbiAvPSB2ZWMzKChhYnMobi54KSArIGFicyhuLnkpKSArIGFicyhuLnopKTsKICAgIHZlYzIgXzk0OwogICAgaWYgKG4ueiA%PSAwLjApCiAgICB7CiAgICAgICAgXzk0ID0gbi54eTsKICAgIH0KICAgIGVsc2UKICAgIHsKICAgICAgICBfOTQgPSBvY3RhaGVkcm9uV3JhcChuLnh5KTsKICAgIH0KICAgIG4gPSB2ZWMzKF85NC54LCBfOTQueSwgbi56KTsKICAgIGZyYWdDb2xvclswXSA9IHZlYzQobi54eSwgcm91Z2huZXNzLCBwYWNrRmxvYXRJbnQxNihtZXRhbGxpYywgMHUpKTsKICAgIGZyYWdDb2xvclsxXSA9IHZlYzQoYmFzZWNvbCwgcGFja0Zsb2F0MihvY2NsdXNpb24sIHNwZWN1bGFyKSk7Cn0KCg";
 kha_Shaders.Truck_L_vehicles_blend_mesh_fragData0 = "s1478:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgppbiB2ZWMzIHdub3JtYWw7Cm91dCB2ZWM0IGZyYWdDb2xvclsyXTsKCnZlYzIgb2N0YWhlZHJvbldyYXAodmVjMiB2KQp7CiAgICByZXR1cm4gKHZlYzIoMS4wKSAtIGFicyh2Lnl4KSkgKiB2ZWMyKCh2LnggPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSwgKHYueSA%PSAwLjApID8gMS4wIDogKC0xLjApKTsKfQoKZmxvYXQgcGFja0Zsb2F0SW50MTYoZmxvYXQgZiwgdWludCBpKQp7CiAgICByZXR1cm4gKDAuMDYyNDg1Njk0ODg1MjUzOTA2MjUgKiBmKSArICgwLjA2MjUwMDk1MzY3NDMxNjQwNjI1ICogZmxvYXQoaSkpOwp9CgpmbG9hdCBwYWNrRmxvYXQyKGZsb2F0IGYxLCBmbG9hdCBmMikKewogICAgcmV0dXJuIGZsb29yKGYxICogMjU1LjApICsgbWluKGYyLCAwLjk5MDAwMDAwOTUzNjc0MzE2NDA2MjUpOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMzIG4gPSBub3JtYWxpemUod25vcm1hbCk7CiAgICB2ZWMzIGJhc2Vjb2wgPSB2ZWMzKDAuMDE3MTAyNjg2Njg4MzAzOTQ3NDQ4NzMwNDY4NzUsIDAuODAwMDAwMDcxNTI1NTczNzMwNDY4NzUsIDAuMCk7CiAgICBmbG9hdCByb3VnaG5lc3MgPSAwLjU7CiAgICBmbG9hdCBtZXRhbGxpYyA9IDAuMDsKICAgIGZsb2F0IG9jY2x1c2lvbiA9IDEuMDsKICAgIGZsb2F0IHNwZWN1bGFyID0gMC41OwogICAgbiAvPSB2ZWMzKChhYnMobi54KSArIGFicyhuLnkpKSArIGFicyhuLnopKTsKICAgIHZlYzIgXzk1OwogICAgaWYgKG4ueiA%PSAwLjApCiAgICB7CiAgICAgICAgXzk1ID0gbi54eTsKICAgIH0KICAgIGVsc2UKICAgIHsKICAgICAgICBfOTUgPSBvY3RhaGVkcm9uV3JhcChuLnh5KTsKICAgIH0KICAgIG4gPSB2ZWMzKF85NS54LCBfOTUueSwgbi56KTsKICAgIGZyYWdDb2xvclswXSA9IHZlYzQobi54eSwgcm91Z2huZXNzLCBwYWNrRmxvYXRJbnQxNihtZXRhbGxpYywgMHUpKTsKICAgIGZyYWdDb2xvclsxXSA9IHZlYzQoYmFzZWNvbCwgcGFja0Zsb2F0MihvY2NsdXNpb24sIHNwZWN1bGFyKSk7Cn0KCg";
 kha_Shaders.Truck_M_vehicles_blend_mesh_fragData0 = "s1516:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgppbiB2ZWMzIHdub3JtYWw7Cm91dCB2ZWM0IGZyYWdDb2xvclsyXTsKCnZlYzIgb2N0YWhlZHJvbldyYXAodmVjMiB2KQp7CiAgICByZXR1cm4gKHZlYzIoMS4wKSAtIGFicyh2Lnl4KSkgKiB2ZWMyKCh2LnggPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSwgKHYueSA%PSAwLjApID8gMS4wIDogKC0xLjApKTsKfQoKZmxvYXQgcGFja0Zsb2F0SW50MTYoZmxvYXQgZiwgdWludCBpKQp7CiAgICByZXR1cm4gKDAuMDYyNDg1Njk0ODg1MjUzOTA2MjUgKiBmKSArICgwLjA2MjUwMDk1MzY3NDMxNjQwNjI1ICogZmxvYXQoaSkpOwp9CgpmbG9hdCBwYWNrRmxvYXQyKGZsb2F0IGYxLCBmbG9hdCBmMikKewogICAgcmV0dXJuIGZsb29yKGYxICogMjU1LjApICsgbWluKGYyLCAwLjk5MDAwMDAwOTUzNjc0MzE2NDA2MjUpOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMzIG4gPSBub3JtYWxpemUod25vcm1hbCk7CiAgICB2ZWMzIGJhc2Vjb2wgPSB2ZWMzKDAuMDIwMDE4MzcyNjg0NzE3MTc4MzQ0NzI2NTYyNSwgMC4wMDUxMTg5MTYyNzY4NDIzNTU3MjgxNDk0MTQwNjI1LCAwLjgwMDAwMDA3MTUyNTU3MzczMDQ2ODc1KTsKICAgIGZsb2F0IHJvdWdobmVzcyA9IDAuNTsKICAgIGZsb2F0IG1ldGFsbGljID0gMC4wOwogICAgZmxvYXQgb2NjbHVzaW9uID0gMS4wOwogICAgZmxvYXQgc3BlY3VsYXIgPSAwLjU7CiAgICBuIC89IHZlYzMoKGFicyhuLngpICsgYWJzKG4ueSkpICsgYWJzKG4ueikpOwogICAgdmVjMiBfOTY7CiAgICBpZiAobi56ID49IDAuMCkKICAgIHsKICAgICAgICBfOTYgPSBuLnh5OwogICAgfQogICAgZWxzZQogICAgewogICAgICAgIF85NiA9IG9jdGFoZWRyb25XcmFwKG4ueHkpOwogICAgfQogICAgbiA9IHZlYzMoXzk2LngsIF85Ni55LCBuLnopOwogICAgZnJhZ0NvbG9yWzBdID0gdmVjNChuLnh5LCByb3VnaG5lc3MsIHBhY2tGbG9hdEludDE2KG1ldGFsbGljLCAwdSkpOwogICAgZnJhZ0NvbG9yWzFdID0gdmVjNChiYXNlY29sLCBwYWNrRmxvYXQyKG9jY2x1c2lvbiwgc3BlY3VsYXIpKTsKfQoK";
 kha_Shaders.Truck_S_vehicles_blend_mesh_fragData0 = "s1504:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgppbiB2ZWMzIHdub3JtYWw7Cm91dCB2ZWM0IGZyYWdDb2xvclsyXTsKCnZlYzIgb2N0YWhlZHJvbldyYXAodmVjMiB2KQp7CiAgICByZXR1cm4gKHZlYzIoMS4wKSAtIGFicyh2Lnl4KSkgKiB2ZWMyKCh2LnggPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSwgKHYueSA%PSAwLjApID8gMS4wIDogKC0xLjApKTsKfQoKZmxvYXQgcGFja0Zsb2F0SW50MTYoZmxvYXQgZiwgdWludCBpKQp7CiAgICByZXR1cm4gKDAuMDYyNDg1Njk0ODg1MjUzOTA2MjUgKiBmKSArICgwLjA2MjUwMDk1MzY3NDMxNjQwNjI1ICogZmxvYXQoaSkpOwp9CgpmbG9hdCBwYWNrRmxvYXQyKGZsb2F0IGYxLCBmbG9hdCBmMikKewogICAgcmV0dXJuIGZsb29yKGYxICogMjU1LjApICsgbWluKGYyLCAwLjk5MDAwMDAwOTUzNjc0MzE2NDA2MjUpOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMzIG4gPSBub3JtYWxpemUod25vcm1hbCk7CiAgICB2ZWMzIGJhc2Vjb2wgPSB2ZWMzKDAuODAwMDAwMDcxNTI1NTczNzMwNDY4NzUsIDAuMjIzODc1Njg2NTI2Mjk4NTIyOTQ5MjE4NzUsIDAuNzgzNDQ5NTkwMjA2MTQ2MjQwMjM0Mzc1KTsKICAgIGZsb2F0IHJvdWdobmVzcyA9IDAuNTsKICAgIGZsb2F0IG1ldGFsbGljID0gMC4wOwogICAgZmxvYXQgb2NjbHVzaW9uID0gMS4wOwogICAgZmxvYXQgc3BlY3VsYXIgPSAwLjU7CiAgICBuIC89IHZlYzMoKGFicyhuLngpICsgYWJzKG4ueSkpICsgYWJzKG4ueikpOwogICAgdmVjMiBfOTY7CiAgICBpZiAobi56ID49IDAuMCkKICAgIHsKICAgICAgICBfOTYgPSBuLnh5OwogICAgfQogICAgZWxzZQogICAgewogICAgICAgIF85NiA9IG9jdGFoZWRyb25XcmFwKG4ueHkpOwogICAgfQogICAgbiA9IHZlYzMoXzk2LngsIF85Ni55LCBuLnopOwogICAgZnJhZ0NvbG9yWzBdID0gdmVjNChuLnh5LCByb3VnaG5lc3MsIHBhY2tGbG9hdEludDE2KG1ldGFsbGljLCAwdSkpOwogICAgZnJhZ0NvbG9yWzFdID0gdmVjNChiYXNlY29sLCBwYWNrRmxvYXQyKG9jY2x1c2lvbiwgc3BlY3VsYXIpKTsKfQoK";
-kha_Shaders.armdefault_mesh_fragData0 = "s1430:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgppbiB2ZWMzIHdub3JtYWw7Cm91dCB2ZWM0IGZyYWdDb2xvclsyXTsKCnZlYzIgb2N0YWhlZHJvbldyYXAodmVjMiB2KQp7CiAgICByZXR1cm4gKHZlYzIoMS4wKSAtIGFicyh2Lnl4KSkgKiB2ZWMyKCh2LnggPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSwgKHYueSA%PSAwLjApID8gMS4wIDogKC0xLjApKTsKfQoKZmxvYXQgcGFja0Zsb2F0SW50MTYoZmxvYXQgZiwgdWludCBpKQp7CiAgICByZXR1cm4gKDAuMDYyNDg1Njk0ODg1MjUzOTA2MjUgKiBmKSArICgwLjA2MjUwMDk1MzY3NDMxNjQwNjI1ICogZmxvYXQoaSkpOwp9CgpmbG9hdCBwYWNrRmxvYXQyKGZsb2F0IGYxLCBmbG9hdCBmMikKewogICAgcmV0dXJuIGZsb29yKGYxICogMjU1LjApICsgbWluKGYyLCAwLjk5MDAwMDAwOTUzNjc0MzE2NDA2MjUpOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMzIG4gPSBub3JtYWxpemUod25vcm1hbCk7CiAgICB2ZWMzIGJhc2Vjb2wgPSB2ZWMzKDAuODAwMDAwMDExOTIwOTI4OTU1MDc4MTI1KTsKICAgIGZsb2F0IHJvdWdobmVzcyA9IDAuMjU7CiAgICBmbG9hdCBtZXRhbGxpYyA9IDAuMDsKICAgIGZsb2F0IG9jY2x1c2lvbiA9IDEuMDsKICAgIGZsb2F0IHNwZWN1bGFyID0gMC41OwogICAgbiAvPSB2ZWMzKChhYnMobi54KSArIGFicyhuLnkpKSArIGFicyhuLnopKTsKICAgIHZlYzIgXzk1OwogICAgaWYgKG4ueiA%PSAwLjApCiAgICB7CiAgICAgICAgXzk1ID0gbi54eTsKICAgIH0KICAgIGVsc2UKICAgIHsKICAgICAgICBfOTUgPSBvY3RhaGVkcm9uV3JhcChuLnh5KTsKICAgIH0KICAgIG4gPSB2ZWMzKF85NS54LCBfOTUueSwgbi56KTsKICAgIGZyYWdDb2xvclswXSA9IHZlYzQobi54eSwgcm91Z2huZXNzLCBwYWNrRmxvYXRJbnQxNihtZXRhbGxpYywgMHUpKTsKICAgIGZyYWdDb2xvclsxXSA9IHZlYzQoYmFzZWNvbCwgcGFja0Zsb2F0MihvY2NsdXNpb24sIHNwZWN1bGFyKSk7Cn0KCg";
 kha_Shaders.blur_edge_pass_fragData0 = "s3082:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIHNhbXBsZXIyRCBnYnVmZmVyMDsKdW5pZm9ybSBzYW1wbGVyMkQgdGV4Owp1bmlmb3JtIHZlYzIgZGlySW52OwoKaW4gdmVjMiB0ZXhDb29yZDsKb3V0IGZsb2F0IGZyYWdDb2xvcjsKCnZlYzIgb2N0YWhlZHJvbldyYXAodmVjMiB2KQp7CiAgICByZXR1cm4gKHZlYzIoMS4wKSAtIGFicyh2Lnl4KSkgKiB2ZWMyKCh2LnggPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSwgKHYueSA%PSAwLjApID8gMS4wIDogKC0xLjApKTsKfQoKdmVjMyBnZXROb3IodmVjMiBlbmMpCnsKICAgIHZlYzMgbjsKICAgIG4ueiA9ICgxLjAgLSBhYnMoZW5jLngpKSAtIGFicyhlbmMueSk7CiAgICB2ZWMyIF81MzsKICAgIGlmIChuLnogPj0gMC4wKQogICAgewogICAgICAgIF81MyA9IGVuYzsKICAgIH0KICAgIGVsc2UKICAgIHsKICAgICAgICBfNTMgPSBvY3RhaGVkcm9uV3JhcChlbmMpOwogICAgfQogICAgbiA9IHZlYzMoXzUzLngsIF81My55LCBuLnopOwogICAgbiA9IG5vcm1hbGl6ZShuKTsKICAgIHJldHVybiBuOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMzIG5vciA9IGdldE5vcih0ZXh0dXJlTG9kKGdidWZmZXIwLCB0ZXhDb29yZCwgMC4wKS54eSk7CiAgICBmcmFnQ29sb3IgPSB0ZXh0dXJlTG9kKHRleCwgdGV4Q29vcmQsIDAuMCkueCAqIDAuMTMyNTcxOTk1MjU4MzMxMjk4ODI4MTI1OwogICAgZmxvYXQgd2VpZ2h0ID0gMC4xMzI1NzE5OTUyNTgzMzEyOTg4MjgxMjU7CiAgICBmb3IgKGludCBpID0gMTsgaSA8IDg7IGkrKykKICAgIHsKICAgICAgICBmbG9hdCBwb3NhZGQgPSBmbG9hdChpKTsKICAgICAgICB2ZWMzIG5vcjIgPSBnZXROb3IodGV4dHVyZUxvZChnYnVmZmVyMCwgdGV4Q29vcmQgKyAoZGlySW52ICogZmxvYXQoaSkpLCAwLjApLnh5KTsKICAgICAgICBmbG9hdCBpbmZsdWVuY2VGYWN0b3IgPSBzdGVwKDAuOTQ5OTk5OTg4MDc5MDcxMDQ0OTIxODc1LCBkb3Qobm9yMiwgbm9yKSk7CiAgICAgICAgZmxvYXQgY29sID0gdGV4dHVyZUxvZCh0ZXgsIHRleENvb3JkICsgKGRpckludiAqIHBvc2FkZCksIDAuMCkueDsKICAgICAgICBmbG9hdCBpbmRleGFibGVbMTBdID0gZmxvYXRbXSgwLjEzMjU3MTk5NTI1ODMzMTI5ODgyODEyNSwgMC4xMjU0NzE5OTQyODA4MTUxMjQ1MTE3MTg3NSwgMC4xMDYzNzI5OTcxNjQ3MjYyNTczMjQyMTg3NSwgMC4wODA3Nzk5OTk0OTQ1NTI2MTIzMDQ2ODc1LCAwLjA1NDk0OTk5ODg1NTU5MDgyMDMxMjUsIDAuMDMzNDgyMDAwMjMxNzQyODU4ODg2NzE4NzUsIDAuMDE4Mjc1MDAwMTU0OTcyMDc2NDE2MDE1NjI1LCAwLjAwODkzMzk5OTU3NTY3NDUzMzg0Mzk5NDE0MDYyNSwgMC4wMDM5MTE5OTk5ODU1NzU2NzU5NjQzNTU0Njg3NSwgMC4wMDE1MzUwMDAwNDY3MTUxNDAzNDI3MTI0MDIzNDM3NSk7CiAgICAgICAgZmxvYXQgdyA9IGluZGV4YWJsZVtpXSAqIGluZmx1ZW5jZUZhY3RvcjsKICAgICAgICBmcmFnQ29sb3IgKz0gKGNvbCAqIHcpOwogICAgICAgIHdlaWdodCArPSB3OwogICAgICAgIG5vcjIgPSBnZXROb3IodGV4dHVyZUxvZChnYnVmZmVyMCwgdGV4Q29vcmQgLSAoZGlySW52ICogZmxvYXQoaSkpLCAwLjApLnh5KTsKICAgICAgICBpbmZsdWVuY2VGYWN0b3IgPSBzdGVwKDAuOTQ5OTk5OTg4MDc5MDcxMDQ0OTIxODc1LCBkb3Qobm9yMiwgbm9yKSk7CiAgICAgICAgY29sID0gdGV4dHVyZUxvZCh0ZXgsIHRleENvb3JkIC0gKGRpckludiAqIHBvc2FkZCksIDAuMCkueDsKICAgICAgICBmbG9hdCBpbmRleGFibGVfMVsxMF0gPSBmbG9hdFtdKDAuMTMyNTcxOTk1MjU4MzMxMjk4ODI4MTI1LCAwLjEyNTQ3MTk5NDI4MDgxNTEyNDUxMTcxODc1LCAwLjEwNjM3Mjk5NzE2NDcyNjI1NzMyNDIxODc1LCAwLjA4MDc3OTk5OTQ5NDU1MjYxMjMwNDY4NzUsIDAuMDU0OTQ5OTk4ODU1NTkwODIwMzEyNSwgMC4wMzM0ODIwMDAyMzE3NDI4NTg4ODY3MTg3NSwgMC4wMTgyNzUwMDAxNTQ5NzIwNzY0MTYwMTU2MjUsIDAuMDA4OTMzOTk5NTc1Njc0NTMzODQzOTk0MTQwNjI1LCAwLjAwMzkxMTk5OTk4NTU3NTY3NTk2NDM1NTQ2ODc1LCAwLjAwMTUzNTAwMDA0NjcxNTE0MDM0MjcxMjQwMjM0Mzc1KTsKICAgICAgICB3ID0gaW5kZXhhYmxlXzFbaV0gKiBpbmZsdWVuY2VGYWN0b3I7CiAgICAgICAgZnJhZ0NvbG9yICs9IChjb2wgKiB3KTsKICAgICAgICB3ZWlnaHQgKz0gdzsKICAgIH0KICAgIGZyYWdDb2xvciAvPSB3ZWlnaHQ7Cn0KCg";
 kha_Shaders.compositor_pass_fragData0 = "s872:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIHNhbXBsZXIyRCB0ZXg7CgppbiB2ZWMyIHRleENvb3JkOwpvdXQgdmVjNCBmcmFnQ29sb3I7Cgp2ZWMzIHRvbmVtYXBGaWxtaWModmVjMyBjb2xvcikKewogICAgdmVjMyB4ID0gbWF4KHZlYzMoMC4wKSwgY29sb3IgLSB2ZWMzKDAuMDA0MDAwMDAwMTg5OTg5ODA1MjIxNTU3NjE3MTg3NSkpOwogICAgcmV0dXJuICh4ICogKCh4ICogNi4xOTk5OTk4MDkyNjUxMzY3MTg3NSkgKyB2ZWMzKDAuNSkpKSAvICgoeCAqICgoeCAqIDYuMTk5OTk5ODA5MjY1MTM2NzE4NzUpICsgdmVjMygxLjcwMDAwMDA0NzY4MzcxNTgyMDMxMjUpKSkgKyB2ZWMzKDAuMDU5OTk5OTk4NjU4ODk1NDkyNTUzNzEwOTM3NSkpOwp9Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWMyIHRleENvID0gdGV4Q29vcmQ7CiAgICBmcmFnQ29sb3IgPSB0ZXh0dXJlTG9kKHRleCwgdGV4Q28sIDAuMCk7CiAgICB2ZWMzIF81OSA9IHRvbmVtYXBGaWxtaWMoZnJhZ0NvbG9yLnh5eik7CiAgICBmcmFnQ29sb3IgPSB2ZWM0KF81OS54LCBfNTkueSwgXzU5LnosIGZyYWdDb2xvci53KTsKfQoK";
 kha_Shaders.compositor_pass_vertData0 = "s331:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgpvdXQgdmVjMiB0ZXhDb29yZDsKaW4gdmVjMiBwb3M7Cgp2b2lkIG1haW4oKQp7CiAgICB0ZXhDb29yZCA9IChwb3MgKiB2ZWMyKDAuNSkpICsgdmVjMigwLjUpOwogICAgZ2xfUG9zaXRpb24gPSB2ZWM0KHBvcywgMC4wLCAxLjApOwp9Cgo";

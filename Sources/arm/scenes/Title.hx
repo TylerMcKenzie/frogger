@@ -19,6 +19,11 @@ class Title extends iron.Trait
             Event.add("start", start);
             Event.add("quit", quit);
         });
+
+        notifyOnRemove(function() {
+            Event.remove("start");
+            Event.remove("quit");
+        });
     }
 
     public function start()

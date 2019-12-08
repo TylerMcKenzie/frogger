@@ -48,7 +48,6 @@ class Player extends iron.Trait
         var collisionObjects = physics.getContacts(this.body);
 
         if (collisionObjects != null) {
-            trace(collisionObjects.length);
             for (cObject in collisionObjects) {
                 if (cObject.object.getTrait(Vehicle) != null) {
                     return true;
