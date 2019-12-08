@@ -33,7 +33,7 @@ class Frogger extends iron.Trait
         // These should be instanced to each scene, will need setters
         // physics = PhysicsWorld.active;
         player  = Scene.active.getChild("Player_Frog");
-
+        keyboard = Input.getKeyboard();
         // Canvas stuff
         gameOverCanvas = Scene.active.getTrait(CanvasScript);
         gameOverCanvas.setCanvasVisibility(true);
@@ -46,6 +46,10 @@ class Frogger extends iron.Trait
 
         Event.add("goto-main-menu", function() {
             Scene.setActive("01_Title");
+        });
+
+        Event.add("unpause", function() {
+            GameController.setState(cast PLAYING);
         });
 
         GameController.setState(cast PLAYING);
@@ -76,11 +80,28 @@ class Frogger extends iron.Trait
                     }
                 }
             }
+
+            if (change.state == "PAUSED") {
+                var pausedElementParent = gameOverCanvas.getElement("pausedParent");
+                pausedElementParent.x = System.windowWidth()/2 - pausedElementParent.width/2;
+                pausedElementParent.y = System.windowHeight()/2 - pausedElementParent.height/2;
+                pausedElementParent.visible = true;
+            } else if (change.prevState == "PAUSED") {
+                gameOverCanvas.getElement("pausedParent").visible = false;
+            }
         });
     }
 
     public function onUpdate()
     {
+        if (keyboard.started("escape")) {
+            GameController.setState("PAUSED");
+        }
+
+        if (GameController.getState() == "PAUSED") {
+            return;
+        }
+
         if (player.getTrait(Player).isDead() == true) {
             GameController.setState(cast GAME_OVER);
         }
@@ -139,5 +160,6 @@ class Frogger extends iron.Trait
     {
         Event.remove("goto-menu");
         Event.remove("reset-frogger");
+        Event.remove("unpause");
     }
 }

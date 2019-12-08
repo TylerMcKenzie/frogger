@@ -40,7 +40,7 @@ class VehicleSpawner extends iron.Trait
 		}
 
 		notifyOnUpdate(function() {
-			if (this.active != true) {
+			if (this.active != true || GameController.getState() == "PAUSED") {
 				return;
 			}
 
