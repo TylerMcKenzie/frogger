@@ -395,7 +395,18 @@ arm_GameController.getState = function() {
 	return arm_GameController.state;
 };
 arm_GameController.setState = function(s) {
+	var stateChange = { prevState : arm_GameController.state, state : s};
 	arm_GameController.state = s;
+	var _g = 0;
+	var _g1 = arm_GameController.listeners;
+	while(_g < _g1.length) {
+		var listener = _g1[_g];
+		++_g;
+		listener(stateChange);
+	}
+};
+arm_GameController.onStateChange = function(callback) {
+	arm_GameController.listeners.push(callback);
 };
 var arm_Path = function(startPosition) {
 	this.origin = startPosition;
@@ -522,9 +533,10 @@ var arm_Player = function() {
 	iron_Trait.call(this);
 	this.notifyOnInit(function() {
 		_gthis.body = _gthis.object.getTrait(armory_trait_physics_bullet_RigidBody);
+		_gthis.physics = armory_trait_physics_bullet_PhysicsWorld.active;
 	});
 	this.notifyOnUpdate(function() {
-		if(arm_GameController.getState() != 2) {
+		if(arm_GameController.getState() != "PLAYING") {
 			return;
 		}
 		if(!_gthis.body.ready) {
@@ -533,6 +545,9 @@ var arm_Player = function() {
 		if(_gthis.kb.started("up") || _gthis.kb.started("w")) {
 			_gthis.jumpForward();
 		}
+		if(_gthis.kb.started("down") || _gthis.kb.started("s")) {
+			_gthis.jumpBackward();
+		}
 		if(_gthis.kb.started("left") || _gthis.kb.started("a")) {
 			_gthis.jumpLeft();
 		}
@@ -540,6 +555,9 @@ var arm_Player = function() {
 			_gthis.jumpRight();
 		}
 		_gthis.body.syncTransform();
+		if(_gthis.getVehicleCollision() == true) {
+			_gthis.dead = true;
+		}
 	});
 };
 $hxClasses["arm.Player"] = arm_Player;
@@ -550,12 +568,25 @@ arm_Player.prototype = $extend(iron_Trait.prototype,{
 	,stepX: null
 	,stepY: null
 	,body: null
+	,physics: null
 	,dead: null
+	,getVehicleCollision: function() {
+		var collisionObjects = this.physics.getContacts(this.body);
+		if(collisionObjects != null) {
+			haxe_Log.trace(collisionObjects.length,{ fileName : "arm/Player.hx", lineNumber : 51, className : "arm.Player", methodName : "getVehicleCollision"});
+			var _g = 0;
+			while(_g < collisionObjects.length) {
+				var cObject = collisionObjects[_g];
+				++_g;
+				if(cObject.object.getTrait(arm_Vehicle) != null) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	,reset: function() {
 		this.dead = false;
-	}
-	,getBody: function() {
-		return this.body;
 	}
 	,jumpForward: function() {
 		this.object.transform.translate(0,this.stepY,0);
@@ -770,12 +801,17 @@ arm_scenes_Frogger.prototype = $extend(iron_Trait.prototype,{
 	,keyboard: null
 	,gameOverCanvas: null
 	,init: function() {
-		this.physics = armory_trait_physics_bullet_PhysicsWorld.active;
+		var _gthis = this;
 		this.player = iron_Scene.active.getChild("Player_Frog");
 		this.gameOverCanvas = new armory_trait_internal_CanvasScript("Frogger");
 		this.gameOverCanvas.setCanvasVisibility(true);
 		this.gameOverCanvas.getElement("gameOverParent").visible = false;
-		arm_GameController.setState(2);
+		armory_system_Event.add("reset-frogger",function() {
+		});
+		armory_system_Event.add("quit",function() {
+			kha_System.stop();
+		});
+		arm_GameController.setState("PLAYING");
 		var start = iron_Scene.active.getChild("LEVEL_START");
 		var _this = start.transform.world;
 		var startLocation = new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33);
@@ -783,10 +819,30 @@ arm_scenes_Frogger.prototype = $extend(iron_Trait.prototype,{
 		this.player.transform.loc.x = startLocation.x;
 		this.player.transform.loc.y = startLocation.y;
 		this.player.transform.buildMatrix();
+		arm_GameController.onStateChange(function(change) {
+			if(change.state == js_Boot.__cast("GAME_OVER" , String) && change.prevState == js_Boot.__cast("PLAYING" , String)) {
+				haxe_Log.trace("message received",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 57, className : "arm.scenes.Frogger", methodName : "init"});
+				var gameOverTextParent = _gthis.gameOverCanvas.getElement("gameOverParent");
+				gameOverTextParent.x = kha_System.windowWidth() / 2 - gameOverTextParent.width / 2;
+				gameOverTextParent.y = kha_System.windowHeight() / 2 - gameOverTextParent.height / 2;
+				gameOverTextParent.visible = true;
+				var _g = 0;
+				var _g1 = arm_GameController.streetSystem.getStreets();
+				while(_g < _g1.length) {
+					var street = _g1[_g];
+					++_g;
+					var spawner = street.getTrait(arm_Street).getSpawner();
+					if(spawner != null) {
+						haxe_Log.trace("disabling spawners",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 68, className : "arm.scenes.Frogger", methodName : "init"});
+						spawner.getTrait(arm_VehicleSpawner).setActive(false);
+					}
+				}
+			}
+		});
 	}
 	,update: function() {
-		if(this.keyboard == null) {
-			this.keyboard = iron_system_Input.getKeyboard();
+		if(this.player.getTrait(arm_Player).isDead() == true) {
+			arm_GameController.setState("GAME_OVER");
 		}
 		var _g = 0;
 		var _g1 = arm_GameController.vehicleSystem.getVehicles();
@@ -989,47 +1045,9 @@ arm_scenes_Frogger.prototype = $extend(iron_Trait.prototype,{
 			var inlVec4_z7 = z7;
 			var inlVec4_w7 = w7;
 			if(inlVec4_y6 >= inlVec4_y7) {
-				haxe_Log.trace("Go to mech mode, disable this mode.",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 93, className : "arm.scenes.Frogger", methodName : "update"});
+				haxe_Log.trace("Go to mech mode, disable this mode.",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 127, className : "arm.scenes.Frogger", methodName : "update"});
 			}
 		}
-		var state = arm_GameController.getState();
-		switch(state) {
-		case 2:
-			if(this.getPlayerCollision() == true) {
-				haxe_Log.trace("message received",{ fileName : "arm/scenes/Frogger.hx", lineNumber : 101, className : "arm.scenes.Frogger", methodName : "update"});
-				this.gameOverCanvas.getElement("gameOverParent").visible = true;
-			}
-			break;
-		case 3:
-			var _g4 = 0;
-			var _g5 = arm_GameController.streetSystem.getStreets();
-			while(_g4 < _g5.length) {
-				var street1 = _g5[_g4];
-				++_g4;
-				var spawner = street1.getTrait(arm_Street).getSpawner();
-				if(spawner != null) {
-					spawner.getTrait(arm_VehicleSpawner).setActive(false);
-				}
-			}
-			arm_GameController.streetSystem.removeStreets();
-			this.player.getTrait(arm_Player).reset();
-			arm_GameController.setState(2);
-			break;
-		}
-	}
-	,getPlayerCollision: function() {
-		var collisionObjects = this.physics.getContacts(this.player.getTrait(arm_Player).getBody());
-		if(collisionObjects != null) {
-			var _g = 0;
-			while(_g < collisionObjects.length) {
-				var cObject = collisionObjects[_g];
-				++_g;
-				if(cObject.object.getTrait(arm_Vehicle) != null) {
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 	,__class__: arm_scenes_Frogger
 });
@@ -43767,6 +43785,7 @@ Main.projectPackage = "arm";
 arm_system_VehicleSystem.VEHICLES = ["Truck_L","Truck_M","Truck_S"];
 arm_GameController.streetSystem = new arm_system_StreetSystem();
 arm_GameController.vehicleSystem = new arm_system_VehicleSystem();
+arm_GameController.listeners = [];
 arm_Street.STREET_SIZE = 6;
 arm_VehicleSpawner.__meta__ = { fields : { spawnFrequency : { prop : null}, spawnDirectionX : { prop : null}, spawnDirectionY : { prop : null}, spawnDirectionZ : { prop : null}, isRandomFrequency : { prop : null}, active : { prop : null}}};
 armory_data_Config.configLoaded = false;

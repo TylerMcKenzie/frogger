@@ -1,11 +1,13 @@
 package arm.scenes;
 
+import arm.config.GameState;
 import armory.trait.physics.PhysicsWorld;
 import armory.trait.internal.CanvasScript;
 import armory.system.Event;
 import iron.object.Object;
 import iron.system.Input;
 import iron.Scene;
+import kha.System;
 
 class Frogger extends iron.Trait
 {
@@ -27,23 +29,55 @@ class Frogger extends iron.Trait
     public function init()
     {
         // These should be instanced to each scene, will need setters
-        physics = PhysicsWorld.active;
+        // physics = PhysicsWorld.active;
         player  = Scene.active.getChild("Player_Frog");
+
+        // Canvas stuff
         gameOverCanvas = new CanvasScript("Frogger");
         gameOverCanvas.setCanvasVisibility(true);
         gameOverCanvas.getElement("gameOverParent").visible = false;
-        GameController.setState(PLAYING);
+
+        Event.add("reset-frogger", function() {});
+        Event.add("quit", function() {
+            System.stop();
+        });
+
+        GameController.setState(cast PLAYING);
         var start = Scene.active.getChild("LEVEL_START");
         var startLocation = start.transform.world.getLoc();
         GameController.streetSystem.createStreetPath(startLocation, 31);
         player.transform.loc.x = startLocation.x;
         player.transform.loc.y = startLocation.y;
         player.transform.buildMatrix();
+        
+        // register state change
+        GameController.onStateChange(function(change) {
+            // Disable spawners
+            if (change.state == cast(GAME_OVER, String) && change.prevState == cast(PLAYING, String)) {
+                trace("message received");
+                
+                var gameOverTextParent = gameOverCanvas.getElement("gameOverParent");
+                gameOverTextParent.x = System.windowWidth()/2 - gameOverTextParent.width/2;
+                gameOverTextParent.y = System.windowHeight()/2 - gameOverTextParent.height/2;
+                gameOverTextParent.visible = true;
+
+                for (street in GameController.streetSystem.getStreets()) {
+                    var spawner = street.getTrait(Street).getSpawner();
+
+                    if (spawner != null) {
+                        trace("disabling spawners");
+                        spawner.getTrait(VehicleSpawner).setActive(false);
+                    }
+                }
+            }
+        });
     }
 
     public function update()
     {
-        if (keyboard == null ) keyboard = Input.getKeyboard();
+        if (player.getTrait(Player).isDead() == true) {
+            GameController.setState(cast GAME_OVER);
+        }
 
         // MOVE THIS TO A TRAIT or adjust scene stream? camera render distance?
         // vehicle visibility logic
@@ -93,47 +127,5 @@ class Frogger extends iron.Trait
                 trace("Go to mech mode, disable this mode.");
             }
         }
-
-        var state = GameController.getState();
-        switch state {
-            case PLAYING:
-                if (getPlayerCollision() == true) {
-                    trace("message received");
-                    gameOverCanvas.getElement("gameOverParent").visible = true;
-                }
-            case GAME_OVER:
-                // Disable spawners
-                for (street in GameController.streetSystem.getStreets()) {
-                    var spawner = street.getTrait(Street).getSpawner();
-
-                    if (spawner != null) {
-                        spawner.getTrait(VehicleSpawner).setActive(false);
-                    }
-                }
-
-                // Show game over text
-                // TODO CANVAS STUFF
-                // Reset game and go back to begining
-                GameController.streetSystem.removeStreets();
-
-                player.getTrait(Player).reset();
-                
-                GameController.setState(PLAYING);
-        }
-    }
-    
-    private function getPlayerCollision()
-    {
-        var collisionObjects = physics.getContacts(player.getTrait(Player).getBody());
-
-        if (collisionObjects != null) {
-            for (cObject in collisionObjects) {
-                if (cObject.object.getTrait(Vehicle) != null) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 }

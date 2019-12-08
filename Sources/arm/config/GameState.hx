@@ -1,7 +1,7 @@
 package arm.config;
 
-enum abstract GameState(Int) 
+enum abstract GameState(String) 
 {
-	var PLAYING   = 2;
-	var GAME_OVER = 3;
+	var PLAYING;
+	var GAME_OVER;
 }
