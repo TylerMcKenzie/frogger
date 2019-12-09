@@ -253,6 +253,27 @@
 			"types": []
 		},
 		{
+			"name": "Tires_vehicles_blend_mesh_frag",
+			"files": [
+				"Tires_vehicles_blend_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
+			"types": []
+		},
+		{
 			"name": "Truck_L_vehicles_blend_mesh_frag",
 			"files": [
 				"Truck_L_vehicles_blend_mesh.frag.glsl"
@@ -295,9 +316,30 @@
 			"types": []
 		},
 		{
-			"name": "Truck_S_vehicles_blend_mesh_frag",
+			"name": "Truck_S_Red_vehicles_blend_mesh_frag",
 			"files": [
-				"Truck_S_vehicles_blend_mesh.frag.glsl"
+				"Truck_S_Red_vehicles_blend_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
+			"types": []
+		},
+		{
+			"name": "Windows_vehicles_blend_mesh_frag",
+			"files": [
+				"Windows_vehicles_blend_mesh.frag.glsl"
 			],
 			"type": "shader",
 			"inputs": [
