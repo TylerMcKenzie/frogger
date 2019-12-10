@@ -1,9 +1,14 @@
 package arm;
 
 import armory.trait.physics.RigidBody;
-import iron.system.Time;
-import iron.math.Vec4;
 
+import iron.data.MaterialData;
+import iron.object.Object;
+import iron.object.MeshObject;
+import iron.math.Vec4;
+import iron.system.Time;
+
+import kha.Image;
 import kha.FastFloat;
 
 class Vehicle extends iron.Trait
@@ -26,7 +31,7 @@ class Vehicle extends iron.Trait
 
 		notifyOnInit(function() {
 			GameController.vehicleSystem.register(this);
-
+			
 			this.body = this.object.getTrait(RigidBody);
 		});
 
@@ -75,5 +80,17 @@ class Vehicle extends iron.Trait
 	public function setDirection(direction: Vec4)
 	{
 		this.direction = direction;
+	}
+
+	public function setColor(color: String) 
+	{
+		if (this.object.name != "Truck_S") return;
+		
+		var materialName = this.object.name + "_" + color;
+		trace("setting " + color);
+		iron.data.Data.getMaterial(iron.Scene.active.raw.name, materialName, function (mat: MaterialData) {
+			trace("gotten");
+			iron.Scene.active.getMesh(this.object.name).materials[0] = mat;
+		});
 	}
 }

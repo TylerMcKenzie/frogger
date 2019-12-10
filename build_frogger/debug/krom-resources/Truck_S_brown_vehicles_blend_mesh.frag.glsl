@@ -3,7 +3,10 @@
 #extension GL_ARB_shading_language_420pack : require
 #endif
 
+uniform sampler2D ImageTexture;
+
 in vec3 wnormal;
+in vec2 texCoord;
 out vec4 fragColor[2];
 
 vec2 octahedronWrap(vec2 v)
@@ -24,22 +27,26 @@ float packFloat2(float f1, float f2)
 void main()
 {
     vec3 n = normalize(wnormal);
-    vec3 basecol = vec3(0.800000011920928955078125, 0.0, 0.0);
+    vec4 ImageTexture_texread_store = texture(ImageTexture, texCoord);
+    vec3 _82 = pow(ImageTexture_texread_store.xyz, vec3(2.2000000476837158203125));
+    ImageTexture_texread_store = vec4(_82.x, _82.y, _82.z, ImageTexture_texread_store.w);
+    vec3 ImageTexture_Color_res = ImageTexture_texread_store.xyz;
+    vec3 basecol = ImageTexture_Color_res;
     float roughness = 0.100000001490116119384765625;
     float metallic = 0.0;
     float occlusion = 1.0;
     float specular = 1.0;
     n /= vec3((abs(n.x) + abs(n.y)) + abs(n.z));
-    vec2 _94;
+    vec2 _115;
     if (n.z >= 0.0)
     {
-        _94 = n.xy;
+        _115 = n.xy;
     }
     else
     {
-        _94 = octahedronWrap(n.xy);
+        _115 = octahedronWrap(n.xy);
     }
-    n = vec3(_94.x, _94.y, n.z);
+    n = vec3(_115.x, _115.y, n.z);
     fragColor[0] = vec4(n.xy, roughness, packFloatInt16(metallic, 0u));
     fragColor[1] = vec4(basecol, packFloat2(occlusion, specular));
 }

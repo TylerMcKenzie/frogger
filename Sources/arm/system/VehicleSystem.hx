@@ -47,7 +47,7 @@ class VehicleSystem
 	public function getRandomVehicle() : Object
 	{
 		var randIndex = Math.round(Math.random()*(VEHICLES.length-1));
-		return getVehicle(VEHICLES[randIndex]);
+		return getVehicle(VEHICLES[2]);
 	}
 
 	public function register(vehicle: Vehicle)

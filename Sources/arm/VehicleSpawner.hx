@@ -98,5 +98,16 @@ class VehicleSpawner extends iron.Trait
 		);
 		vehicleTrait.setLifeTime(3.25);
 		vehicleTrait.setActive(true);
+
+		switch (Math.round(Math.random()*3)) {
+			case 0: 
+				vehicleTrait.setColor("red");
+			case 1:
+				vehicleTrait.setColor("green");
+			case 2:
+				vehicleTrait.setColor("brown");
+			case _:
+				vehicleTrait.setColor("red");
+		}
 	}
 }
