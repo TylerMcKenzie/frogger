@@ -695,6 +695,18 @@ arm_Vehicle.prototype = $extend(iron_Trait.prototype,{
 	,setDirection: function(direction) {
 		this.direction = direction;
 	}
+	,setColor: function(color) {
+		var _gthis = this;
+		if(this.object.name != "Truck_M") {
+			return;
+		}
+		var materialName = this.object.name + "_" + color;
+		haxe_Log.trace("setting " + color,{ fileName : "arm/Vehicle.hx", lineNumber : 90, className : "arm.Vehicle", methodName : "setColor"});
+		iron_data_Data.getMaterial(iron_Scene.active.raw.name,materialName,function(mat) {
+			haxe_Log.trace("gotten",{ fileName : "arm/Vehicle.hx", lineNumber : 92, className : "arm.Vehicle", methodName : "setColor"});
+			iron_Scene.active.getMesh(_gthis.object.name).materials[0] = mat;
+		});
+	}
 	,__class__: arm_Vehicle
 });
 var arm_VehicleSpawner = function() {

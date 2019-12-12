@@ -82,15 +82,15 @@ class Vehicle extends iron.Trait
 		this.direction = direction;
 	}
 
-	// public function setColor(color: String) 
-	// {
-	// 	if (this.object.name != "Truck_S") return;
+	public function setColor(color: String) 
+	{
+		if (this.object.name != "Truck_M") return;
 		
-	// 	var materialName = this.object.name + "_" + color;
-	// 	trace("setting " + color);
-	// 	iron.data.Data.getMaterial(iron.Scene.active.raw.name, materialName, function (mat: MaterialData) {
-	// 		trace("gotten");
-	// 		iron.Scene.active.getMesh(this.object.name).materials[0] = mat;
-	// 	});
-	// }
+		var materialName = this.object.name + "_" + color;
+		trace("setting " + color);
+		iron.data.Data.getMaterial(iron.Scene.active.raw.name, materialName, function (mat: MaterialData) {
+			trace("gotten");
+			iron.Scene.active.getMesh(this.object.name).materials[0] = mat;
+		});
+	}
 }
