@@ -9,7 +9,9 @@ class VehicleSystem
 	public static var VEHICLES: Array<VehicleType> = [
 		TRUCK_L,
 		TRUCK_M,
-		TRUCK_S
+		TRUCK_S_GREEN,
+		TRUCK_S_BROWN,
+		TRUCK_S_RED
 	];
 
 	private var vehicles: Array<Vehicle> = [];
@@ -46,8 +48,9 @@ class VehicleSystem
 
 	public function getRandomVehicle() : Object
 	{
-		var randIndex = Math.round(Math.random()*(VEHICLES.length-1));
-		return getVehicle(VEHICLES[2]);
+		// var randIndex = Math.round(Math.random()*(VEHICLES.length-1));
+		var randIndex = Math.round(Math.random()*(4-2) + 2);
+		return getVehicle(VEHICLES[randIndex]);
 	}
 
 	public function register(vehicle: Vehicle)

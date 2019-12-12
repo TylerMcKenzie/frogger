@@ -59,31 +59,31 @@
 -D kha_version=1810
 -D kha_project_name=frogger
 -js krom/krom.js.temp
-armory.trait.internal.Bridge
---macro keep('armory.trait.internal.Bridge')
-arm.Street
---macro keep('arm.Street')
-arm.Vehicle
---macro keep('arm.Vehicle')
 arm.scenes.Frogger
 --macro keep('arm.scenes.Frogger')
-armory.trait.FollowCamera
---macro keep('armory.trait.FollowCamera')
-arm.Player
---macro keep('arm.Player')
-armory.trait.physics.bullet.RigidBody
---macro keep('armory.trait.physics.bullet.RigidBody')
-arm.scenes.Title
---macro keep('arm.scenes.Title')
-arm.VehicleSpawner
---macro keep('arm.VehicleSpawner')
-armory.trait.physics.bullet.PhysicsWorld
---macro keep('armory.trait.physics.bullet.PhysicsWorld')
+arm.Street
+--macro keep('arm.Street')
 armory.trait.internal.DebugConsole
 --macro keep('armory.trait.internal.DebugConsole')
-armory.trait.WalkNavigation
---macro keep('armory.trait.WalkNavigation')
+armory.trait.physics.bullet.PhysicsWorld
+--macro keep('armory.trait.physics.bullet.PhysicsWorld')
+arm.VehicleSpawner
+--macro keep('arm.VehicleSpawner')
+arm.Player
+--macro keep('arm.Player')
+armory.trait.FollowCamera
+--macro keep('armory.trait.FollowCamera')
 armory.trait.internal.CanvasScript
 --macro keep('armory.trait.internal.CanvasScript')
+armory.trait.internal.Bridge
+--macro keep('armory.trait.internal.Bridge')
+armory.trait.physics.bullet.RigidBody
+--macro keep('armory.trait.physics.bullet.RigidBody')
+armory.trait.WalkNavigation
+--macro keep('armory.trait.WalkNavigation')
+arm.Vehicle
+--macro keep('arm.Vehicle')
+arm.scenes.Title
+--macro keep('arm.scenes.Title')
 --times
 -main Main
