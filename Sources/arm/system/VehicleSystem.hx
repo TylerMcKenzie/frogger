@@ -8,7 +8,9 @@ class VehicleSystem
 {
 	public static var VEHICLES: Array<VehicleType> = [
 		TRUCK_L,
-		TRUCK_M,
+		TRUCK_M_BROWN,
+		TRUCK_M_GREEN,
+		TRUCK_M_RED,
 		TRUCK_S_GREEN,
 		TRUCK_S_BROWN,
 		TRUCK_S_RED
@@ -49,7 +51,7 @@ class VehicleSystem
 	public function getRandomVehicle() : Object
 	{
 		// var randIndex = Math.round(Math.random()*(VEHICLES.length-1));
-		var randIndex = Math.round(Math.random()*(4-2) + 2);
+		var randIndex = Math.round(Math.random()*(6-1) + 1);
 		return getVehicle(VEHICLES[randIndex]);
 	}
 

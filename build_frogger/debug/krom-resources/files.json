@@ -253,9 +253,9 @@
 			"types": []
 		},
 		{
-			"name": "Truck_L_vehicles_blend_mesh_frag",
+			"name": "Truck_L_mesh_frag",
 			"files": [
-				"Truck_L_vehicles_blend_mesh.frag.glsl"
+				"Truck_L_mesh.frag.glsl"
 			],
 			"type": "shader",
 			"inputs": [
@@ -274,30 +274,9 @@
 			"types": []
 		},
 		{
-			"name": "Truck_M_vehicles_blend_mesh_frag",
+			"name": "Truck_M_brown_mesh_frag",
 			"files": [
-				"Truck_M_vehicles_blend_mesh.frag.glsl"
-			],
-			"type": "shader",
-			"inputs": [
-				{
-					"name": "wnormal",
-					"type": "vec3"
-				}
-			],
-			"outputs": [
-				{
-					"name": "fragColor",
-					"type": "vec4[]"
-				}
-			],
-			"uniforms": [],
-			"types": []
-		},
-		{
-			"name": "Truck_S_brown_vehicles_blend_mesh_frag",
-			"files": [
-				"Truck_S_brown_vehicles_blend_mesh.frag.glsl"
+				"Truck_M_brown_mesh.frag.glsl"
 			],
 			"type": "shader",
 			"inputs": [
@@ -325,9 +304,9 @@
 			"types": []
 		},
 		{
-			"name": "Truck_S_brown_vehicles_blend_mesh_vert",
+			"name": "Truck_M_brown_mesh_vert",
 			"files": [
-				"Truck_S_brown_vehicles_blend_mesh.vert.glsl"
+				"Truck_M_brown_mesh.vert.glsl"
 			],
 			"type": "shader",
 			"inputs": [
@@ -401,9 +380,9 @@
 			]
 		},
 		{
-			"name": "Truck_S_green_vehicles_blend_mesh_frag",
+			"name": "Truck_M_green_mesh_frag",
 			"files": [
-				"Truck_S_green_vehicles_blend_mesh.frag.glsl"
+				"Truck_M_green_mesh.frag.glsl"
 			],
 			"type": "shader",
 			"inputs": [
@@ -431,9 +410,99 @@
 			"types": []
 		},
 		{
-			"name": "Truck_S_red_vehicles_blend_mesh_frag",
+			"name": "Truck_M_red_mesh_frag",
 			"files": [
-				"Truck_S_red_vehicles_blend_mesh.frag.glsl"
+				"Truck_M_red_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				},
+				{
+					"name": "texCoord",
+					"type": "vec2"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [
+				{
+					"name": "ImageTexture",
+					"type": "sampler2D"
+				}
+			],
+			"types": []
+		},
+		{
+			"name": "Truck_S_brown_mesh_frag",
+			"files": [
+				"Truck_S_brown_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				},
+				{
+					"name": "texCoord",
+					"type": "vec2"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [
+				{
+					"name": "ImageTexture",
+					"type": "sampler2D"
+				}
+			],
+			"types": []
+		},
+		{
+			"name": "Truck_S_green_mesh_frag",
+			"files": [
+				"Truck_S_green_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				},
+				{
+					"name": "texCoord",
+					"type": "vec2"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [
+				{
+					"name": "ImageTexture",
+					"type": "sampler2D"
+				}
+			],
+			"types": []
+		},
+		{
+			"name": "Truck_S_red_mesh_frag",
+			"files": [
+				"Truck_S_red_mesh.frag.glsl"
 			],
 			"type": "shader",
 			"inputs": [
