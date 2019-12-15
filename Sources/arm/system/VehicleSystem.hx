@@ -7,7 +7,9 @@ import iron.Scene;
 class VehicleSystem
 {
 	public static var VEHICLES: Array<VehicleType> = [
-		TRUCK_L,
+		TRUCK_L_BROWN,
+		TRUCK_L_GREEN,
+		TRUCK_L_RED,
 		TRUCK_M_BROWN,
 		TRUCK_M_GREEN,
 		TRUCK_M_RED,
@@ -50,8 +52,8 @@ class VehicleSystem
 
 	public function getRandomVehicle() : Object
 	{
-		// var randIndex = Math.round(Math.random()*(VEHICLES.length-1));
-		var randIndex = Math.round(Math.random()*(6-1) + 1);
+		var randIndex = Math.round(Math.random()*(VEHICLES.length-1));
+		// var randIndex = Math.round(Math.random()*(6-1) + 1);
 		return getVehicle(VEHICLES[randIndex]);
 	}
 
