@@ -24,9 +24,9 @@ class VehicleSystem
 
 	public function update()
 	{
-		for (vehicle in vehicles) {
+		// for (vehicle in vehicles) {
 			// TODO CHECK IF THEY SHOULD BE REMOVED
-		}
+		// }
 	}
 
 	public function getVehicle(type) : Object

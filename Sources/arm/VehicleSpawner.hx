@@ -79,7 +79,7 @@ class VehicleSpawner extends iron.Trait
 
 	private function randomFreq()
 	{
-		return Math.random()*(3 - 0.5) + 0.5;
+		return Math.random()*(4 - 0.75) + 0.75;
 	}
 
 	private function spawnVehicle()

@@ -36,7 +36,9 @@ class Vehicle extends iron.Trait
 		});
 
 		notifyOnUpdate(function() {
-			if (!this.body.ready) return;
+			if (!this.body.ready) {
+				return;
+			}
 
 			if (GameController.getState() == "PAUSED") return;
 

@@ -46,7 +46,7 @@ class Player extends iron.Trait
 	private function getVehicleCollision()
     {
         var collisionObjects = physics.getContacts(this.body);
-
+		
         if (collisionObjects != null) {
             for (cObject in collisionObjects) {
                 if (cObject.object.getTrait(Vehicle) != null) {
