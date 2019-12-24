@@ -1,27 +1,6 @@
 {
 	"files": [
 		{
-			"name": "Material_000_mesh_frag",
-			"files": [
-				"Material_000_mesh.frag.glsl"
-			],
-			"type": "shader",
-			"inputs": [
-				{
-					"name": "wnormal",
-					"type": "vec3"
-				}
-			],
-			"outputs": [
-				{
-					"name": "fragColor",
-					"type": "vec4[]"
-				}
-			],
-			"uniforms": [],
-			"types": []
-		},
-		{
 			"name": "Material_001_mesh_frag",
 			"files": [
 				"Material_001_mesh.frag.glsl"
@@ -211,27 +190,6 @@
 			"types": []
 		},
 		{
-			"name": "STREET_002_mesh_frag",
-			"files": [
-				"STREET_002_mesh.frag.glsl"
-			],
-			"type": "shader",
-			"inputs": [
-				{
-					"name": "wnormal",
-					"type": "vec3"
-				}
-			],
-			"outputs": [
-				{
-					"name": "fragColor",
-					"type": "vec4[]"
-				}
-			],
-			"uniforms": [],
-			"types": []
-		},
-		{
 			"name": "STREET_GRASS_001_mesh_frag",
 			"files": [
 				"STREET_GRASS_001_mesh.frag.glsl"
@@ -253,9 +211,9 @@
 			"types": []
 		},
 		{
-			"name": "STREET_GRASS_002_mesh_frag",
+			"name": "STREET_GRASS_armpart_mesh_frag",
 			"files": [
-				"STREET_GRASS_002_mesh.frag.glsl"
+				"STREET_GRASS_armpart_mesh.frag.glsl"
 			],
 			"type": "shader",
 			"inputs": [
@@ -272,6 +230,137 @@
 			],
 			"uniforms": [],
 			"types": []
+		},
+		{
+			"name": "STREET_GRASS_armpart_mesh_vert",
+			"files": [
+				"STREET_GRASS_armpart_mesh.vert.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "pos",
+					"type": "vec4"
+				},
+				{
+					"name": "nor",
+					"type": "vec2"
+				},
+				{
+					"name": "ipos",
+					"type": "vec3"
+				},
+				{
+					"name": "gl_InstanceID",
+					"type": "int"
+				},
+				{
+					"name": "gl_VertexID",
+					"type": "int"
+				}
+			],
+			"outputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"uniforms": [
+				{
+					"name": "N",
+					"type": "mat3"
+				},
+				{
+					"name": "pd",
+					"type": "mat4"
+				},
+				{
+					"name": "WVP",
+					"type": "mat4"
+				}
+			],
+			"types": [
+				{
+					"name": "gl_PerVertex",
+					"members": [
+						{
+							"type": "vec4",
+							"name": "gl_Position"
+						},
+						{
+							"type": "float",
+							"name": "gl_PointSize"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_ClipDistance"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_CullDistance"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "STREET_GRASS_armpart_shadowmap_vert",
+			"files": [
+				"STREET_GRASS_armpart_shadowmap.vert.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "pos",
+					"type": "vec4"
+				},
+				{
+					"name": "ipos",
+					"type": "vec3"
+				},
+				{
+					"name": "gl_InstanceID",
+					"type": "int"
+				},
+				{
+					"name": "gl_VertexID",
+					"type": "int"
+				}
+			],
+			"outputs": [],
+			"uniforms": [
+				{
+					"name": "pd",
+					"type": "mat4"
+				},
+				{
+					"name": "LWVP",
+					"type": "mat4"
+				}
+			],
+			"types": [
+				{
+					"name": "gl_PerVertex",
+					"members": [
+						{
+							"type": "vec4",
+							"name": "gl_Position"
+						},
+						{
+							"type": "float",
+							"name": "gl_PointSize"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_ClipDistance"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_CullDistance"
+						}
+					]
+				}
+			]
 		},
 		{
 			"name": "STREET_GRASS_mesh_frag",
@@ -316,9 +405,9 @@
 			"types": []
 		},
 		{
-			"name": "Street_Curb_001_mesh_frag",
+			"name": "Stones_mesh_frag",
 			"files": [
-				"Street_Curb_001_mesh.frag.glsl"
+				"Stones_mesh.frag.glsl"
 			],
 			"type": "shader",
 			"inputs": [
@@ -494,36 +583,6 @@
 			"types": []
 		},
 		{
-			"name": "Truck_L_red_001_mesh_frag",
-			"files": [
-				"Truck_L_red_001_mesh.frag.glsl"
-			],
-			"type": "shader",
-			"inputs": [
-				{
-					"name": "wnormal",
-					"type": "vec3"
-				},
-				{
-					"name": "texCoord",
-					"type": "vec2"
-				}
-			],
-			"outputs": [
-				{
-					"name": "fragColor",
-					"type": "vec4[]"
-				}
-			],
-			"uniforms": [
-				{
-					"name": "ImageTexture",
-					"type": "sampler2D"
-				}
-			],
-			"types": []
-		},
-		{
 			"name": "Truck_L_red_mesh_frag",
 			"files": [
 				"Truck_L_red_mesh.frag.glsl"
@@ -614,36 +673,6 @@
 			"types": []
 		},
 		{
-			"name": "Truck_M_red_001_mesh_frag",
-			"files": [
-				"Truck_M_red_001_mesh.frag.glsl"
-			],
-			"type": "shader",
-			"inputs": [
-				{
-					"name": "wnormal",
-					"type": "vec3"
-				},
-				{
-					"name": "texCoord",
-					"type": "vec2"
-				}
-			],
-			"outputs": [
-				{
-					"name": "fragColor",
-					"type": "vec4[]"
-				}
-			],
-			"uniforms": [
-				{
-					"name": "ImageTexture",
-					"type": "sampler2D"
-				}
-			],
-			"types": []
-		},
-		{
 			"name": "Truck_M_red_mesh_frag",
 			"files": [
 				"Truck_M_red_mesh.frag.glsl"
@@ -707,36 +736,6 @@
 			"name": "Truck_S_green_mesh_frag",
 			"files": [
 				"Truck_S_green_mesh.frag.glsl"
-			],
-			"type": "shader",
-			"inputs": [
-				{
-					"name": "wnormal",
-					"type": "vec3"
-				},
-				{
-					"name": "texCoord",
-					"type": "vec2"
-				}
-			],
-			"outputs": [
-				{
-					"name": "fragColor",
-					"type": "vec4[]"
-				}
-			],
-			"uniforms": [
-				{
-					"name": "ImageTexture",
-					"type": "sampler2D"
-				}
-			],
-			"types": []
-		},
-		{
-			"name": "Truck_S_red_001_mesh_frag",
-			"files": [
-				"Truck_S_red_001_mesh.frag.glsl"
 			],
 			"type": "shader",
 			"inputs": [
