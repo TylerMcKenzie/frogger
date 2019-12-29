@@ -211,6 +211,27 @@
 			"types": []
 		},
 		{
+			"name": "STREET_GRASS_002_mesh_frag",
+			"files": [
+				"STREET_GRASS_002_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
+			"types": []
+		},
+		{
 			"name": "STREET_GRASS_armpart_mesh_frag",
 			"files": [
 				"STREET_GRASS_armpart_mesh.frag.glsl"
@@ -496,6 +517,14 @@
 					"type": "vec2"
 				},
 				{
+					"name": "iscl",
+					"type": "vec3"
+				},
+				{
+					"name": "ipos",
+					"type": "vec3"
+				},
+				{
 					"name": "gl_VertexID",
 					"type": "int"
 				},
@@ -525,6 +554,65 @@
 				},
 				{
 					"name": "WVP",
+					"type": "mat4"
+				}
+			],
+			"types": [
+				{
+					"name": "gl_PerVertex",
+					"members": [
+						{
+							"type": "vec4",
+							"name": "gl_Position"
+						},
+						{
+							"type": "float",
+							"name": "gl_PointSize"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_ClipDistance"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_CullDistance"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Truck_L_brown_shadowmap_vert",
+			"files": [
+				"Truck_L_brown_shadowmap.vert.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "pos",
+					"type": "vec4"
+				},
+				{
+					"name": "iscl",
+					"type": "vec3"
+				},
+				{
+					"name": "ipos",
+					"type": "vec3"
+				},
+				{
+					"name": "gl_VertexID",
+					"type": "int"
+				},
+				{
+					"name": "gl_InstanceID",
+					"type": "int"
+				}
+			],
+			"outputs": [],
+			"uniforms": [
+				{
+					"name": "LWVP",
 					"type": "mat4"
 				}
 			],
@@ -790,6 +878,27 @@
 					"type": "sampler2D"
 				}
 			],
+			"types": []
+		},
+		{
+			"name": "armdefault_mesh_frag",
+			"files": [
+				"armdefault_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
 			"types": []
 		},
 		{

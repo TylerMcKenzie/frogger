@@ -38,4 +38,9 @@ class GameController
     {
         listeners.push(callback);
     }
+
+    public static function clearListeners()
+    {
+        listeners = new Array<TStateChange->Void>();
+    }
 }
