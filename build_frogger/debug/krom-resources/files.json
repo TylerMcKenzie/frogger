@@ -211,27 +211,6 @@
 			"types": []
 		},
 		{
-			"name": "STREET_GRASS_002_mesh_frag",
-			"files": [
-				"STREET_GRASS_002_mesh.frag.glsl"
-			],
-			"type": "shader",
-			"inputs": [
-				{
-					"name": "wnormal",
-					"type": "vec3"
-				}
-			],
-			"outputs": [
-				{
-					"name": "fragColor",
-					"type": "vec4[]"
-				}
-			],
-			"uniforms": [],
-			"types": []
-		},
-		{
 			"name": "STREET_GRASS_armpart_mesh_frag",
 			"files": [
 				"STREET_GRASS_armpart_mesh.frag.glsl"

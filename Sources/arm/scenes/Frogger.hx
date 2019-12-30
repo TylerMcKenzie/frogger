@@ -41,7 +41,7 @@ class Frogger extends iron.Trait
 
         Event.add("reset-frogger", function() {
             // Wow this worked, but it feels hacky. Leaving it here until proved bad.
-            Scene.setActive("02_Frogger");
+            Scene.setActive(Scene.active.raw.name);
         });
 
         Event.add("goto-main-menu", function() {
@@ -55,7 +55,7 @@ class Frogger extends iron.Trait
         GameController.setState(cast PLAYING);
         var start = Scene.active.getChild("LEVEL_START");
         var startLocation = start.transform.world.getLoc();
-        GameController.streetSystem.createStreetPath(startLocation, 31);
+        GameController.streetSystem.createStreetPath(startLocation, 31, true);
         
         // register state change
         GameController.onStateChange(function(change) {
