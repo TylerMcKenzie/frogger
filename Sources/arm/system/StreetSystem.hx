@@ -43,7 +43,6 @@ class StreetSystem
 			if (setEnd && i == path.length) {
 				street = this.getStreet(GRASS);
 				streetTrait = street.getTrait(Street);
-				streetTrait.setIsEnd(true);
 			} else {
 				street = (Math.round(Math.random()*2) % 2 == 1) ? this.getStreet(ROAD) : this.getStreet(GRASS);
 				streetTrait = street.getTrait(Street);
