@@ -1,9 +1,14 @@
 package arm;
 
 import armory.trait.physics.RigidBody;
-import iron.system.Time;
-import iron.math.Vec4;
 
+import iron.data.MaterialData;
+import iron.object.Object;
+import iron.object.MeshObject;
+import iron.math.Vec4;
+import iron.system.Time;
+
+import kha.Image;
 import kha.FastFloat;
 
 class Vehicle extends iron.Trait
@@ -26,13 +31,24 @@ class Vehicle extends iron.Trait
 
 		notifyOnInit(function() {
 			GameController.vehicleSystem.register(this);
-
+			
 			this.body = this.object.getTrait(RigidBody);
 		});
 
 		notifyOnUpdate(function() {
+			if (!this.body.ready) {
+				return;
+			}
+
+			if (GameController.getState() == "PAUSED") return;
+
 			if (this.active && this.alive) {
-				if (!this.body.ready) return;
+
+				if (this.direction.x > 0) {
+					this.object.transform.setRotation(0, 0, 0);
+				} else {
+					this.object.transform.setRotation(0, 0, 3.14);
+				}
 
 				this.object.transform.translate(direction.x * speed, direction.y * speed, direction.z * speed);
 				this.body.syncTransform();
@@ -66,5 +82,17 @@ class Vehicle extends iron.Trait
 	public function setDirection(direction: Vec4)
 	{
 		this.direction = direction;
+	}
+
+	public function setColor(color: String) 
+	{
+		if (this.object.name != "Truck_M") return;
+		
+		var materialName = this.object.name + "_" + color;
+		trace("setting " + color);
+		iron.data.Data.getMaterial(iron.Scene.active.raw.name, materialName, function (mat: MaterialData) {
+			trace("gotten");
+			iron.Scene.active.getMesh(this.object.name).materials[0] = mat;
+		});
 	}
 }

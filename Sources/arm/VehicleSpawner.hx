@@ -40,7 +40,7 @@ class VehicleSpawner extends iron.Trait
 		}
 
 		notifyOnUpdate(function() {
-			if (this.active != true) {
+			if (this.active != true || GameController.getState() == "PAUSED") {
 				return;
 			}
 
@@ -79,14 +79,15 @@ class VehicleSpawner extends iron.Trait
 
 	private function randomFreq()
 	{
-		return Math.random()*(3 - 0.5) + 0.5;
+		return Math.random()*(4 - 0.75) + 0.75;
 	}
 
 	private function spawnVehicle()
 	{
 		var vehicleObject = GameController.vehicleSystem.getRandomVehicle();
 		var vehicleTrait = vehicleObject.getTrait(Vehicle);
-		vehicleObject.transform.loc.setFrom(object.transform.world.getLoc());
+		var spawnLoc = object.transform.world.getLoc();
+		vehicleObject.transform.loc.set(spawnLoc.x, spawnLoc.y, vehicleObject.transform.loc.z);
 		vehicleObject.transform.buildMatrix();
 		vehicleTrait.setDirection(
 			new Vec4(
@@ -95,7 +96,18 @@ class VehicleSpawner extends iron.Trait
 				this.spawnDirectionZ
 			)
 		);
-		vehicleTrait.setLifeTime(8);
+		vehicleTrait.setLifeTime(3.25);
 		vehicleTrait.setActive(true);
+
+		// switch (Math.round(Math.random()*3)) {
+		// 	case 0: 
+		// 		vehicleTrait.setColor("red");
+		// 	case 1:
+		// 		vehicleTrait.setColor("green");
+		// 	case 2:
+		// 		vehicleTrait.setColor("brown");
+		// 	case _:
+		// 		vehicleTrait.setColor("red");
+		// }
 	}
 }
