@@ -7,7 +7,6 @@ class Street extends iron.Trait
 {
 	public static var STREET_SIZE: FastFloat = 6;
 	private var registered: Bool = false;
-	private var isEnd: Bool = false;
 	private var spawner: Object;
 
 
@@ -20,16 +19,6 @@ class Street extends iron.Trait
 		notifyOnRemove(function() {
 			GameController.streetSystem.unregister(this.object);
 		});
-	}
-
-	public function getIsEnd()
-	{
-		return this.isEnd;
-	}
-
-	public function setIsEnd(bool: Bool)
-	{
-		this.isEnd = bool;
 	}
 
 	public function getSpawner() : Object

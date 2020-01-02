@@ -308,7 +308,6 @@ arm_system_StreetSystem.prototype = {
 			if(setEnd && i == path.length) {
 				street = this.getStreet("Street_Grass");
 				streetTrait = street.getTrait(arm_Street);
-				streetTrait.setIsEnd(true);
 			} else {
 				street = Math.round(Math.random() * 2) % 2 == 1 ? this.getStreet("Street") : this.getStreet("Street_Grass");
 				streetTrait = street.getTrait(arm_Street);
@@ -391,8 +390,6 @@ $hxClasses["arm.system.VehicleSystem"] = arm_system_VehicleSystem;
 arm_system_VehicleSystem.__name__ = "arm.system.VehicleSystem";
 arm_system_VehicleSystem.prototype = {
 	vehicles: null
-	,update: function() {
-	}
 	,getVehicle: function(type) {
 		var vehicle;
 		iron_Scene.active.spawnObject(js_Boot.__cast(type , String),null,function(v) {
@@ -713,7 +710,6 @@ arm_Player.prototype = $extend(iron_Trait.prototype,{
 	,__class__: arm_Player
 });
 var arm_Street = function() {
-	this.isEnd = false;
 	this.registered = false;
 	var _gthis = this;
 	iron_Trait.call(this);
@@ -728,14 +724,7 @@ arm_Street.__name__ = "arm.Street";
 arm_Street.__super__ = iron_Trait;
 arm_Street.prototype = $extend(iron_Trait.prototype,{
 	registered: null
-	,isEnd: null
 	,spawner: null
-	,getIsEnd: function() {
-		return this.isEnd;
-	}
-	,setIsEnd: function(bool) {
-		this.isEnd = bool;
-	}
 	,getSpawner: function() {
 		return this.spawner;
 	}
@@ -910,7 +899,6 @@ arm_VehicleSpawner.prototype = $extend(iron_Trait.prototype,{
 	,__class__: arm_VehicleSpawner
 });
 var arm_scenes_EndlessRunner = function() {
-	this.time = 0.0;
 	iron_Trait.call(this);
 	this.notifyOnInit($bind(this,this.onInit));
 	this.notifyOnUpdate($bind(this,this.onUpdate));
@@ -920,23 +908,94 @@ $hxClasses["arm.scenes.EndlessRunner"] = arm_scenes_EndlessRunner;
 arm_scenes_EndlessRunner.__name__ = "arm.scenes.EndlessRunner";
 arm_scenes_EndlessRunner.__super__ = iron_Trait;
 arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
-	time: null
+	mech: null
+	,mechPrevPos: null
 	,onInit: function() {
+		this.mech = iron_Scene.active.getChild("MechController");
+		var _this = this.mech.transform.world;
+		this.mechPrevPos = new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33);
 		arm_GameController.setState("PLAYING");
 		var start = iron_Scene.active.getChild("START");
-		var _this = start.transform.world;
-		var startLocation = new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33);
-		arm_GameController.streetSystem.createStreetPath(startLocation,1);
+		var _this1 = start.transform.world;
+		var startLocation = new iron_math_Vec4(_this1.self._30,_this1.self._31,_this1.self._32,_this1.self._33);
+		arm_GameController.streetSystem.createStreetPath(startLocation,25);
 	}
 	,onUpdate: function() {
-		this.time += 0.0166666666666666664 * iron_system_Time.scale;
-		if(this.time > 0.25) {
-			haxe_Log.trace("one",{ fileName : "arm/scenes/EndlessRunner.hx", lineNumber : 29, className : "arm.scenes.EndlessRunner", methodName : "onUpdate"});
+		var _this = this.mech.transform.world;
+		var x = _this.self._30;
+		var y = _this.self._31;
+		var z = _this.self._32;
+		var w = _this.self._33;
+		if(w == null) {
+			w = 1.0;
+		}
+		if(z == null) {
+			z = 0.0;
+		}
+		if(y == null) {
+			y = 0.0;
+		}
+		if(x == null) {
+			x = 0.0;
+		}
+		var inlVec4_x = x;
+		var inlVec4_y = y;
+		var inlVec4_z = z;
+		var inlVec4_w = w;
+		if(inlVec4_y - 6 > this.mechPrevPos.y) {
 			arm_GameController.streetSystem.addStreet();
-			this.time = 0;
+			var _this1 = this.mech.transform.world;
+			this.mechPrevPos = new iron_math_Vec4(_this1.self._30,_this1.self._31,_this1.self._32,_this1.self._33);
+			var passedStreet = arm_GameController.streetSystem.getStreets()[0];
+			var _this2 = this.mech.transform.world;
+			var x1 = _this2.self._30;
+			var y1 = _this2.self._31;
+			var z1 = _this2.self._32;
+			var w1 = _this2.self._33;
+			if(w1 == null) {
+				w1 = 1.0;
+			}
+			if(z1 == null) {
+				z1 = 0.0;
+			}
+			if(y1 == null) {
+				y1 = 0.0;
+			}
+			if(x1 == null) {
+				x1 = 0.0;
+			}
+			var inlVec4_x1 = x1;
+			var inlVec4_y1 = y1;
+			var inlVec4_z1 = z1;
+			var inlVec4_w1 = w1;
+			var _this3 = passedStreet.transform.world;
+			var x2 = _this3.self._30;
+			var y2 = _this3.self._31;
+			var z2 = _this3.self._32;
+			var w2 = _this3.self._33;
+			if(w2 == null) {
+				w2 = 1.0;
+			}
+			if(z2 == null) {
+				z2 = 0.0;
+			}
+			if(y2 == null) {
+				y2 = 0.0;
+			}
+			if(x2 == null) {
+				x2 = 0.0;
+			}
+			var inlVec4_x2 = x2;
+			var inlVec4_y2 = y2;
+			var inlVec4_z2 = z2;
+			var inlVec4_w2 = w2;
+			if(inlVec4_y1 > inlVec4_y2 + 12) {
+				passedStreet.remove();
+			}
 		}
 	}
 	,onRemove: function() {
+		arm_GameController.streetSystem.removeStreets();
 	}
 	,__class__: arm_scenes_EndlessRunner
 });
@@ -1122,6 +1181,7 @@ arm_scenes_Frogger.prototype = $extend(iron_Trait.prototype,{
 		armory_system_Event.remove("reset-frogger");
 		armory_system_Event.remove("unpause");
 		arm_GameController.clearListeners();
+		arm_GameController.streetSystem.removeStreets();
 	}
 	,__class__: arm_scenes_Frogger
 });

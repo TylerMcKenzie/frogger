@@ -91,7 +91,7 @@ class Frogger extends iron.Trait
         if (GameController.getState() == "GAME_OVER") {
             return;
         }
-        // trace(keyboard);
+
         if (keyboard.started("escape") || keyboard.started("q")) {
             GameController.setState("PAUSED");
         }
@@ -134,5 +134,6 @@ class Frogger extends iron.Trait
         Event.remove("reset-frogger");
         Event.remove("unpause");
         GameController.clearListeners();
+        GameController.streetSystem.removeStreets();
     }
 }
