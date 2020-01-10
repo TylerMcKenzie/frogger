@@ -3,10 +3,14 @@ package arm.scenes;
 import iron.object.Object;
 import iron.Scene;
 import iron.math.Vec4;
+import armory.trait.physics.PhysicsWorld;
+import armory.trait.physics.RigidBody;
 
 class EndlessRunner extends iron.Trait {
     private var mech: Object;
     private var mechPrevPos: Vec4;
+
+    private var physics: PhysicsWorld;
 
     public function new () {
         super();
@@ -18,6 +22,7 @@ class EndlessRunner extends iron.Trait {
 
     private function onInit()
     {
+        physics = PhysicsWorld.active;
         mech = Scene.active.getChild("MechController");
         mechPrevPos = mech.transform.world.getLoc();
         GameController.setState("PLAYING");
@@ -38,6 +43,13 @@ class EndlessRunner extends iron.Trait {
             }
         }
         
+        var mechContacts = physics.getContacts(mech.getChild("Mech").getTrait(RigidBody));
+
+        if (mechContacts != null) {
+            for (mechContact in mechContacts) {
+                // mech collision detection
+            }
+        }
     }
 
     private function onRemove()

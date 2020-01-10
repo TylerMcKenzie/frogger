@@ -135,6 +135,21 @@ Reflect.isFunction = function(f) {
 		return false;
 	}
 };
+Reflect.isObject = function(v) {
+	if(v == null) {
+		return false;
+	}
+	var t = typeof(v);
+	if(!(t == "string" || t == "object" && v.__enum__ == null)) {
+		if(t == "function") {
+			return (v.__name__ || v.__ename__) != null;
+		} else {
+			return false;
+		}
+	} else {
+		return true;
+	}
+};
 var Std = function() { };
 $hxClasses["Std"] = Std;
 Std.__name__ = "Std";
@@ -910,7 +925,9 @@ arm_scenes_EndlessRunner.__super__ = iron_Trait;
 arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 	mech: null
 	,mechPrevPos: null
+	,physics: null
 	,onInit: function() {
+		this.physics = armory_trait_physics_bullet_PhysicsWorld.active;
 		this.mech = iron_Scene.active.getChild("MechController");
 		var _this = this.mech.transform.world;
 		this.mechPrevPos = new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33);
@@ -991,6 +1008,15 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 			var inlVec4_w2 = w2;
 			if(inlVec4_y1 > inlVec4_y2 + 12) {
 				passedStreet.remove();
+			}
+		}
+		var mechContacts = this.physics.getContacts(this.mech.getChild("Mech").getTrait(armory_trait_physics_bullet_RigidBody));
+		if(mechContacts != null) {
+			var _g = 0;
+			while(_g < mechContacts.length) {
+				var mechContact = mechContacts[_g];
+				++_g;
+				haxe_Log.trace(mechContact.object.name,{ fileName : "arm/scenes/EndlessRunner.hx", lineNumber : 50, className : "arm.scenes.EndlessRunner", methodName : "onUpdate"});
 			}
 		}
 	}
@@ -1367,6 +1393,45 @@ armory_logicnode_LogicTree.prototype = $extend(iron_Trait.prototype,{
 	}
 	,__class__: armory_logicnode_LogicTree
 });
+var armory_object_TransformExtension = function() { };
+$hxClasses["armory.object.TransformExtension"] = armory_object_TransformExtension;
+armory_object_TransformExtension.__name__ = "armory.object.TransformExtension";
+armory_object_TransformExtension.overlap = function(t1,t2) {
+	if(t1.world.self._30 + t1.dim.x / 2 > t2.world.self._30 - t2.dim.x / 2 && t1.world.self._30 - t1.dim.x / 2 < t2.world.self._30 + t2.dim.x / 2 && t1.world.self._31 + t1.dim.y / 2 > t2.world.self._31 - t2.dim.y / 2 && t1.world.self._31 - t1.dim.y / 2 < t2.world.self._31 + t2.dim.y / 2 && t1.world.self._32 + t1.dim.z / 2 > t2.world.self._32 - t2.dim.z / 2) {
+		return t1.world.self._32 - t1.dim.z / 2 < t2.world.self._32 + t2.dim.z / 2;
+	} else {
+		return false;
+	}
+};
+armory_object_TransformExtension.getWorldPosition = function(t) {
+	return new iron_math_Vec4(t.world.self._30,t.world.self._31,t.world.self._32,1.0);
+};
+armory_object_TransformExtension.getWorldVecFromLocal = function(t,localVec) {
+	var _this = new iron_math_Vec4(localVec.x,localVec.y,localVec.z,localVec.w);
+	var m = t.worldUnpack;
+	var x = _this.x;
+	var y = _this.y;
+	var z = _this.z;
+	var w = _this.w;
+	_this.x = m.self._00 * x + m.self._10 * y + m.self._20 * z + m.self._30 * w;
+	_this.y = m.self._01 * x + m.self._11 * y + m.self._21 * z + m.self._31 * w;
+	_this.z = m.self._02 * x + m.self._12 * y + m.self._22 * z + m.self._32 * w;
+	_this.w = m.self._03 * x + m.self._13 * y + m.self._23 * z + m.self._33 * w;
+	return _this;
+};
+armory_object_TransformExtension.getLocalVecFromWorld = function(t,worldVec) {
+	var _this = new iron_math_Vec4(worldVec.x,worldVec.y,worldVec.z,worldVec.w);
+	var m = t.local;
+	var x = _this.x;
+	var y = _this.y;
+	var z = _this.z;
+	var w = _this.w;
+	_this.x = m.self._00 * x + m.self._10 * y + m.self._20 * z + m.self._30 * w;
+	_this.y = m.self._01 * x + m.self._11 * y + m.self._21 * z + m.self._31 * w;
+	_this.z = m.self._02 * x + m.self._12 * y + m.self._22 * z + m.self._32 * w;
+	_this.w = m.self._03 * x + m.self._13 * y + m.self._23 * z + m.self._33 * w;
+	return _this;
+};
 var armory_object_Uniforms = function() { };
 $hxClasses["armory.object.Uniforms"] = armory_object_Uniforms;
 armory_object_Uniforms.__name__ = "armory.object.Uniforms";
@@ -3883,7 +3948,7 @@ iron_Scene.setActive = function(sceneName,done) {
 		});
 	});
 };
-iron_Scene.getObj = function(format,name) {
+iron_Scene.getRawObjectByName = function(format,name) {
 	return iron_Scene.traverseObjs(format.objects,name);
 };
 iron_Scene.traverseObjs = function(children,name) {
@@ -4049,7 +4114,7 @@ iron_Scene.createTraits = function(traits,object) {
 			}
 			var traitInst = iron_Scene.createTraitClassInstance(t.class_name,args);
 			if(traitInst == null) {
-				haxe_Log.trace("Error: Trait '" + t.class_name + "' referenced in object '" + object.name + "' not found",{ fileName : "Sources/iron/Scene.hx", lineNumber : 672, className : "iron.Scene", methodName : "createTraits"});
+				haxe_Log.trace("Error: Trait '" + t.class_name + "' referenced in object '" + object.name + "' not found",{ fileName : "Sources/iron/Scene.hx", lineNumber : 775, className : "iron.Scene", methodName : "createTraits"});
 				continue;
 			}
 			if(t.props != null) {
@@ -4442,7 +4507,7 @@ iron_Scene.prototype = {
 		}
 		var _gthis = this;
 		var objectsTraversed = 0;
-		var obj = iron_Scene.getObj(this.raw,name);
+		var obj = iron_Scene.getRawObjectByName(this.raw,name);
 		var objectsCount = spawnChildren ? this.getObjectsCount([obj],false) : 1;
 		var spawnObjectTree = null;
 		spawnObjectTree = function(obj1,parent1,parentObject,done1) {
@@ -4457,6 +4522,7 @@ iron_Scene.prototype = {
 					}
 				}
 				if((objectsTraversed += 1) == objectsCount && done1 != null) {
+					while(object.name != name) object = object.parent;
 					done1(object);
 				}
 			});
@@ -4466,7 +4532,7 @@ iron_Scene.prototype = {
 	,parseObject: function(sceneName,objectName,parent,done) {
 		var _gthis = this;
 		iron_data_Data.getSceneRaw(sceneName,function(format) {
-			var o = iron_Scene.getObj(format,objectName);
+			var o = iron_Scene.getRawObjectByName(format,objectName);
 			if(o == null) {
 				done(null);
 			}
@@ -4525,7 +4591,19 @@ iron_Scene.prototype = {
 						while(_g2 < object_refs.length) {
 							var s = object_refs[_g2];
 							++_g2;
-							_gthis.spawnObject(s,ro,function(so) {
+							_gthis.spawnObject(s,ro,function(spawnedObject) {
+								if(!_gthis.isObjectInGroup(o.group_ref,spawnedObject.parent)) {
+									var _g3 = 0;
+									var _g11 = format.groups;
+									while(_g3 < _g11.length) {
+										var group = _g11[_g3];
+										++_g3;
+										if(group.name == o.group_ref) {
+											spawnedObject.transform.translate(-group.instance_offset[0],-group.instance_offset[1],-group.instance_offset[2]);
+											break;
+										}
+									}
+								}
 								if((spawned += 1) == object_refs.length) {
 									done(ro);
 								}
@@ -4542,7 +4620,7 @@ iron_Scene.prototype = {
 	}
 	,getGroupObjectRefs: function(group_ref) {
 		var _g = 0;
-		var _g1 = this.raw.groups;
+		var _g1 = iron_Scene.active.raw.groups;
 		while(_g < _g1.length) {
 			var g = _g1[_g];
 			++_g;
@@ -4551,6 +4629,56 @@ iron_Scene.prototype = {
 			}
 		}
 		return null;
+	}
+	,getGroupObjectsRaw: function(groupRef) {
+		var objectRefs = this.getGroupObjectRefs(groupRef);
+		var objects = [];
+		if(objectRefs == null) {
+			return objects;
+		}
+		var _g = 0;
+		while(_g < objectRefs.length) {
+			var objRef = objectRefs[_g];
+			++_g;
+			var rawObj = iron_Scene.getRawObjectByName(this.raw,objRef);
+			objects.push(rawObj);
+			var childRefs = this.getChildObjectsRaw(rawObj);
+			objects = objects.concat(childRefs);
+		}
+		return objects;
+	}
+	,getChildObjectsRaw: function(rawObj,recursive) {
+		if(recursive == null) {
+			recursive = true;
+		}
+		var children = rawObj.children;
+		if(children == null) {
+			return [];
+		}
+		children = children.slice();
+		if(recursive) {
+			var _g = 0;
+			var _g1 = rawObj.children;
+			while(_g < _g1.length) {
+				var child = _g1[_g];
+				++_g;
+				var childRefs = this.getChildObjectsRaw(child);
+				children = children.concat(childRefs);
+			}
+		}
+		return children;
+	}
+	,isObjectInGroup: function(groupRef,object) {
+		var _g = 0;
+		var _g1 = this.getGroupObjectsRaw(groupRef);
+		while(_g < _g1.length) {
+			var obj = _g1[_g];
+			++_g;
+			if(obj.name == object.name) {
+				return true;
+			}
+		}
+		return false;
 	}
 	,isLod: function(raw) {
 		if(raw != null && raw.lods != null) {
@@ -4807,7 +4935,7 @@ var armory_trait_internal_CanvasScript = function(canvasName,font) {
 			if(tBlob.get_length() != 0) {
 				zui_Canvas.themes = JSON.parse(tBlob.toString());
 			} else {
-				haxe_Log.trace("\"_themes.json\" is empty! Using default theme instead.",{ fileName : "Sources/armory/trait/internal/CanvasScript.hx", lineNumber : 29, className : "armory.trait.internal.CanvasScript", methodName : "new"});
+				haxe_Log.trace("\"_themes.json\" is empty! Using default theme instead.",{ fileName : "Sources/armory/trait/internal/CanvasScript.hx", lineNumber : 34, className : "armory.trait.internal.CanvasScript", methodName : "new"});
 			}
 			if(zui_Canvas.themes.length == 0) {
 				zui_Canvas.themes.push(zui_Themes.light);
@@ -4896,14 +5024,17 @@ armory_trait_internal_CanvasScript.prototype = $extend(iron_Trait.prototype,{
 	,getElements: function() {
 		return this.canvas.elements;
 	}
-	,setCanvasVisibility: function(bool) {
+	,setCanvasVisibility: function(visible) {
 		var _g = 0;
 		var _g1 = this.canvas.elements;
 		while(_g < _g1.length) {
 			var e = _g1[_g];
 			++_g;
-			e.visible = bool;
+			e.visible = visible;
 		}
+	}
+	,setCanvasFontSize: function(fontSize) {
+		this.cui.t.FONT_SIZE = fontSize;
 	}
 	,getHandle: function(name) {
 		var this1 = zui_Canvas.h.children;
@@ -4918,6 +5049,7 @@ var armory_trait_internal_DebugConsole = function(scaleFactor) {
 		scaleFactor = 1.0;
 	}
 	this.debugDrawSet = false;
+	this.selectedTraits = [];
 	this.selectedType = "";
 	this.benchTime = 0.0;
 	this.benchFrames = 0;
@@ -4958,10 +5090,10 @@ var armory_trait_internal_DebugConsole = function(scaleFactor) {
 				_gthis.visible = !_gthis.visible;
 			} else if(char == "[") {
 				armory_trait_internal_DebugConsole.debugFloat -= 0.1;
-				haxe_Log.trace(armory_trait_internal_DebugConsole.debugFloat,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 73, className : "armory.trait.internal.DebugConsole", methodName : "new"});
+				haxe_Log.trace(armory_trait_internal_DebugConsole.debugFloat,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 75, className : "armory.trait.internal.DebugConsole", methodName : "new"});
 			} else if(char == "]") {
 				armory_trait_internal_DebugConsole.debugFloat += 0.1;
-				haxe_Log.trace(armory_trait_internal_DebugConsole.debugFloat,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 74, className : "armory.trait.internal.DebugConsole", methodName : "new"});
+				haxe_Log.trace(armory_trait_internal_DebugConsole.debugFloat,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 76, className : "armory.trait.internal.DebugConsole", methodName : "new"});
 			}
 		});
 	});
@@ -5010,6 +5142,7 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 	,benchTime: null
 	,selectedObject: null
 	,selectedType: null
+	,selectedTraits: null
 	,debugDrawSet: null
 	,selectObject: function(o) {
 		var _gthis = this;
@@ -5064,51 +5197,69 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 			if(this.ui.tab(htab,"Scene")) {
 				if(this.ui.panel(zui_Handle.global.nest(2,{ selected : true}),"Outliner")) {
 					this.ui.indent();
-					var i = 0;
+					var lineCounter = 0;
 					var drawList = null;
-					drawList = function(h,o) {
-						if(o.name.charAt(0) == ".") {
+					drawList = function(listHandle,currentObject) {
+						if(currentObject.name.charAt(0) == ".") {
 							return;
 						}
 						var b = false;
-						if(_gthis.selectedObject == o) {
-							_gthis.ui.g.set_color(-14656100);
+						if(lineCounter % 2 == 0) {
+							_gthis.ui.g.set_color(_gthis.ui.t.SEPARATOR_COL);
 							var _this = _gthis.ui;
 							_gthis.ui.g.fillRect(0,_gthis.ui._y,_gthis.ui._windowW,_this.t.ELEMENT_H * _this.ops.scaleFactor);
 							_gthis.ui.g.set_color(-1);
 						}
-						if(o.children.length > 0) {
+						if(currentObject == _gthis.selectedObject) {
+							_gthis.ui.g.set_color(-14656100);
+							var _this1 = _gthis.ui;
+							_gthis.ui.g.fillRect(0,_gthis.ui._y,_gthis.ui._windowW,_this1.t.ELEMENT_H * _this1.ops.scaleFactor);
+							_gthis.ui.g.set_color(-1);
+						}
+						if(currentObject.children.length > 0) {
 							_gthis.ui.row([0.0769230769230769273,0.923076923076923128]);
-							b = _gthis.ui.panel(h.nest(i,{ selected : true}),"",true);
-							_gthis.ui.text(o.name);
+							b = _gthis.ui.panel(listHandle.nest(lineCounter,{ selected : true}),"",true);
+							_gthis.ui.text(currentObject.name);
 						} else {
 							_gthis.ui._x += 18;
-							_gthis.ui.text(o.name);
+							_gthis.ui.g.set_color(_gthis.ui.t.ACCENT_COL);
+							var _this2 = _gthis.ui;
+							var _this3 = _gthis.ui;
+							_gthis.ui.g.drawLine(_gthis.ui._x - 16,_gthis.ui._y + _this2.t.ELEMENT_H * _this2.ops.scaleFactor / 2,_gthis.ui._x,_gthis.ui._y + _this3.t.ELEMENT_H * _this3.ops.scaleFactor / 2);
+							_gthis.ui.g.set_color(-1);
+							_gthis.ui.text(currentObject.name);
 							_gthis.ui._x -= 18;
 						}
+						lineCounter += 1;
+						var _this4 = _gthis.ui;
+						_gthis.ui._y -= _this4.t.ELEMENT_OFFSET * _this4.ops.scaleFactor;
 						if(_gthis.ui.isReleased) {
-							_gthis.selectObject(o);
+							_gthis.selectObject(currentObject);
 						}
-						i += 1;
 						if(b) {
+							var currentY = _gthis.ui._y;
 							var _g = 0;
-							var _g1 = o.children;
+							var _g1 = currentObject.children;
 							while(_g < _g1.length) {
-								var c = _g1[_g];
+								var child = _g1[_g];
 								++_g;
 								_gthis.ui.indent();
-								drawList(h,c);
+								drawList(listHandle,child);
 								_gthis.ui.unindent();
 							}
+							_gthis.ui.g.set_color(_gthis.ui.t.ACCENT_COL);
+							var _this5 = _gthis.ui;
+							_gthis.ui.g.drawLine(_gthis.ui._x + 14,currentY,_gthis.ui._x + 14,_gthis.ui._y - _this5.t.ELEMENT_H * _this5.ops.scaleFactor / 2);
+							_gthis.ui.g.set_color(-1);
 						}
 					};
 					var _g2 = 0;
 					var _g11 = iron_Scene.active.root.children;
 					while(_g2 < _g11.length) {
-						var c1 = _g11[_g2];
+						var c = _g11[_g2];
 						++_g2;
 						var tmp1 = zui_Handle.global.nest(3,null);
-						drawList(tmp1,c1);
+						drawList(tmp1,c);
 					}
 					this.ui.unindent();
 				}
@@ -5118,20 +5269,18 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 				if(this.ui.panel(zui_Handle.global.nest(4,{ selected : true}),"Properties " + this.selectedType)) {
 					this.ui.indent();
 					if(this.selectedObject != null) {
-						var h1 = zui_Handle.global.nest(5,null);
-						h1.selected = this.selectedObject.visible;
-						this.selectedObject.visible = this.ui.check(h1,"Visible");
-						var loc = this.selectedObject.transform.loc;
-						var scale = this.selectedObject.transform.scale;
-						var _this1 = this.selectedObject.transform.rot;
-						var a = -2 * (_this1.x * _this1.z - _this1.w * _this1.y);
-						var b1 = _this1.w * _this1.w + _this1.x * _this1.x - _this1.y * _this1.y - _this1.z * _this1.z;
-						var c2 = 2 * (_this1.x * _this1.y + _this1.w * _this1.z);
-						var d = -2 * (_this1.y * _this1.z - _this1.w * _this1.x);
-						var e = _this1.w * _this1.w - _this1.x * _this1.x + _this1.y * _this1.y - _this1.z * _this1.z;
-						var x = Math.atan2(d,e);
-						var y = Math.atan2(a,b1);
-						var z = Math.asin(c2);
+						var h = zui_Handle.global.nest(5,null);
+						h.selected = this.selectedObject.visible;
+						this.selectedObject.visible = this.ui.check(h,"Visible");
+						var localPos = this.selectedObject.transform.loc;
+						var t = this.selectedObject.transform;
+						var x = t.world.self._30;
+						var y = t.world.self._31;
+						var z = t.world.self._32;
+						var w = 1.0;
+						if(w == null) {
+							w = 1.0;
+						}
 						if(z == null) {
 							z = 0.0;
 						}
@@ -5141,55 +5290,93 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 						if(x == null) {
 							x = 0.0;
 						}
-						var rot_x = x;
-						var rot_y = y;
-						var rot_z = z;
+						var worldPos_x = x;
+						var worldPos_y = y;
+						var worldPos_z = z;
+						var worldPos_w = w;
+						var scale = this.selectedObject.transform.scale;
+						var _this6 = this.selectedObject.transform.rot;
+						var a = -2 * (_this6.x * _this6.z - _this6.w * _this6.y);
+						var b1 = _this6.w * _this6.w + _this6.x * _this6.x - _this6.y * _this6.y - _this6.z * _this6.z;
+						var c1 = 2 * (_this6.x * _this6.y + _this6.w * _this6.z);
+						var d = -2 * (_this6.y * _this6.z - _this6.w * _this6.x);
+						var e = _this6.w * _this6.w - _this6.x * _this6.x + _this6.y * _this6.y - _this6.z * _this6.z;
+						var x1 = Math.atan2(d,e);
+						var y1 = Math.atan2(a,b1);
+						var z1 = Math.asin(c1);
+						if(z1 == null) {
+							z1 = 0.0;
+						}
+						if(y1 == null) {
+							y1 = 0.0;
+						}
+						if(x1 == null) {
+							x1 = 0.0;
+						}
+						var rot_x = x1;
+						var rot_y = y1;
+						var rot_z = z1;
 						var rot_w = 1.0;
 						var dim = this.selectedObject.transform.dim;
 						rot_x *= 57.2957914331332603;
 						rot_y *= 57.2957914331332603;
 						rot_z *= 57.2957914331332603;
 						var f = 0.0;
+						this.ui.text("Transforms");
+						this.ui.indent();
 						this.ui.row(armory_trait_internal_DebugConsole.row4);
-						this.ui.text("Location");
-						h1 = zui_Handle.global.nest(6,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(loc.x) + "";
-						f = parseFloat(this.ui.textInput(h1,"X"));
+						this.ui.text("World Loc");
+						this.ui.enabled = false;
+						h = zui_Handle.global.nest(6,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(worldPos_x) + "";
+						f = parseFloat(this.ui.textInput(h,"X"));
+						h = zui_Handle.global.nest(7,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(worldPos_y) + "";
+						f = parseFloat(this.ui.textInput(h,"Y"));
+						h = zui_Handle.global.nest(8,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(worldPos_z) + "";
+						f = parseFloat(this.ui.textInput(h,"Z"));
+						this.ui.enabled = true;
+						this.ui.row(armory_trait_internal_DebugConsole.row4);
+						this.ui.text("Local Loc");
+						h = zui_Handle.global.nest(9,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(localPos.x) + "";
+						f = parseFloat(this.ui.textInput(h,"X"));
 						if(this.ui.changed) {
-							loc.x = f;
+							localPos.x = f;
 						}
-						h1 = zui_Handle.global.nest(7,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(loc.y) + "";
-						f = parseFloat(this.ui.textInput(h1,"Y"));
+						h = zui_Handle.global.nest(10,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(localPos.y) + "";
+						f = parseFloat(this.ui.textInput(h,"Y"));
 						if(this.ui.changed) {
-							loc.y = f;
+							localPos.y = f;
 						}
-						h1 = zui_Handle.global.nest(8,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(loc.z) + "";
-						f = parseFloat(this.ui.textInput(h1,"Z"));
+						h = zui_Handle.global.nest(11,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(localPos.z) + "";
+						f = parseFloat(this.ui.textInput(h,"Z"));
 						if(this.ui.changed) {
-							loc.z = f;
+							localPos.z = f;
 						}
 						this.ui.row(armory_trait_internal_DebugConsole.row4);
 						this.ui.text("Rotation");
-						h1 = zui_Handle.global.nest(9,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(rot_x) + "";
-						f = parseFloat(this.ui.textInput(h1,"X"));
+						h = zui_Handle.global.nest(12,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(rot_x) + "";
+						f = parseFloat(this.ui.textInput(h,"X"));
 						var changed = false;
 						if(this.ui.changed) {
 							changed = true;
 							rot_x = f;
 						}
-						h1 = zui_Handle.global.nest(10,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(rot_y) + "";
-						f = parseFloat(this.ui.textInput(h1,"Y"));
+						h = zui_Handle.global.nest(13,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(rot_y) + "";
+						f = parseFloat(this.ui.textInput(h,"Y"));
 						if(this.ui.changed) {
 							changed = true;
 							rot_y = f;
 						}
-						h1 = zui_Handle.global.nest(11,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(rot_z) + "";
-						f = parseFloat(this.ui.textInput(h1,"Z"));
+						h = zui_Handle.global.nest(14,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(rot_z) + "";
+						f = parseFloat(this.ui.textInput(h,"Z"));
 						if(this.ui.changed) {
 							changed = true;
 							rot_z = f;
@@ -5198,20 +5385,20 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 							rot_x *= 0.0174532888888888904;
 							rot_y *= 0.0174532888888888904;
 							rot_z *= 0.0174532888888888904;
-							var _this2 = this.selectedObject.transform.rot;
+							var _this7 = this.selectedObject.transform.rot;
 							var f1 = rot_x / 2;
 							var c11 = Math.cos(f1);
 							var s1 = Math.sin(f1);
 							f1 = rot_y / 2;
-							var c21 = Math.cos(f1);
+							var c2 = Math.cos(f1);
 							var s2 = Math.sin(f1);
 							f1 = rot_z / 2;
 							var c3 = Math.cos(f1);
 							var s3 = Math.sin(f1);
-							_this2.x = s1 * c21 * c3 + c11 * s2 * s3;
-							_this2.y = c11 * s2 * c3 + s1 * c21 * s3;
-							_this2.z = c11 * c21 * s3 - s1 * s2 * c3;
-							_this2.w = c11 * c21 * c3 - s1 * s2 * s3;
+							_this7.x = s1 * c2 * c3 + c11 * s2 * s3;
+							_this7.y = c11 * s2 * c3 + s1 * c2 * s3;
+							_this7.z = c11 * c2 * s3 - s1 * s2 * c3;
+							_this7.w = c11 * c2 * c3 - s1 * s2 * s3;
 							this.selectedObject.transform.buildMatrix();
 							var rb = this.selectedObject.getTrait(armory_trait_physics_bullet_RigidBody);
 							if(rb != null) {
@@ -5220,72 +5407,84 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 						}
 						this.ui.row(armory_trait_internal_DebugConsole.row4);
 						this.ui.text("Scale");
-						h1 = zui_Handle.global.nest(12,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(scale.x) + "";
-						f = parseFloat(this.ui.textInput(h1,"X"));
+						h = zui_Handle.global.nest(15,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(scale.x) + "";
+						f = parseFloat(this.ui.textInput(h,"X"));
 						if(this.ui.changed) {
 							scale.x = f;
 						}
-						h1 = zui_Handle.global.nest(13,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(scale.y) + "";
-						f = parseFloat(this.ui.textInput(h1,"Y"));
+						h = zui_Handle.global.nest(16,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(scale.y) + "";
+						f = parseFloat(this.ui.textInput(h,"Y"));
 						if(this.ui.changed) {
 							scale.y = f;
 						}
-						h1 = zui_Handle.global.nest(14,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(scale.z) + "";
-						f = parseFloat(this.ui.textInput(h1,"Z"));
+						h = zui_Handle.global.nest(17,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(scale.z) + "";
+						f = parseFloat(this.ui.textInput(h,"Z"));
 						if(this.ui.changed) {
 							scale.z = f;
 						}
 						this.ui.row(armory_trait_internal_DebugConsole.row4);
 						this.ui.text("Dimensions");
-						h1 = zui_Handle.global.nest(15,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(dim.x) + "";
-						f = parseFloat(this.ui.textInput(h1,"X"));
+						h = zui_Handle.global.nest(18,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(dim.x) + "";
+						f = parseFloat(this.ui.textInput(h,"X"));
 						if(this.ui.changed) {
 							dim.x = f;
 						}
-						h1 = zui_Handle.global.nest(16,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(dim.y) + "";
-						f = parseFloat(this.ui.textInput(h1,"Y"));
+						h = zui_Handle.global.nest(19,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(dim.y) + "";
+						f = parseFloat(this.ui.textInput(h,"Y"));
 						if(this.ui.changed) {
 							dim.y = f;
 						}
-						h1 = zui_Handle.global.nest(17,null);
-						h1.text = armory_trait_internal_DebugConsole.roundfp(dim.z) + "";
-						f = parseFloat(this.ui.textInput(h1,"Z"));
+						h = zui_Handle.global.nest(20,null);
+						h.text = armory_trait_internal_DebugConsole.roundfp(dim.z) + "";
+						f = parseFloat(this.ui.textInput(h,"Z"));
 						if(this.ui.changed) {
 							dim.z = f;
 						}
 						this.selectedObject.transform.dirty = true;
+						this.ui.unindent();
 						if(this.selectedObject.traits.length > 0) {
 							this.ui.text("Traits:");
+							this.ui.indent();
 							var _g3 = 0;
 							var _g12 = this.selectedObject.traits;
 							while(_g3 < _g12.length) {
-								var t = _g12[_g3];
+								var t1 = _g12[_g3];
 								++_g3;
-								var c4 = js_Boot.getClass(t);
+								this.ui.row([0.75,0.25]);
+								var c4 = js_Boot.getClass(t1);
 								this.ui.text(c4.__name__);
+								if(this.ui.button("Details")) {
+									if(this.selectedTraits.indexOf(t1) == -1) {
+										this.selectedTraits.push(t1);
+									}
+								}
 							}
+							this.ui.unindent();
 						}
 						if(this.selectedObject.name == "Scene") {
 							this.selectedType = "(Scene)";
 							var p = iron_Scene.active.world.probe;
 							var tmp2 = this.ui;
-							var tmp3 = zui_Handle.global.nest(18,{ value : p.raw.strength});
+							var tmp3 = zui_Handle.global.nest(21,{ value : p.raw.strength});
 							p.raw.strength = tmp2.slider(tmp3,"Env Strength",0.0,5.0,true);
 						} else if(((this.selectedObject) instanceof iron_object_LightObject)) {
 							this.selectedType = "(Light)";
 							var light = js_Boot.__cast(this.selectedObject , iron_object_LightObject);
-							var tmp4 = this.ui.slider(zui_Handle.global.nest(19,{ value : light.data.raw.strength / 10}),"Strength",0.0,5.0,true);
+							var lightHandle = zui_Handle.global.nest(22,null);
+							lightHandle.value = light.data.raw.strength / 10;
+							var tmp4 = this.ui.slider(lightHandle,"Strength",0.0,5.0,true);
 							light.data.raw.strength = tmp4 * 10;
 						} else if(((this.selectedObject) instanceof iron_object_CameraObject)) {
 							this.selectedType = "(Camera)";
 							var cam = js_Boot.__cast(this.selectedObject , iron_object_CameraObject);
-							var fovHandle = zui_Handle.global.nest(20,{ value : (cam.data.raw.fov * 100 | 0) / 100});
-							cam.data.raw.fov = this.ui.slider(fovHandle,"FoV",0.3,2.0,true);
+							var fovHandle = zui_Handle.global.nest(23,null);
+							fovHandle.value = (cam.data.raw.fov * 100 | 0) / 100;
+							cam.data.raw.fov = this.ui.slider(fovHandle,"Field of View",0.3,2.0,true);
 							if(this.ui.changed) {
 								cam.buildProjection();
 							}
@@ -5299,7 +5498,7 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 			var avg = Math.round(this.frameTimeAvg * 10000) / 10;
 			var fpsAvg = avg > 0 ? Math.round(1000 / avg) : 0;
 			if(this.ui.tab(htab,"" + avg + " ms")) {
-				if(this.ui.panel(zui_Handle.global.nest(21,{ selected : true}),"Performance")) {
+				if(this.ui.panel(zui_Handle.global.nest(24,{ selected : true}),"Performance")) {
 					if(this.graph != null) {
 						this.ui.image(this.graph);
 					}
@@ -5321,7 +5520,7 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 					this.ui.text(Math.round(this.physTimeAvg * 10000) / 10 + " ms",2);
 					this.ui.unindent();
 				}
-				if(this.ui.panel(zui_Handle.global.nest(22,{ selected : false}),"Draw")) {
+				if(this.ui.panel(zui_Handle.global.nest(25,{ selected : false}),"Draw")) {
 					this.ui.indent();
 					this.ui.row(armory_trait_internal_DebugConsole.lrow);
 					var numMeshes = iron_Scene.active.meshes.length;
@@ -5341,11 +5540,11 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 					this.ui.text(iron_RenderPath.culled + " / " + numMeshes * 2,2);
 					this.ui.unindent();
 				}
-				if(this.ui.panel(zui_Handle.global.nest(23,{ selected : false}),"Render Targets")) {
+				if(this.ui.panel(zui_Handle.global.nest(26,{ selected : false}),"Render Targets")) {
 					this.ui.indent();
 					this.ui.imageInvertY = true;
-					var _this3 = iron_RenderPath.active.renderTargets;
-					var rt = new haxe_ds__$StringMap_StringMapIterator(_this3,_this3.arrayKeys());
+					var _this8 = iron_RenderPath.active.renderTargets;
+					var rt = new haxe_ds__$StringMap_StringMapIterator(_this8,_this8.arrayKeys());
 					while(rt.hasNext()) {
 						var rt1 = rt.next();
 						this.ui.text(rt1.raw.name);
@@ -5356,20 +5555,20 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 					this.ui.imageInvertY = false;
 					this.ui.unindent();
 				}
-				if(this.ui.panel(zui_Handle.global.nest(24,{ selected : false}),"Cached Materials")) {
+				if(this.ui.panel(zui_Handle.global.nest(27,{ selected : false}),"Cached Materials")) {
 					this.ui.indent();
-					var _this4 = iron_data_Data.cachedMaterials;
-					var c5 = new haxe_ds__$StringMap_StringMapIterator(_this4,_this4.arrayKeys());
+					var _this9 = iron_data_Data.cachedMaterials;
+					var c5 = new haxe_ds__$StringMap_StringMapIterator(_this9,_this9.arrayKeys());
 					while(c5.hasNext()) {
 						var c6 = c5.next();
 						this.ui.text(c6.name);
 					}
 					this.ui.unindent();
 				}
-				if(this.ui.panel(zui_Handle.global.nest(25,{ selected : false}),"Cached Shaders")) {
+				if(this.ui.panel(zui_Handle.global.nest(28,{ selected : false}),"Cached Shaders")) {
 					this.ui.indent();
-					var _this5 = iron_data_Data.cachedShaders;
-					var c7 = new haxe_ds__$StringMap_StringMapIterator(_this5,_this5.arrayKeys());
+					var _this10 = iron_data_Data.cachedShaders;
+					var c7 = new haxe_ds__$StringMap_StringMapIterator(_this10,_this10.arrayKeys());
 					while(c7.hasNext()) {
 						var c8 = c7.next();
 						this.ui.text(c8.name);
@@ -5378,20 +5577,20 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 				}
 			}
 			if(this.ui.tab(htab,armory_trait_internal_DebugConsole.lastTraces[0] == "" ? "Console" : HxOverrides.substr(armory_trait_internal_DebugConsole.lastTraces[0],0,20))) {
-				if(this.ui.panel(zui_Handle.global.nest(26,{ selected : false}),"Script")) {
+				if(this.ui.panel(zui_Handle.global.nest(29,{ selected : false}),"Script")) {
 					this.ui.indent();
-					var t1 = this.ui.textInput(zui_Handle.global.nest(27,null));
+					var t2 = this.ui.textInput(zui_Handle.global.nest(30,null));
 					if(this.ui.button("Run")) {
 						try {
-							haxe_Log.trace("> " + t1,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 446, className : "armory.trait.internal.DebugConsole", methodName : "render2D"});
-							eval(t1);
+							haxe_Log.trace("> " + t2,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 507, className : "armory.trait.internal.DebugConsole", methodName : "render2D"});
+							eval(t2);
 						} catch( e1 ) {
-							haxe_Log.trace(((e1) instanceof js__$Boot_HaxeError) ? e1.val : e1,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 447, className : "armory.trait.internal.DebugConsole", methodName : "render2D"});
+							haxe_Log.trace(((e1) instanceof js__$Boot_HaxeError) ? e1.val : e1,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 508, className : "armory.trait.internal.DebugConsole", methodName : "render2D"});
 						}
 					}
 					this.ui.unindent();
 				}
-				if(this.ui.panel(zui_Handle.global.nest(28,{ selected : true}),"Log")) {
+				if(this.ui.panel(zui_Handle.global.nest(31,{ selected : true}),"Log")) {
 					this.ui.indent();
 					if(this.ui.button("Clear")) {
 						armory_trait_internal_DebugConsole.lastTraces[0] = "";
@@ -5400,9 +5599,9 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 					var _g4 = 0;
 					var _g13 = armory_trait_internal_DebugConsole.lastTraces;
 					while(_g4 < _g13.length) {
-						var t2 = _g13[_g4];
+						var t3 = _g13[_g4];
 						++_g4;
-						this.ui.text(t2);
+						this.ui.text(t3);
 					}
 					this.ui.unindent();
 				}
@@ -5418,6 +5617,62 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 			}
 			this.ui.separator();
 		}
+		var handleWinTrait = zui_Handle.global.nest(32,null);
+		var _g6 = 0;
+		var _g15 = this.selectedTraits;
+		while(_g6 < _g15.length) {
+			var trait = _g15[_g6];
+			++_g6;
+			var objectID = trait.object.uid;
+			var traitIndex = trait.object.traits.indexOf(trait);
+			var handleWindow = handleWinTrait.nest(objectID).nest(traitIndex);
+			wx -= ww + 8;
+			wy = 0;
+			handleWindow.redraws = 1;
+			this.ui.window(handleWindow,wx,wy,ww,wh,true);
+			if(this.ui.button("Close Trait View")) {
+				HxOverrides.remove(this.selectedTraits,trait);
+				handleWinTrait.nest(objectID).unnest(traitIndex);
+				continue;
+			}
+			this.ui.row([0.5,0.5]);
+			this.ui.text("Trait:");
+			var c9 = js_Boot.getClass(trait);
+			this.ui.text(c9.__name__,2);
+			this.ui.row([0.5,0.5]);
+			this.ui.text("Extends:");
+			var tmp5 = this.ui;
+			var c10 = js_Boot.getClass(trait);
+			var c12 = c10.__super__;
+			tmp5.text(c12.__name__,2);
+			this.ui.row([0.5,0.5]);
+			this.ui.text("Object:");
+			this.ui.text(trait.object.name,2);
+			this.ui.separator();
+			if(this.ui.panel(zui_Handle.global.nest(33,null).nest(objectID).nest(traitIndex),"Attributes")) {
+				this.ui.indent();
+				var _g7 = 0;
+				var _g16 = Reflect.fields(trait);
+				while(_g7 < _g16.length) {
+					var fieldName = _g16[_g7];
+					++_g7;
+					this.ui.row([0.5,0.5]);
+					this.ui.text(fieldName + "");
+					var fieldValue = Reflect.field(trait,fieldName);
+					var fieldClass = js_Boot.getClass(fieldValue);
+					if(Reflect.isObject(fieldValue) && fieldClass != String) {
+						if(fieldClass != null) {
+							this.ui.text("<" + fieldClass.__name__ + ">",2);
+						} else {
+							this.ui.text("<???>",2);
+						}
+					} else {
+						this.ui.text(fieldValue == null ? "null" : "" + fieldValue,2);
+					}
+				}
+				this.ui.unindent();
+			}
+		}
 		this.ui.end(bindG);
 		if(bindG) {
 			g.begin(false);
@@ -5427,23 +5682,23 @@ armory_trait_internal_DebugConsole.prototype = $extend(iron_Trait.prototype,{
 		this.frames++;
 		if(this.totalTime > 1.0) {
 			hwin.redraws = 1;
-			var t3 = this.totalTime / this.frames;
+			var t4 = this.totalTime / this.frames;
 			if(this.frameTimeAvg > 0) {
-				if(t3 < this.frameTimeAvgMin || this.frameTimeAvgMin == 0) {
-					this.frameTimeAvgMin = t3;
+				if(t4 < this.frameTimeAvgMin || this.frameTimeAvgMin == 0) {
+					this.frameTimeAvgMin = t4;
 				}
-				if(t3 > this.frameTimeAvgMax || this.frameTimeAvgMax == 0) {
-					this.frameTimeAvgMax = t3;
+				if(t4 > this.frameTimeAvgMax || this.frameTimeAvgMax == 0) {
+					this.frameTimeAvgMax = t4;
 				}
 			}
-			this.frameTimeAvg = t3;
+			this.frameTimeAvg = t4;
 			if(this.benchmark) {
 				this.benchFrames++;
 				if(this.benchFrames > 10) {
-					this.benchTime += t3;
+					this.benchTime += t4;
 				}
 				if(this.benchFrames == 20) {
-					haxe_Log.trace((this.benchTime / 10 * 1000000 | 0) / 1000,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 492, className : "armory.trait.internal.DebugConsole", methodName : "render2D"});
+					haxe_Log.trace((this.benchTime / 10 * 1000000 | 0) / 1000,{ fileName : "Sources/armory/trait/internal/DebugConsole.hx", lineNumber : 614, className : "armory.trait.internal.DebugConsole", methodName : "render2D"});
 				}
 			}
 			this.renderPathTimeAvg = this.renderPathTime / this.frames;
@@ -5767,7 +6022,7 @@ var armory_trait_internal_DebugDraw = function() {
 	this.pipeline.depthMode = 4;
 	this.pipeline.cullMode = 2;
 	this.pipeline.compile();
-	this.vpID = this.pipeline.getConstantLocation("VP");
+	this.vpID = this.pipeline.getConstantLocation("ViewProjection");
 	this.vp = new iron_math_Mat4(1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0);
 	this.vertexBuffer = new kha_graphics4_VertexBuffer(1200,structure,1);
 	this.indexBuffer = new kha_graphics4_IndexBuffer(1800,1);
@@ -5800,16 +6055,15 @@ armory_trait_internal_DebugDraw.prototype = {
 	,vbData: null
 	,ibData: null
 	,lines: null
-	,bounds: function(t) {
-		var _this = t.world;
-		armory_trait_internal_DebugDraw.v = new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33);
-		var dx = t.dim.x / 2;
-		var dy = t.dim.y / 2;
-		var dz = t.dim.z / 2;
-		var _this1 = t.world;
-		var x = _this1.self._20;
-		var y = _this1.self._21;
-		var z = _this1.self._22;
+	,bounds: function(transform) {
+		armory_trait_internal_DebugDraw.objPosition = new iron_math_Vec4(transform.world.self._30,transform.world.self._31,transform.world.self._32,1.0);
+		var dx = transform.dim.x / 2;
+		var dy = transform.dim.y / 2;
+		var dz = transform.dim.z / 2;
+		var _this = transform.world;
+		var x = _this.self._20;
+		var y = _this.self._21;
+		var z = _this.self._22;
 		if(z == null) {
 			z = 0.0;
 		}
@@ -5823,10 +6077,10 @@ armory_trait_internal_DebugDraw.prototype = {
 		var up_y = y;
 		var up_z = z;
 		var up_w = 1.0;
-		var _this2 = t.world;
-		var x1 = _this2.self._10;
-		var y1 = _this2.self._11;
-		var z1 = _this2.self._12;
+		var _this1 = transform.world;
+		var x1 = _this1.self._10;
+		var y1 = _this1.self._11;
+		var z1 = _this1.self._12;
 		if(z1 == null) {
 			z1 = 0.0;
 		}
@@ -5840,10 +6094,10 @@ armory_trait_internal_DebugDraw.prototype = {
 		var look_y = y1;
 		var look_z = z1;
 		var look_w = 1.0;
-		var _this3 = t.world;
-		var x2 = _this3.self._00;
-		var y2 = _this3.self._01;
-		var z2 = _this3.self._02;
+		var _this2 = transform.world;
+		var x2 = _this2.self._00;
+		var y2 = _this2.self._01;
+		var z2 = _this2.self._02;
 		if(z2 == null) {
 			z2 = 0.0;
 		}
@@ -5878,33 +6132,33 @@ armory_trait_internal_DebugDraw.prototype = {
 			right_y *= invN2;
 			right_z *= invN2;
 		}
+		var _this3 = armory_trait_internal_DebugDraw.vx;
+		_this3.x = right_x;
+		_this3.y = right_y;
+		_this3.z = right_z;
+		_this3.w = right_w;
 		var _this4 = armory_trait_internal_DebugDraw.vx;
-		_this4.x = right_x;
-		_this4.y = right_y;
-		_this4.z = right_z;
-		_this4.w = right_w;
-		var _this5 = armory_trait_internal_DebugDraw.vx;
-		_this5.x *= dx;
-		_this5.y *= dx;
-		_this5.z *= dx;
+		_this4.x *= dx;
+		_this4.y *= dx;
+		_this4.z *= dx;
+		var _this5 = armory_trait_internal_DebugDraw.vy;
+		_this5.x = look_x;
+		_this5.y = look_y;
+		_this5.z = look_z;
+		_this5.w = look_w;
 		var _this6 = armory_trait_internal_DebugDraw.vy;
-		_this6.x = look_x;
-		_this6.y = look_y;
-		_this6.z = look_z;
-		_this6.w = look_w;
-		var _this7 = armory_trait_internal_DebugDraw.vy;
-		_this7.x *= dy;
-		_this7.y *= dy;
-		_this7.z *= dy;
+		_this6.x *= dy;
+		_this6.y *= dy;
+		_this6.z *= dy;
+		var _this7 = armory_trait_internal_DebugDraw.vz;
+		_this7.x = up_x;
+		_this7.y = up_y;
+		_this7.z = up_z;
+		_this7.w = up_w;
 		var _this8 = armory_trait_internal_DebugDraw.vz;
-		_this8.x = up_x;
-		_this8.y = up_y;
-		_this8.z = up_z;
-		_this8.w = up_w;
-		var _this9 = armory_trait_internal_DebugDraw.vz;
-		_this9.x *= dz;
-		_this9.y *= dz;
-		_this9.z *= dz;
+		_this8.x *= dz;
+		_this8.y *= dz;
+		_this8.z *= dz;
 		this.lineb(-1,-1,-1,1,-1,-1);
 		this.lineb(-1,1,-1,1,1,-1);
 		this.lineb(-1,-1,1,1,-1,1);
@@ -5920,7 +6174,7 @@ armory_trait_internal_DebugDraw.prototype = {
 	}
 	,lineb: function(a,b,c,d,e,f) {
 		var _this = armory_trait_internal_DebugDraw.v1;
-		var v = armory_trait_internal_DebugDraw.v;
+		var v = armory_trait_internal_DebugDraw.objPosition;
 		_this.x = v.x;
 		_this.y = v.y;
 		_this.z = v.z;
@@ -5971,7 +6225,7 @@ armory_trait_internal_DebugDraw.prototype = {
 		_this9.y += v6.y;
 		_this9.z += v6.z;
 		var _this10 = armory_trait_internal_DebugDraw.v2;
-		var v7 = armory_trait_internal_DebugDraw.v;
+		var v7 = armory_trait_internal_DebugDraw.objPosition;
 		_this10.x = v7.x;
 		_this10.y = v7.y;
 		_this10.z = v7.z;
@@ -6033,67 +6287,144 @@ armory_trait_internal_DebugDraw.prototype = {
 			this.end();
 			this.begin();
 		}
+		var _this = armory_trait_internal_DebugDraw.midPoint;
+		_this.x = x1 + x2;
+		_this.y = y1 + y2;
+		_this.z = z1 + z2;
+		_this.w = 1.0;
+		var _this1 = armory_trait_internal_DebugDraw.midPoint;
+		_this1.x *= 0.5;
+		_this1.y *= 0.5;
+		_this1.z *= 0.5;
+		var _this2 = armory_trait_internal_DebugDraw.midLine;
+		_this2.x = x1;
+		_this2.y = y1;
+		_this2.z = z1;
+		_this2.w = 1.0;
+		var _this3 = armory_trait_internal_DebugDraw.midLine;
+		var v = armory_trait_internal_DebugDraw.midPoint;
+		_this3.x -= v.x;
+		_this3.y -= v.y;
+		_this3.z -= v.z;
 		var camera = iron_Scene.active.camera;
-		var x = camera.transform.local.self._00;
-		var y = camera.transform.local.self._01;
-		var z = camera.transform.local.self._02;
-		if(z == null) {
-			z = 0.0;
+		var t = camera.transform;
+		armory_trait_internal_DebugDraw.cameraLook = new iron_math_Vec4(t.world.self._30,t.world.self._31,t.world.self._32,1.0);
+		var _this4 = armory_trait_internal_DebugDraw.cameraLook;
+		var v1 = armory_trait_internal_DebugDraw.midPoint;
+		_this4.x -= v1.x;
+		_this4.y -= v1.y;
+		_this4.z -= v1.z;
+		var _this5 = armory_trait_internal_DebugDraw.cameraLook;
+		var v2 = armory_trait_internal_DebugDraw.midLine;
+		var ax = _this5.x;
+		var ay = _this5.y;
+		var az = _this5.z;
+		var vx = v2.x;
+		var vy = v2.y;
+		var vz = v2.z;
+		_this5.x = ay * vz - az * vy;
+		_this5.y = az * vx - ax * vz;
+		_this5.z = ax * vy - ay * vx;
+		var lineWidth = _this5;
+		var n = Math.sqrt(lineWidth.x * lineWidth.x + lineWidth.y * lineWidth.y + lineWidth.z * lineWidth.z);
+		if(n > 0.0) {
+			var invN = 1.0 / n;
+			lineWidth.x *= invN;
+			lineWidth.y *= invN;
+			lineWidth.z *= invN;
 		}
-		if(y == null) {
-			y = 0.0;
-		}
-		if(x == null) {
-			x = 0.0;
-		}
-		var l_x = x;
-		var l_y = y;
-		var l_z = z;
-		var l_w = 1.0;
-		var x3 = camera.transform.local.self._10;
-		var y3 = camera.transform.local.self._11;
-		var z3 = camera.transform.local.self._12;
-		if(z3 == null) {
-			z3 = 0.0;
-		}
-		if(y3 == null) {
-			y3 = 0.0;
-		}
-		if(x3 == null) {
-			x3 = 0.0;
-		}
-		var v_x = x3;
-		var v_y = y3;
-		var v_z = z3;
-		var v_w = 1.0;
-		l_x += v_x;
-		l_y += v_y;
-		l_z += v_z;
+		var f = this.strength;
+		lineWidth.x *= f;
+		lineWidth.y *= f;
+		lineWidth.z *= f;
+		var _this6 = armory_trait_internal_DebugDraw.corner1;
+		_this6.x = x1;
+		_this6.y = y1;
+		_this6.z = z1;
+		_this6.w = 1.0;
+		var _this7 = _this6;
+		_this7.x += lineWidth.x;
+		_this7.y += lineWidth.y;
+		_this7.z += lineWidth.z;
+		var _this8 = armory_trait_internal_DebugDraw.corner2;
+		_this8.x = x1;
+		_this8.y = y1;
+		_this8.z = z1;
+		_this8.w = 1.0;
+		var _this9 = _this8;
+		_this9.x -= lineWidth.x;
+		_this9.y -= lineWidth.y;
+		_this9.z -= lineWidth.z;
+		var _this10 = armory_trait_internal_DebugDraw.corner3;
+		_this10.x = x2;
+		_this10.y = y2;
+		_this10.z = z2;
+		_this10.w = 1.0;
+		var _this11 = _this10;
+		_this11.x -= lineWidth.x;
+		_this11.y -= lineWidth.y;
+		_this11.z -= lineWidth.z;
+		var _this12 = armory_trait_internal_DebugDraw.corner4;
+		_this12.x = x2;
+		_this12.y = y2;
+		_this12.z = z2;
+		_this12.w = 1.0;
+		var _this13 = _this12;
+		_this13.x += lineWidth.x;
+		_this13.y += lineWidth.y;
+		_this13.z += lineWidth.z;
 		var i = this.lines * 24;
-		this.vbData[i] = x1;
-		this.vbData[i + 1] = y1;
-		this.vbData[i + 2] = z1;
-		this.vbData[i + 3] = ((this.color & 16711680) >>> 16) * 0.00392156862745098;
-		this.vbData[i + 4] = ((this.color & 65280) >>> 8) * 0.00392156862745098;
-		this.vbData[i + 5] = (this.color & 255) * 0.00392156862745098;
-		this.vbData[i + 6] = x2;
-		this.vbData[i + 7] = y2;
-		this.vbData[i + 8] = z2;
-		this.vbData[i + 9] = ((this.color & 16711680) >>> 16) * 0.00392156862745098;
-		this.vbData[i + 10] = ((this.color & 65280) >>> 8) * 0.00392156862745098;
-		this.vbData[i + 11] = (this.color & 255) * 0.00392156862745098;
-		this.vbData[i + 12] = x2 + this.strength * l_x;
-		this.vbData[i + 13] = y2 + this.strength * l_y;
-		this.vbData[i + 14] = z2 + this.strength * l_z;
-		this.vbData[i + 15] = ((this.color & 16711680) >>> 16) * 0.00392156862745098;
-		this.vbData[i + 16] = ((this.color & 65280) >>> 8) * 0.00392156862745098;
-		this.vbData[i + 17] = (this.color & 255) * 0.00392156862745098;
-		this.vbData[i + 18] = x1 + this.strength * l_x;
-		this.vbData[i + 19] = y1 + this.strength * l_y;
-		this.vbData[i + 20] = z1 + this.strength * l_z;
-		this.vbData[i + 21] = ((this.color & 16711680) >>> 16) * 0.00392156862745098;
-		this.vbData[i + 22] = ((this.color & 65280) >>> 8) * 0.00392156862745098;
-		this.vbData[i + 23] = (this.color & 255) * 0.00392156862745098;
+		var data_0 = armory_trait_internal_DebugDraw.corner1.x;
+		var data_1 = armory_trait_internal_DebugDraw.corner1.y;
+		var data_2 = armory_trait_internal_DebugDraw.corner1.z;
+		var data_3 = ((this.color & 16711680) >>> 16) * 0.00392156862745098;
+		var data_4 = ((this.color & 65280) >>> 8) * 0.00392156862745098;
+		var data_5 = (this.color & 255) * 0.00392156862745098;
+		this.vbData[i] = data_0;
+		this.vbData[i + 1] = data_1;
+		this.vbData[i + 2] = data_2;
+		this.vbData[i + 3] = data_3;
+		this.vbData[i + 4] = data_4;
+		this.vbData[i + 5] = data_5;
+		i += 6;
+		var data_01 = armory_trait_internal_DebugDraw.corner2.x;
+		var data_11 = armory_trait_internal_DebugDraw.corner2.y;
+		var data_21 = armory_trait_internal_DebugDraw.corner2.z;
+		var data_31 = ((this.color & 16711680) >>> 16) * 0.00392156862745098;
+		var data_41 = ((this.color & 65280) >>> 8) * 0.00392156862745098;
+		var data_51 = (this.color & 255) * 0.00392156862745098;
+		this.vbData[i] = data_01;
+		this.vbData[i + 1] = data_11;
+		this.vbData[i + 2] = data_21;
+		this.vbData[i + 3] = data_31;
+		this.vbData[i + 4] = data_41;
+		this.vbData[i + 5] = data_51;
+		i += 6;
+		var data_02 = armory_trait_internal_DebugDraw.corner3.x;
+		var data_12 = armory_trait_internal_DebugDraw.corner3.y;
+		var data_22 = armory_trait_internal_DebugDraw.corner3.z;
+		var data_32 = ((this.color & 16711680) >>> 16) * 0.00392156862745098;
+		var data_42 = ((this.color & 65280) >>> 8) * 0.00392156862745098;
+		var data_52 = (this.color & 255) * 0.00392156862745098;
+		this.vbData[i] = data_02;
+		this.vbData[i + 1] = data_12;
+		this.vbData[i + 2] = data_22;
+		this.vbData[i + 3] = data_32;
+		this.vbData[i + 4] = data_42;
+		this.vbData[i + 5] = data_52;
+		i += 6;
+		var data_03 = armory_trait_internal_DebugDraw.corner4.x;
+		var data_13 = armory_trait_internal_DebugDraw.corner4.y;
+		var data_23 = armory_trait_internal_DebugDraw.corner4.z;
+		var data_33 = ((this.color & 16711680) >>> 16) * 0.00392156862745098;
+		var data_43 = ((this.color & 65280) >>> 8) * 0.00392156862745098;
+		var data_53 = (this.color & 255) * 0.00392156862745098;
+		this.vbData[i] = data_03;
+		this.vbData[i + 1] = data_13;
+		this.vbData[i + 2] = data_23;
+		this.vbData[i + 3] = data_33;
+		this.vbData[i + 4] = data_43;
+		this.vbData[i + 5] = data_53;
 		i = this.lines * 6;
 		this.ibData[i] = this.lines * 4;
 		this.ibData[i + 1] = this.lines * 4 + 1;
@@ -6185,6 +6516,14 @@ armory_trait_internal_DebugDraw.prototype = {
 		_this1.self._33 = a30 * b0 + a31 * b1 + a32 * b2 + a33 * b3;
 		armory_trait_internal_DebugDraw.g.setMatrix(this.vpID,this.vp.self);
 		armory_trait_internal_DebugDraw.g.drawIndexedVertices(0,this.lines * 6);
+	}
+	,addVbData: function(i,data) {
+		this.vbData[i] = data[0];
+		this.vbData[i + 1] = data[1];
+		this.vbData[i + 2] = data[2];
+		this.vbData[i + 3] = data[3];
+		this.vbData[i + 4] = data[4];
+		this.vbData[i + 5] = data[5];
 	}
 	,__class__: armory_trait_internal_DebugDraw
 };
@@ -19871,14 +20210,6 @@ iron_object_Transform.prototype = {
 			_this1.self._33 = m1.self._33;
 		}
 		return r;
-	}
-	,overlap: function(t2) {
-		var t1 = this;
-		if(t1.world.self._30 + t1.dim.x / 2 > t2.world.self._30 - t2.dim.x / 2 && t1.world.self._30 - t1.dim.x / 2 < t2.world.self._30 + t2.dim.x / 2 && t1.world.self._31 + t1.dim.y / 2 > t2.world.self._31 - t2.dim.y / 2 && t1.world.self._31 - t1.dim.y / 2 < t2.world.self._31 + t2.dim.y / 2 && t1.world.self._32 + t1.dim.z / 2 > t2.world.self._32 - t2.dim.z / 2) {
-			return t1.world.self._32 - t1.dim.z / 2 < t2.world.self._32 + t2.dim.z / 2;
-		} else {
-			return false;
-		}
 	}
 	,look: function() {
 		var _this = this.world;
@@ -43045,7 +43376,7 @@ zui_Zui.prototype = {
 			}
 			g.fillRect(x,y - 1,w,tabH + 1);
 			this.g.set_color(selected ? this.t.BUTTON_TEXT_COL : this.t.LABEL_COL);
-			this.drawString(this.g,this.tabNames[i],this.t.TEXT_OFFSET * this.ops.scaleFactor,0,0);
+			this.drawString(this.g,this.tabNames[i],this.t.TEXT_OFFSET,0,0);
 			if(selected) {
 				this.g.set_color(this.t.WINDOW_BG_COL);
 				this.g.fillRect(this._x + this.buttonOffsetY + 1,this._y + this.buttonOffsetY + tabH,this._w - 1,1);
@@ -44393,6 +44724,13 @@ armory_trait_internal_DebugDraw.vz = new iron_math_Vec4();
 armory_trait_internal_DebugDraw.v1 = new iron_math_Vec4();
 armory_trait_internal_DebugDraw.v2 = new iron_math_Vec4();
 armory_trait_internal_DebugDraw.t = new iron_math_Vec4();
+armory_trait_internal_DebugDraw.midPoint = new iron_math_Vec4();
+armory_trait_internal_DebugDraw.midLine = new iron_math_Vec4();
+armory_trait_internal_DebugDraw.corner1 = new iron_math_Vec4();
+armory_trait_internal_DebugDraw.corner2 = new iron_math_Vec4();
+armory_trait_internal_DebugDraw.corner3 = new iron_math_Vec4();
+armory_trait_internal_DebugDraw.corner4 = new iron_math_Vec4();
+armory_trait_internal_DebugDraw.cameraLook = new iron_math_Vec4();
 armory_trait_physics_bullet_PhysicsWorld.sceneRemoved = false;
 armory_trait_physics_bullet_PhysicsWorld.nullvec = true;
 armory_trait_physics_bullet_PhysicsWorld.physTime = 0.0;
@@ -44549,7 +44887,7 @@ kha_Shaders.compositor_pass_vertData0 = "s331:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUk
 kha_Shaders.deferred_light_fragData0 = "s11164:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIHZlYzQgY2FzRGF0YVsyMF07CnVuaWZvcm0gdmVjNCBzaGlycls3XTsKdW5pZm9ybSBzYW1wbGVyMkQgZ2J1ZmZlcjA7CnVuaWZvcm0gc2FtcGxlcjJEIGdidWZmZXIxOwp1bmlmb3JtIHNhbXBsZXIyRCBnYnVmZmVyRDsKdW5pZm9ybSB2ZWMzIGV5ZTsKdW5pZm9ybSB2ZWMzIGV5ZUxvb2s7CnVuaWZvcm0gdmVjMiBjYW1lcmFQcm9qOwp1bmlmb3JtIHZlYzMgYmFja2dyb3VuZENvbDsKdW5pZm9ybSBmbG9hdCBlbnZtYXBTdHJlbmd0aDsKdW5pZm9ybSBzYW1wbGVyMkQgc3Nhb3RleDsKdW5pZm9ybSB2ZWMzIHN1bkRpcjsKdW5pZm9ybSBzYW1wbGVyMkRTaGFkb3cgc2hhZG93TWFwOwp1bmlmb3JtIGZsb2F0IHNoYWRvd3NCaWFzOwp1bmlmb3JtIHZlYzMgc3VuQ29sOwoKaW4gdmVjMiB0ZXhDb29yZDsKaW4gdmVjMyB2aWV3UmF5OwpvdXQgdmVjNCBmcmFnQ29sb3I7Cgp2ZWMyIG9jdGFoZWRyb25XcmFwKHZlYzIgdikKewogICAgcmV0dXJuICh2ZWMyKDEuMCkgLSBhYnModi55eCkpICogdmVjMigodi54ID49IDAuMCkgPyAxLjAgOiAoLTEuMCksICh2LnkgPj0gMC4wKSA:IDEuMCA6ICgtMS4wKSk7Cn0KCnZvaWQgdW5wYWNrRmxvYXRJbnQxNihmbG9hdCB2YWwsIG91dCBmbG9hdCBmLCBpbm91dCB1aW50IGkpCnsKICAgIGkgPSB1aW50KGludCgodmFsIC8gMC4wNjI1MDA5NTM2NzQzMTY0MDYyNSkgKyAxLjUyNTkwMjE4OTMxNDM2NTM4Njk2Mjg5MDYyNWUtMDUpKTsKICAgIGYgPSBjbGFtcCgoKCgtMC4wNjI1MDA5NTM2NzQzMTY0MDYyNSkgKiBmbG9hdChpKSkgKyB2YWwpIC8gMC4wNjI0ODU2OTQ4ODUyNTM5MDYyNSwgMC4wLCAxLjApOwp9Cgp2ZWMyIHVucGFja0Zsb2F0MihmbG9hdCBmKQp7CiAgICByZXR1cm4gdmVjMihmbG9vcihmKSAvIDI1NS4wLCBmcmFjdChmKSk7Cn0KCnZlYzMgc3VyZmFjZUFsYmVkbyh2ZWMzIGJhc2VDb2xvciwgZmxvYXQgbWV0YWxuZXNzKQp7CiAgICByZXR1cm4gbWl4KGJhc2VDb2xvciwgdmVjMygwLjApLCB2ZWMzKG1ldGFsbmVzcykpOwp9Cgp2ZWMzIHN1cmZhY2VGMCh2ZWMzIGJhc2VDb2xvciwgZmxvYXQgbWV0YWxuZXNzKQp7CiAgICByZXR1cm4gbWl4KHZlYzMoMC4wMzk5OTk5OTkxMDU5MzAzMjgzNjkxNDA2MjUpLCBiYXNlQ29sb3IsIHZlYzMobWV0YWxuZXNzKSk7Cn0KCnZlYzMgZ2V0UG9zKHZlYzMgZXllXzEsIHZlYzMgZXllTG9va18xLCB2ZWMzIHZpZXdSYXlfMSwgZmxvYXQgZGVwdGgsIHZlYzIgY2FtZXJhUHJval8xKQp7CiAgICBmbG9hdCBsaW5lYXJEZXB0aCA9IGNhbWVyYVByb2pfMS55IC8gKCgoZGVwdGggKiAwLjUpICsgMC41KSAtIGNhbWVyYVByb2pfMS54KTsKICAgIGZsb2F0IHZpZXdaRGlzdCA9IGRvdChleWVMb29rXzEsIHZpZXdSYXlfMSk7CiAgICB2ZWMzIHdwb3NpdGlvbiA9IGV5ZV8xICsgKHZpZXdSYXlfMSAqIChsaW5lYXJEZXB0aCAvIHZpZXdaRGlzdCkpOwogICAgcmV0dXJuIHdwb3NpdGlvbjsKfQoKdmVjMyBzaElycmFkaWFuY2UodmVjMyBub3IpCnsKICAgIHZlYzMgY2wwMCA9IHZlYzMoc2hpcnJbMF0ueCwgc2hpcnJbMF0ueSwgc2hpcnJbMF0ueik7CiAgICB2ZWMzIGNsMW0xID0gdmVjMyhzaGlyclswXS53LCBzaGlyclsxXS54LCBzaGlyclsxXS55KTsKICAgIHZlYzMgY2wxMCA9IHZlYzMoc2hpcnJbMV0ueiwgc2hpcnJbMV0udywgc2hpcnJbMl0ueCk7CiAgICB2ZWMzIGNsMTEgPSB2ZWMzKHNoaXJyWzJdLnksIHNoaXJyWzJdLnosIHNoaXJyWzJdLncpOwogICAgdmVjMyBjbDJtMiA9IHZlYzMoc2hpcnJbM10ueCwgc2hpcnJbM10ueSwgc2hpcnJbM10ueik7CiAgICB2ZWMzIGNsMm0xID0gdmVjMyhzaGlyclszXS53LCBzaGlycls0XS54LCBzaGlycls0XS55KTsKICAgIHZlYzMgY2wyMCA9IHZlYzMoc2hpcnJbNF0ueiwgc2hpcnJbNF0udywgc2hpcnJbNV0ueCk7CiAgICB2ZWMzIGNsMjEgPSB2ZWMzKHNoaXJyWzVdLnksIHNoaXJyWzVdLnosIHNoaXJyWzVdLncpOwogICAgdmVjMyBjbDIyID0gdmVjMyhzaGlycls2XS54LCBzaGlycls2XS55LCBzaGlycls2XS56KTsKICAgIHJldHVybiAoKCgoKCgoKCgoY2wyMiAqIDAuNDI5MDQyOTk0OTc2MDQzNzAxMTcxODc1KSAqICgobm9yLnkgKiBub3IueSkgLSAoKC1ub3IueikgKiAoLW5vci56KSkpKSArICgoKGNsMjAgKiAwLjc0MzEyNTAyMTQ1NzY3MjExOTE0MDYyNSkgKiBub3IueCkgKiBub3IueCkpICsgKGNsMDAgKiAwLjg4NjIyNzAxMTY4MDYwMzAyNzM0Mzc1KSkgLSAoY2wyMCAqIDAuMjQ3NzA3OTkyNzkyMTI5NTE2NjAxNTYyNSkpICsgKCgoY2wybTIgKiAwLjg1ODA4NTk4OTk1MjA4NzQwMjM0Mzc1KSAqIG5vci55KSAqICgtbm9yLnopKSkgKyAoKChjbDIxICogMC44NTgwODU5ODk5NTIwODc0MDIzNDM3NSkgKiBub3IueSkgKiBub3IueCkpICsgKCgoY2wybTEgKiAwLjg1ODA4NTk4OTk1MjA4NzQwMjM0Mzc1KSAqICgtbm9yLnopKSAqIG5vci54KSkgKyAoKGNsMTEgKiAxLjAyMzMyNzk0NjY2MjkwMjgzMjAzMTI1KSAqIG5vci55KSkgKyAoKGNsMW0xICogMS4wMjMzMjc5NDY2NjI5MDI4MzIwMzEyNSkgKiAoLW5vci56KSkpICsgKChjbDEwICogMS4wMjMzMjc5NDY2NjI5MDI4MzIwMzEyNSkgKiBub3IueCk7Cn0KCnZlYzMgbGFtYmVydERpZmZ1c2VCUkRGKHZlYzMgYWxiZWRvLCBmbG9hdCBubCkKewogICAgcmV0dXJuIGFsYmVkbyAqIG1heCgwLjAsIG5sKTsKfQoKZmxvYXQgZF9nZ3goZmxvYXQgbmgsIGZsb2F0IGEpCnsKICAgIGZsb2F0IGEyID0gYSAqIGE7CiAgICBmbG9hdCBkZW5vbSA9IHBvdygoKG5oICogbmgpICogKGEyIC0gMS4wKSkgKyAxLjAsIDIuMCk7CiAgICByZXR1cm4gKGEyICogMC4zMTgzMDk4NzMzNDI1MTQwMzgwODU5Mzc1KSAvIGRlbm9tOwp9CgpmbG9hdCB2X3NtaXRoc2NobGljayhmbG9hdCBubCwgZmxvYXQgbnYsIGZsb2F0IGEpCnsKICAgIHJldHVybiAxLjAgLyAoKChubCAqICgxLjAgLSBhKSkgKyBhKSAqICgobnYgKiAoMS4wIC0gYSkpICsgYSkpOwp9Cgp2ZWMzIGZfc2NobGljayh2ZWMzIGYwLCBmbG9hdCB2aCkKewogICAgcmV0dXJuIGYwICsgKCh2ZWMzKDEuMCkgLSBmMCkgKiBleHAyKCgoKC01LjU1NDcyOTkzODUwNzA4MDA3ODEyNSkgKiB2aCkgLSA2Ljk4MzE2MDAxODkyMDg5ODQzNzUpICogdmgpKTsKfQoKdmVjMyBzcGVjdWxhckJSREYodmVjMyBmMCwgZmxvYXQgcm91Z2huZXNzLCBmbG9hdCBubCwgZmxvYXQgbmgsIGZsb2F0IG52LCBmbG9hdCB2aCkKewogICAgZmxvYXQgYSA9IHJvdWdobmVzcyAqIHJvdWdobmVzczsKICAgIHJldHVybiAoZl9zY2hsaWNrKGYwLCB2aCkgKiAoZF9nZ3gobmgsIGEpICogY2xhbXAodl9zbWl0aHNjaGxpY2sobmwsIG52LCBhKSwgMC4wLCAxLjApKSkgLyB2ZWMzKDQuMCk7Cn0KCm1hdDQgZ2V0Q2FzY2FkZU1hdChmbG9hdCBkLCBpbm91dCBpbnQgY2FzaSwgaW5vdXQgaW50IGNhc0luZGV4KQp7CiAgICB2ZWM0IGNvbXAgPSB2ZWM0KGZsb2F0KGQgPiBjYXNEYXRhWzE2XS54KSwgZmxvYXQoZCA%IGNhc0RhdGFbMTZdLnkpLCBmbG9hdChkID4gY2FzRGF0YVsxNl0ueiksIGZsb2F0KGQgPiBjYXNEYXRhWzE2XS53KSk7CiAgICBjYXNpID0gaW50KG1pbihkb3QodmVjNCgxLjApLCBjb21wKSwgNC4wKSk7CiAgICBjYXNJbmRleCA9IGNhc2kgKiA0OwogICAgcmV0dXJuIG1hdDQodmVjNChjYXNEYXRhW2Nhc0luZGV4XSksIHZlYzQoY2FzRGF0YVtjYXNJbmRleCArIDFdKSwgdmVjNChjYXNEYXRhW2Nhc0luZGV4ICsgMl0pLCB2ZWM0KGNhc0RhdGFbY2FzSW5kZXggKyAzXSkpOwp9CgpmbG9hdCBQQ0Yoc2FtcGxlcjJEU2hhZG93IHNoYWRvd01hcF8xLCB2ZWMyIHV2LCBmbG9hdCBjb21wYXJlLCB2ZWMyIHNtU2l6ZSkKewogICAgdmVjMyBfMjM5ID0gdmVjMyh1diArICh2ZWMyKC0xLjApIC8gc21TaXplKSwgY29tcGFyZSk7CiAgICBmbG9hdCByZXN1bHQgPSB0ZXh0dXJlKHNoYWRvd01hcF8xLCB2ZWMzKF8yMzkueHksIF8yMzkueikpOwogICAgdmVjMyBfMjQ4ID0gdmVjMyh1diArICh2ZWMyKC0xLjAsIDAuMCkgLyBzbVNpemUpLCBjb21wYXJlKTsKICAgIHJlc3VsdCArPSB0ZXh0dXJlKHNoYWRvd01hcF8xLCB2ZWMzKF8yNDgueHksIF8yNDgueikpOwogICAgdmVjMyBfMjU5ID0gdmVjMyh1diArICh2ZWMyKC0xLjAsIDEuMCkgLyBzbVNpemUpLCBjb21wYXJlKTsKICAgIHJlc3VsdCArPSB0ZXh0dXJlKHNoYWRvd01hcF8xLCB2ZWMzKF8yNTkueHksIF8yNTkueikpOwogICAgdmVjMyBfMjcwID0gdmVjMyh1diArICh2ZWMyKDAuMCwgLTEuMCkgLyBzbVNpemUpLCBjb21wYXJlKTsKICAgIHJlc3VsdCArPSB0ZXh0dXJlKHNoYWRvd01hcF8xLCB2ZWMzKF8yNzAueHksIF8yNzAueikpOwogICAgdmVjMyBfMjc4ID0gdmVjMyh1diwgY29tcGFyZSk7CiAgICByZXN1bHQgKz0gdGV4dHVyZShzaGFkb3dNYXBfMSwgdmVjMyhfMjc4Lnh5LCBfMjc4LnopKTsKICAgIHZlYzMgXzI4OSA9IHZlYzModXYgKyAodmVjMigwLjAsIDEuMCkgLyBzbVNpemUpLCBjb21wYXJlKTsKICAgIHJlc3VsdCArPSB0ZXh0dXJlKHNoYWRvd01hcF8xLCB2ZWMzKF8yODkueHksIF8yODkueikpOwogICAgdmVjMyBfMzAwID0gdmVjMyh1diArICh2ZWMyKDEuMCwgLTEuMCkgLyBzbVNpemUpLCBjb21wYXJlKTsKICAgIHJlc3VsdCArPSB0ZXh0dXJlKHNoYWRvd01hcF8xLCB2ZWMzKF8zMDAueHksIF8zMDAueikpOwogICAgdmVjMyBfMzExID0gdmVjMyh1diArICh2ZWMyKDEuMCwgMC4wKSAvIHNtU2l6ZSksIGNvbXBhcmUpOwogICAgcmVzdWx0ICs9IHRleHR1cmUoc2hhZG93TWFwXzEsIHZlYzMoXzMxMS54eSwgXzMxMS56KSk7CiAgICB2ZWMzIF8zMjIgPSB2ZWMzKHV2ICsgKHZlYzIoMS4wKSAvIHNtU2l6ZSksIGNvbXBhcmUpOwogICAgcmVzdWx0ICs9IHRleHR1cmUoc2hhZG93TWFwXzEsIHZlYzMoXzMyMi54eSwgXzMyMi56KSk7CiAgICByZXR1cm4gcmVzdWx0IC8gOS4wOwp9CgpmbG9hdCBzaGFkb3dUZXN0Q2FzY2FkZShzYW1wbGVyMkRTaGFkb3cgc2hhZG93TWFwXzEsIHZlYzMgZXllXzEsIHZlYzMgcCwgZmxvYXQgc2hhZG93c0JpYXNfMSkKewogICAgZmxvYXQgZCA9IGRpc3RhbmNlKGV5ZV8xLCBwKTsKICAgIGludCBwYXJhbTsKICAgIGludCBwYXJhbV8xOwogICAgbWF0NCBfNDE4ID0gZ2V0Q2FzY2FkZU1hdChkLCBwYXJhbSwgcGFyYW1fMSk7CiAgICBpbnQgY2FzaSA9IHBhcmFtOwogICAgaW50IGNhc0luZGV4ID0gcGFyYW1fMTsKICAgIG1hdDQgTFdWUCA9IF80MTg7CiAgICB2ZWM0IGxQb3MgPSBMV1ZQICogdmVjNChwLCAxLjApOwogICAgdmVjMyBfNDMzID0gbFBvcy54eXogLyB2ZWMzKGxQb3Mudyk7CiAgICBsUG9zID0gdmVjNChfNDMzLngsIF80MzMueSwgXzQzMy56LCBsUG9zLncpOwogICAgZmxvYXQgdmlzaWJpbGl0eSA9IDEuMDsKICAgIGlmIChsUG9zLncgPiAwLjApCiAgICB7CiAgICAgICAgdmlzaWJpbGl0eSA9IFBDRihzaGFkb3dNYXBfMSwgbFBvcy54eSwgbFBvcy56IC0gc2hhZG93c0JpYXNfMSwgdmVjMig0MDk2LjAsIDEwMjQuMCkpOwogICAgfQogICAgZmxvYXQgbmV4dFNwbGl0ID0gY2FzRGF0YVsxNl1bY2FzaV07CiAgICBmbG9hdCBfNDU5OwogICAgaWYgKGNhc2kgPT0gMCkKICAgIHsKICAgICAgICBfNDU5ID0gbmV4dFNwbGl0OwogICAgfQogICAgZWxzZQogICAgewogICAgICAgIF80NTkgPSBuZXh0U3BsaXQgLSAoY2FzRGF0YVsxNl1bY2FzaSAtIDFdKTsKICAgIH0KICAgIGZsb2F0IHNwbGl0U2l6ZSA9IF80NTk7CiAgICBmbG9hdCBzcGxpdERpc3QgPSAobmV4dFNwbGl0IC0gZCkgLyBzcGxpdFNpemU7CiAgICBpZiAoKHNwbGl0RGlzdCA8PSAwLjE1MDAwMDAwNTk2MDQ2NDQ3NzUzOTA2MjUpICYmIChjYXNpICE9IDMpKQogICAgewogICAgICAgIGludCBjYXNJbmRleDIgPSBjYXNJbmRleCArIDQ7CiAgICAgICAgbWF0NCBMV1ZQMiA9IG1hdDQodmVjNChjYXNEYXRhW2Nhc0luZGV4Ml0pLCB2ZWM0KGNhc0RhdGFbY2FzSW5kZXgyICsgMV0pLCB2ZWM0KGNhc0RhdGFbY2FzSW5kZXgyICsgMl0pLCB2ZWM0KGNhc0RhdGFbY2FzSW5kZXgyICsgM10pKTsKICAgICAgICB2ZWM0IGxQb3MyID0gTFdWUDIgKiB2ZWM0KHAsIDEuMCk7CiAgICAgICAgdmVjMyBfNTM3ID0gbFBvczIueHl6IC8gdmVjMyhsUG9zMi53KTsKICAgICAgICBsUG9zMiA9IHZlYzQoXzUzNy54LCBfNTM3LnksIF81MzcueiwgbFBvczIudyk7CiAgICAgICAgZmxvYXQgdmlzaWJpbGl0eTIgPSAxLjA7CiAgICAgICAgaWYgKGxQb3MyLncgPiAwLjApCiAgICAgICAgewogICAgICAgICAgICB2aXNpYmlsaXR5MiA9IFBDRihzaGFkb3dNYXBfMSwgbFBvczIueHksIGxQb3MyLnogLSBzaGFkb3dzQmlhc18xLCB2ZWMyKDQwOTYuMCwgMTAyNC4wKSk7CiAgICAgICAgfQogICAgICAgIGZsb2F0IGxlcnBBbXQgPSBzbW9vdGhzdGVwKDAuMCwgMC4xNTAwMDAwMDU5NjA0NjQ0Nzc1MzkwNjI1LCBzcGxpdERpc3QpOwogICAgICAgIHJldHVybiBtaXgodmlzaWJpbGl0eTIsIHZpc2liaWxpdHksIGxlcnBBbXQpOwogICAgfQogICAgcmV0dXJuIHZpc2liaWxpdHk7Cn0KCnZvaWQgbWFpbigpCnsKICAgIHZlYzQgZzAgPSB0ZXh0dXJlTG9kKGdidWZmZXIwLCB0ZXhDb29yZCwgMC4wKTsKICAgIHZlYzMgbjsKICAgIG4ueiA9ICgxLjAgLSBhYnMoZzAueCkpIC0gYWJzKGcwLnkpOwogICAgdmVjMiBfNzM3OwogICAgaWYgKG4ueiA%PSAwLjApCiAgICB7CiAgICAgICAgXzczNyA9IGcwLnh5OwogICAgfQogICAgZWxzZQogICAgewogICAgICAgIF83MzcgPSBvY3RhaGVkcm9uV3JhcChnMC54eSk7CiAgICB9CiAgICBuID0gdmVjMyhfNzM3LngsIF83MzcueSwgbi56KTsKICAgIG4gPSBub3JtYWxpemUobik7CiAgICBmbG9hdCByb3VnaG5lc3MgPSBnMC56OwogICAgZmxvYXQgcGFyYW07CiAgICB1aW50IHBhcmFtXzE7CiAgICB1bnBhY2tGbG9hdEludDE2KGcwLncsIHBhcmFtLCBwYXJhbV8xKTsKICAgIGZsb2F0IG1ldGFsbGljID0gcGFyYW07CiAgICB1aW50IG1hdGlkID0gcGFyYW1fMTsKICAgIHZlYzQgZzEgPSB0ZXh0dXJlTG9kKGdidWZmZXIxLCB0ZXhDb29yZCwgMC4wKTsKICAgIHZlYzIgb2Njc3BlYyA9IHVucGFja0Zsb2F0MihnMS53KTsKICAgIHZlYzMgYWxiZWRvID0gc3VyZmFjZUFsYmVkbyhnMS54eXosIG1ldGFsbGljKTsKICAgIHZlYzMgZjAgPSBzdXJmYWNlRjAoZzEueHl6LCBtZXRhbGxpYyk7CiAgICBmbG9hdCBkZXB0aCA9ICh0ZXh0dXJlTG9kKGdidWZmZXJELCB0ZXhDb29yZCwgMC4wKS54ICogMi4wKSAtIDEuMDsKICAgIHZlYzMgcCA9IGdldFBvcyhleWUsIGV5ZUxvb2ssIG5vcm1hbGl6ZSh2aWV3UmF5KSwgZGVwdGgsIGNhbWVyYVByb2opOwogICAgdmVjMyB2ID0gbm9ybWFsaXplKGV5ZSAtIHApOwogICAgZmxvYXQgZG90TlYgPSBtYXgoZG90KG4sIHYpLCAwLjApOwogICAgdmVjMyBlbnZsID0gc2hJcnJhZGlhbmNlKG4pOwogICAgZW52bCAqPSBhbGJlZG87CiAgICBlbnZsICs9IChiYWNrZ3JvdW5kQ29sICogc3VyZmFjZUYwKGcxLnh5eiwgbWV0YWxsaWMpKTsKICAgIGVudmwgKj0gKGVudm1hcFN0cmVuZ3RoICogb2Njc3BlYy54KTsKICAgIGZyYWdDb2xvciA9IHZlYzQoZW52bC54LCBlbnZsLnksIGVudmwueiwgZnJhZ0NvbG9yLncpOwogICAgdmVjMyBfODQ5ID0gZnJhZ0NvbG9yLnh5eiAqIHRleHR1cmVMb2Qoc3Nhb3RleCwgdGV4Q29vcmQsIDAuMCkueDsKICAgIGZyYWdDb2xvciA9IHZlYzQoXzg0OS54LCBfODQ5LnksIF84NDkueiwgZnJhZ0NvbG9yLncpOwogICAgdmVjMyBzaCA9IG5vcm1hbGl6ZSh2ICsgc3VuRGlyKTsKICAgIGZsb2F0IHNkb3ROSCA9IGRvdChuLCBzaCk7CiAgICBmbG9hdCBzZG90VkggPSBkb3Qodiwgc2gpOwogICAgZmxvYXQgc2RvdE5MID0gZG90KG4sIHN1bkRpcik7CiAgICBmbG9hdCBzdmlzaWJpbGl0eSA9IDEuMDsKICAgIHZlYzMgc2RpcmVjdCA9IGxhbWJlcnREaWZmdXNlQlJERihhbGJlZG8sIHNkb3ROTCkgKyAoc3BlY3VsYXJCUkRGKGYwLCByb3VnaG5lc3MsIHNkb3ROTCwgc2RvdE5ILCBkb3ROViwgc2RvdFZIKSAqIG9jY3NwZWMueSk7CiAgICBzdmlzaWJpbGl0eSA9IHNoYWRvd1Rlc3RDYXNjYWRlKHNoYWRvd01hcCwgZXllLCBwICsgKChuICogc2hhZG93c0JpYXMpICogMTAuMCksIHNoYWRvd3NCaWFzKTsKICAgIHZlYzMgXzkwNiA9IGZyYWdDb2xvci54eXogKyAoKHNkaXJlY3QgKiBzdmlzaWJpbGl0eSkgKiBzdW5Db2wpOwogICAgZnJhZ0NvbG9yID0gdmVjNChfOTA2LngsIF85MDYueSwgXzkwNi56LCBmcmFnQ29sb3Iudyk7CiAgICBmcmFnQ29sb3IudyA9IDEuMDsKfQoK";
 kha_Shaders.line_deferred_fragData0 = "s335:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgpvdXQgdmVjNCBmcmFnQ29sb3JbMl07CmluIHZlYzMgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBmcmFnQ29sb3JbMF0gPSB2ZWM0KDEuMCwgMS4wLCAwLjAsIDEuMCk7CiAgICBmcmFnQ29sb3JbMV0gPSB2ZWM0KGNvbG9yLCAxLjApOwp9Cgo";
 kha_Shaders.line_fragData0 = "s267:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgpvdXQgdmVjNCBmcmFnQ29sb3I7CmluIHZlYzMgY29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBmcmFnQ29sb3IgPSB2ZWM0KGNvbG9yLCAxLjApOwp9Cgo";
-kha_Shaders.line_vertData0 = "s330:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIG1hdDQgVlA7CgpvdXQgdmVjMyBjb2xvcjsKaW4gdmVjMyBjb2w7CmluIHZlYzMgcG9zOwoKdm9pZCBtYWluKCkKewogICAgY29sb3IgPSBjb2w7CiAgICBnbF9Qb3NpdGlvbiA9IFZQICogdmVjNChwb3MsIDEuMCk7Cn0KCg";
+kha_Shaders.line_vertData0 = "s362:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIG1hdDQgVmlld1Byb2plY3Rpb247CgpvdXQgdmVjMyBjb2xvcjsKaW4gdmVjMyBjb2w7CmluIHZlYzMgcG9zOwoKdm9pZCBtYWluKCkKewogICAgY29sb3IgPSBjb2w7CiAgICBnbF9Qb3NpdGlvbiA9IFZpZXdQcm9qZWN0aW9uICogdmVjNChwb3MsIDEuMCk7Cn0KCg";
 kha_Shaders.painter_colored_fragData0 = "s274:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgpvdXQgdmVjNCBGcmFnQ29sb3I7CmluIHZlYzQgZnJhZ21lbnRDb2xvcjsKCnZvaWQgbWFpbigpCnsKICAgIEZyYWdDb2xvciA9IGZyYWdtZW50Q29sb3I7Cn0KCg";
 kha_Shaders.painter_colored_vertData0 = "s439:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIG1hdDQgcHJvamVjdGlvbk1hdHJpeDsKCmluIHZlYzMgdmVydGV4UG9zaXRpb247Cm91dCB2ZWM0IGZyYWdtZW50Q29sb3I7CmluIHZlYzQgdmVydGV4Q29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICBnbF9Qb3NpdGlvbiA9IHByb2plY3Rpb25NYXRyaXggKiB2ZWM0KHZlcnRleFBvc2l0aW9uLCAxLjApOwogICAgZnJhZ21lbnRDb2xvciA9IHZlcnRleENvbG9yOwp9Cgo";
 kha_Shaders.painter_image_fragData0 = "s506:I3ZlcnNpb24gMzMwCiNpZmRlZiBHTF9BUkJfc2hhZGluZ19sYW5ndWFnZV80MjBwYWNrCiNleHRlbnNpb24gR0xfQVJCX3NoYWRpbmdfbGFuZ3VhZ2VfNDIwcGFjayA6IHJlcXVpcmUKI2VuZGlmCgp1bmlmb3JtIHNhbXBsZXIyRCB0ZXg7CgppbiB2ZWMyIHRleENvb3JkOwppbiB2ZWM0IGNvbG9yOwpvdXQgdmVjNCBGcmFnQ29sb3I7Cgp2b2lkIG1haW4oKQp7CiAgICB2ZWM0IHRleGNvbG9yID0gdGV4dHVyZSh0ZXgsIHRleENvb3JkKSAqIGNvbG9yOwogICAgdmVjMyBfMzIgPSB0ZXhjb2xvci54eXogKiBjb2xvci53OwogICAgdGV4Y29sb3IgPSB2ZWM0KF8zMi54LCBfMzIueSwgXzMyLnosIHRleGNvbG9yLncpOwogICAgRnJhZ0NvbG9yID0gdGV4Y29sb3I7Cn0KCg";
