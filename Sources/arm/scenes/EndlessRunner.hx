@@ -25,6 +25,9 @@ class EndlessRunner extends iron.Trait {
         physics = PhysicsWorld.active;
         mech = Scene.active.getChild("MechController");
         mechPrevPos = mech.transform.world.getLoc();
+
+        // TODO: setup pause mechanics
+
         GameController.setState("PLAYING");
         var start = Scene.active.getChild("START");
         var startLocation = start.transform.world.getLoc();
@@ -48,6 +51,28 @@ class EndlessRunner extends iron.Trait {
         if (mechContacts != null) {
             for (mechContact in mechContacts) {
                 // mech collision detection
+                var vehicleTrait = mechContact.object.getTrait(Vehicle);
+                if (vehicleTrait != null  && vehicleTrait.getIsCollided() == false) {
+                    vehicleTrait.setIsCollided(true);
+                    //fling the car
+                    var launchTrait = mechContact.object.getTrait(Launchable);
+                    if (launchTrait != null) {
+                        var vehicleDirection = vehicleTrait.getDirection();
+                        var launchRotationY = 1;
+                        if (mech.transform.worldx() > mechContact.object.transform.worldx()) {
+                            launchRotationY = -1;
+                        }
+                        vehicleTrait.setMoving(false);
+
+                        launchTrait.setLaunchDirection(new Vec4(vehicleTrait.getSpeed() * launchRotationY, 1, 1));
+                        launchTrait.setLaunchSpeed(0.5);
+
+
+                        launchTrait.setRotationDirection(new Vec4(0, launchRotationY, 1));
+                        launchTrait.setRotationSpeed(0.1);
+                        launchTrait.setLaunched(true);
+                    }
+                }
             }
         }
     }

@@ -540,6 +540,62 @@ iron_Trait.prototype = {
 	}
 	,__class__: iron_Trait
 };
+var arm_Launchable = function() {
+	this.rotationSpeed = 1.0;
+	this.launchSpeed = 1.0;
+	this.isLaunched = false;
+	var _gthis = this;
+	iron_Trait.call(this);
+	this.notifyOnUpdate(function() {
+		if(_gthis.isLaunched && _gthis.launchDirection != null) {
+			_gthis.object.transform.move(_gthis.launchDirection,_gthis.launchSpeed);
+			if(_gthis.rotationDirection != null) {
+				_gthis.object.transform.rotate(_gthis.rotationDirection,_gthis.rotationSpeed);
+			}
+		}
+	});
+};
+$hxClasses["arm.Launchable"] = arm_Launchable;
+arm_Launchable.__name__ = "arm.Launchable";
+arm_Launchable.__super__ = iron_Trait;
+arm_Launchable.prototype = $extend(iron_Trait.prototype,{
+	isLaunched: null
+	,launchDirection: null
+	,rotationDirection: null
+	,launchSpeed: null
+	,rotationSpeed: null
+	,getLaunchDirection: function() {
+		return this.launchDirection;
+	}
+	,setLaunchDirection: function(dir) {
+		this.launchDirection = dir;
+	}
+	,setLaunchSpeed: function(speed) {
+		this.launchSpeed = speed;
+	}
+	,getLaunchSpeed: function() {
+		return this.launchSpeed;
+	}
+	,getLaunched: function() {
+		return this.isLaunched;
+	}
+	,setLaunched: function(b) {
+		this.isLaunched = b;
+	}
+	,setRotationDirection: function(dir) {
+		this.rotationDirection = dir;
+	}
+	,getRotationDirection: function() {
+		return this.rotationDirection;
+	}
+	,setRotationSpeed: function(speed) {
+		this.rotationSpeed = speed;
+	}
+	,getRotationSpeed: function() {
+		return this.rotationSpeed;
+	}
+	,__class__: arm_Launchable
+});
 var arm_MechController = function() {
 	this.kb = iron_system_Input.getKeyboard();
 	this.runSpeed = 0.1;
@@ -749,7 +805,9 @@ arm_Street.prototype = $extend(iron_Trait.prototype,{
 	,__class__: arm_Street
 });
 var arm_Vehicle = function() {
+	this.isCollided = false;
 	this.speed = 0.5;
+	this.moving = true;
 	this.aliveTime = 10.0;
 	this.alive = true;
 	this.active = false;
@@ -767,13 +825,15 @@ var arm_Vehicle = function() {
 			return;
 		}
 		if(_gthis.active && _gthis.alive) {
-			if(_gthis.direction.x > 0) {
-				_gthis.object.transform.setRotation(0,0,0);
-			} else {
-				_gthis.object.transform.setRotation(0,0,3.14);
+			if(_gthis.moving) {
+				if(_gthis.direction.x > 0) {
+					_gthis.object.transform.setRotation(0,0,0);
+				} else {
+					_gthis.object.transform.setRotation(0,0,3.14);
+				}
+				_gthis.object.transform.translate(_gthis.direction.x * _gthis.speed,_gthis.direction.y * _gthis.speed,_gthis.direction.z * _gthis.speed);
+				_gthis.body.syncTransform();
 			}
-			_gthis.object.transform.translate(_gthis.direction.x * _gthis.speed,_gthis.direction.y * _gthis.speed,_gthis.direction.z * _gthis.speed);
-			_gthis.body.syncTransform();
 			if(_gthis.aliveTime > 0 && _gthis.active) {
 				_gthis.aliveTime -= 0.0166666666666666664 * iron_system_Time.scale;
 			}
@@ -795,9 +855,11 @@ arm_Vehicle.prototype = $extend(iron_Trait.prototype,{
 	,active: null
 	,alive: null
 	,aliveTime: null
+	,moving: null
 	,direction: null
 	,speed: null
 	,body: null
+	,isCollided: null
 	,setActive: function(active) {
 		this.active = active;
 	}
@@ -807,17 +869,38 @@ arm_Vehicle.prototype = $extend(iron_Trait.prototype,{
 	,setDirection: function(direction) {
 		this.direction = direction;
 	}
+	,getDirection: function() {
+		return this.direction;
+	}
 	,setColor: function(color) {
 		var _gthis = this;
 		if(this.object.name != "Truck_M") {
 			return;
 		}
 		var materialName = this.object.name + "_" + color;
-		haxe_Log.trace("setting " + color,{ fileName : "arm/Vehicle.hx", lineNumber : 92, className : "arm.Vehicle", methodName : "setColor"});
+		haxe_Log.trace("setting " + color,{ fileName : "arm/Vehicle.hx", lineNumber : 103, className : "arm.Vehicle", methodName : "setColor"});
 		iron_data_Data.getMaterial(iron_Scene.active.raw.name,materialName,function(mat) {
-			haxe_Log.trace("gotten",{ fileName : "arm/Vehicle.hx", lineNumber : 94, className : "arm.Vehicle", methodName : "setColor"});
+			haxe_Log.trace("gotten",{ fileName : "arm/Vehicle.hx", lineNumber : 105, className : "arm.Vehicle", methodName : "setColor"});
 			iron_Scene.active.getMesh(_gthis.object.name).materials[0] = mat;
 		});
+	}
+	,setMoving: function(b) {
+		this.moving = b;
+	}
+	,isMoving: function() {
+		return this.moving;
+	}
+	,getIsCollided: function() {
+		return this.isCollided;
+	}
+	,setIsCollided: function(b) {
+		this.isCollided = b;
+	}
+	,setSpeed: function(s) {
+		this.speed = s;
+	}
+	,getSpeed: function() {
+		return this.speed;
 	}
 	,__class__: arm_Vehicle
 });
@@ -1016,7 +1099,24 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 			while(_g < mechContacts.length) {
 				var mechContact = mechContacts[_g];
 				++_g;
-				haxe_Log.trace(mechContact.object.name,{ fileName : "arm/scenes/EndlessRunner.hx", lineNumber : 50, className : "arm.scenes.EndlessRunner", methodName : "onUpdate"});
+				var vehicleTrait = mechContact.object.getTrait(arm_Vehicle);
+				if(vehicleTrait != null && vehicleTrait.getIsCollided() == false) {
+					vehicleTrait.setIsCollided(true);
+					var launchTrait = mechContact.object.getTrait(arm_Launchable);
+					if(launchTrait != null) {
+						var vehicleDirection = vehicleTrait.getDirection();
+						var launchRotationY = 1;
+						if(this.mech.transform.world.self._30 > mechContact.object.transform.world.self._30) {
+							launchRotationY = -1;
+						}
+						vehicleTrait.setMoving(false);
+						launchTrait.setLaunchDirection(new iron_math_Vec4(vehicleTrait.getSpeed() * launchRotationY,1,1));
+						launchTrait.setLaunchSpeed(0.5);
+						launchTrait.setRotationDirection(new iron_math_Vec4(0,launchRotationY,1));
+						launchTrait.setRotationSpeed(0.1);
+						launchTrait.setLaunched(true);
+					}
+				}
 			}
 		}
 	}
@@ -44628,6 +44728,7 @@ arm_system_VehicleSystem.VEHICLES = ["Truck_L_brown","Truck_L_green","Truck_L_re
 arm_GameController.streetSystem = new arm_system_StreetSystem();
 arm_GameController.vehicleSystem = new arm_system_VehicleSystem();
 arm_GameController.listeners = [];
+arm_Launchable.__meta__ = { fields : { launchSpeed : { prop : null}, rotationSpeed : { prop : null}}};
 arm_MechController.__meta__ = { fields : { strafeSpeed : { prop : null}, runSpeed : { prop : null}}};
 arm_Street.STREET_SIZE = 6;
 arm_VehicleSpawner.__meta__ = { fields : { spawnFrequency : { prop : null}, spawnDirectionX : { prop : null}, spawnDirectionY : { prop : null}, spawnDirectionZ : { prop : null}, isRandomFrequency : { prop : null}, active : { prop : null}}};

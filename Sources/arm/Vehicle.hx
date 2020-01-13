@@ -20,10 +20,14 @@ class Vehicle extends iron.Trait
 	private var alive: Bool = true;
 	private var aliveTime: FastFloat = 10.0;
 
+	private var moving: Bool = true;
+
 	private var direction: Vec4;
 	private var speed: FastFloat = 0.5;
 
 	private var body: RigidBody;
+
+	private var isCollided: Bool = false;
 
 	public function new()
 	{
@@ -44,14 +48,16 @@ class Vehicle extends iron.Trait
 
 			if (this.active && this.alive) {
 
-				if (this.direction.x > 0) {
-					this.object.transform.setRotation(0, 0, 0);
-				} else {
-					this.object.transform.setRotation(0, 0, 3.14);
+				if (this.moving) {
+					if (this.direction.x > 0) {
+						this.object.transform.setRotation(0, 0, 0);
+					} else {
+						this.object.transform.setRotation(0, 0, 3.14);
+					}
+	
+					this.object.transform.translate(direction.x * speed, direction.y * speed, direction.z * speed);
+					this.body.syncTransform();
 				}
-
-				this.object.transform.translate(direction.x * speed, direction.y * speed, direction.z * speed);
-				this.body.syncTransform();
 
 				if (this.aliveTime > 0 && this.active) {
 					this.aliveTime -= Time.delta;
@@ -84,6 +90,11 @@ class Vehicle extends iron.Trait
 		this.direction = direction;
 	}
 
+	public function getDirection(): Vec4
+	{
+		return this.direction;	
+	}
+
 	public function setColor(color: String) 
 	{
 		if (this.object.name != "Truck_M") return;
@@ -94,5 +105,35 @@ class Vehicle extends iron.Trait
 			trace("gotten");
 			iron.Scene.active.getMesh(this.object.name).materials[0] = mat;
 		});
+	}
+
+	public function setMoving(b: Bool)
+	{
+		moving = b;	
+	}
+
+	public function isMoving() : Bool
+	{
+		return moving;
+	}
+
+	public function getIsCollided(): Bool
+	{
+		return isCollided;	
+	}
+
+	public function setIsCollided(b: Bool)
+	{
+		isCollided = b;	
+	}
+
+	public function setSpeed(s: FastFloat)
+	{
+		speed = s;
+	}
+
+	public function getSpeed(): FastFloat
+	{
+		return speed;
 	}
 }
