@@ -1158,7 +1158,7 @@
 			],
 			"uniforms": [
 				{
-					"name": "VP",
+					"name": "ViewProjection",
 					"type": "mat4"
 				}
 			],

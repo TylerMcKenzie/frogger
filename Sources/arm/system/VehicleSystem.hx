@@ -22,13 +22,6 @@ class VehicleSystem
 
 	public function new() {}
 
-	public function update()
-	{
-		// for (vehicle in vehicles) {
-			// TODO CHECK IF THEY SHOULD BE REMOVED
-		// }
-	}
-
 	public function getVehicle(type) : Object
 	{
 		var vehicle;
@@ -53,7 +46,6 @@ class VehicleSystem
 	public function getRandomVehicle() : Object
 	{
 		var randIndex = Math.round(Math.random()*(VEHICLES.length-1));
-		// var randIndex = Math.round(Math.random()*(6-1) + 1);
 		return getVehicle(VEHICLES[randIndex]);
 	}
 
