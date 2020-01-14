@@ -54,21 +54,28 @@ class EndlessRunner extends iron.Trait {
                 var vehicleTrait = mechContact.object.getTrait(Vehicle);
                 if (vehicleTrait != null  && vehicleTrait.getIsCollided() == false) {
                     vehicleTrait.setIsCollided(true);
+
+                    // Get score trait and points
+                    var scoreTrait = mechContact.object.getTrait(Score);
+                    if (scoreTrait != null) {
+                        var score = scoreTrait.getScore();
+                    }
+
                     //fling the car
                     var launchTrait = mechContact.object.getTrait(Launchable);
                     if (launchTrait != null) {
-                        var vehicleDirection = vehicleTrait.getDirection();
-                        var launchRotationY = 1;
+                        var launchDirectionY = 1;
+                        
                         if (mech.transform.worldx() > mechContact.object.transform.worldx()) {
-                            launchRotationY = -1;
+                            launchDirectionY = -1;
                         }
+
                         vehicleTrait.setMoving(false);
 
-                        launchTrait.setLaunchDirection(new Vec4(vehicleTrait.getSpeed() * launchRotationY, 1, 1));
-                        launchTrait.setLaunchSpeed(0.5);
+                        launchTrait.setLaunchDirection(new Vec4(launchDirectionY, 1, 1));
+                        launchTrait.setLaunchSpeed(vehicleTrait.getSpeed());
 
-
-                        launchTrait.setRotationDirection(new Vec4(0, launchRotationY, 1));
+                        launchTrait.setRotationDirection(new Vec4(0, launchDirectionY, 1));
                         launchTrait.setRotationSpeed(0.1);
                         launchTrait.setLaunched(true);
                     }
