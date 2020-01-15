@@ -780,6 +780,23 @@ arm_Player.prototype = $extend(iron_Trait.prototype,{
 	}
 	,__class__: arm_Player
 });
+var arm_Score = function() {
+	this.score = 0.0;
+	iron_Trait.call(this);
+};
+$hxClasses["arm.Score"] = arm_Score;
+arm_Score.__name__ = "arm.Score";
+arm_Score.__super__ = iron_Trait;
+arm_Score.prototype = $extend(iron_Trait.prototype,{
+	score: null
+	,getScore: function() {
+		return this.score;
+	}
+	,setScore: function(s) {
+		this.score = s;
+	}
+	,__class__: arm_Score
+});
 var arm_Street = function() {
 	this.registered = false;
 	var _gthis = this;
@@ -1102,17 +1119,20 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 				var vehicleTrait = mechContact.object.getTrait(arm_Vehicle);
 				if(vehicleTrait != null && vehicleTrait.getIsCollided() == false) {
 					vehicleTrait.setIsCollided(true);
+					var scoreTrait = mechContact.object.getTrait(arm_Score);
+					if(scoreTrait != null) {
+						var score = scoreTrait.getScore();
+					}
 					var launchTrait = mechContact.object.getTrait(arm_Launchable);
 					if(launchTrait != null) {
-						var vehicleDirection = vehicleTrait.getDirection();
-						var launchRotationY = 1;
+						var launchDirectionY = 1;
 						if(this.mech.transform.world.self._30 > mechContact.object.transform.world.self._30) {
-							launchRotationY = -1;
+							launchDirectionY = -1;
 						}
 						vehicleTrait.setMoving(false);
-						launchTrait.setLaunchDirection(new iron_math_Vec4(vehicleTrait.getSpeed() * launchRotationY,1,1));
-						launchTrait.setLaunchSpeed(0.5);
-						launchTrait.setRotationDirection(new iron_math_Vec4(0,launchRotationY,1));
+						launchTrait.setLaunchDirection(new iron_math_Vec4(launchDirectionY,1,1));
+						launchTrait.setLaunchSpeed(vehicleTrait.getSpeed());
+						launchTrait.setRotationDirection(new iron_math_Vec4(0,launchDirectionY,1));
 						launchTrait.setRotationSpeed(0.1);
 						launchTrait.setLaunched(true);
 					}
@@ -4219,13 +4239,28 @@ iron_Scene.createTraits = function(traits,object) {
 			}
 			if(t.props != null) {
 				var _g2 = 0;
-				var _g12 = t.props.length / 2 | 0;
+				var _g12 = t.props.length / 3 | 0;
 				while(_g2 < _g12) {
 					var i = _g2++;
-					var pname = t.props[i * 2];
-					var pval = t.props[i * 2 + 1];
-					if(pval != "") {
-						Reflect.setProperty(traitInst,pname,iron_Scene.parseArg(pval));
+					var pname = t.props[i * 3];
+					var ptype = t.props[i * 3 + 1];
+					var pval = t.props[i * 3 + 2];
+					if(StringTools.endsWith(ptype,"Object") && pval != "") {
+						Reflect.setProperty(traitInst,pname,iron_Scene.active.getChild(pval));
+					} else {
+						switch(ptype) {
+						case "Vec2":
+							Reflect.setProperty(traitInst,pname,new iron_math_Vec2(pval[0],pval[1]));
+							break;
+						case "Vec3":
+							Reflect.setProperty(traitInst,pname,new iron_math_Vec3(pval[0],pval[1],pval[2]));
+							break;
+						case "Vec4":
+							Reflect.setProperty(traitInst,pname,new iron_math_Vec4(pval[0],pval[1],pval[2],pval[3]));
+							break;
+						default:
+							Reflect.setProperty(traitInst,pname,pval);
+						}
 					}
 				}
 			}
@@ -13604,6 +13639,207 @@ iron_math_Vec2.prototype = {
 		return "(" + this.x + ", " + this.y + ")";
 	}
 	,__class__: iron_math_Vec2
+};
+var iron_math_Vec3 = function(x,y,z) {
+	if(z == null) {
+		z = 0.0;
+	}
+	if(y == null) {
+		y = 0.0;
+	}
+	if(x == null) {
+		x = 0.0;
+	}
+	this.x = x;
+	this.y = y;
+	this.z = z;
+};
+$hxClasses["iron.math.Vec3"] = iron_math_Vec3;
+iron_math_Vec3.__name__ = "iron.math.Vec3";
+iron_math_Vec3.distance = function(v1,v2) {
+	var vx = v1.x - v2.x;
+	var vy = v1.y - v2.y;
+	var vz = v1.z - v2.z;
+	return Math.sqrt(vx * vx + vy * vy + vz * vz);
+};
+iron_math_Vec3.distancef = function(v1x,v1y,v1z,v2x,v2y,v2z) {
+	var vx = v1x - v2x;
+	var vy = v1y - v2y;
+	var vz = v1z - v2z;
+	return Math.sqrt(vx * vx + vy * vy + vz * vz);
+};
+iron_math_Vec3.xAxis = function() {
+	return new iron_math_Vec3(1.0,0.0,0.0);
+};
+iron_math_Vec3.yAxis = function() {
+	return new iron_math_Vec3(0.0,1.0,0.0);
+};
+iron_math_Vec3.zAxis = function() {
+	return new iron_math_Vec3(0.0,0.0,1.0);
+};
+iron_math_Vec3.prototype = {
+	x: null
+	,y: null
+	,z: null
+	,cross: function(v) {
+		var ax = this.x;
+		var ay = this.y;
+		var az = this.z;
+		var vx = v.x;
+		var vy = v.y;
+		var vz = v.z;
+		this.x = ay * vz - az * vy;
+		this.y = az * vx - ax * vz;
+		this.z = ax * vy - ay * vx;
+		return this;
+	}
+	,crossvecs: function(a,b) {
+		var ax = a.x;
+		var ay = a.y;
+		var az = a.z;
+		var bx = b.x;
+		var by = b.y;
+		var bz = b.z;
+		this.x = ay * bz - az * by;
+		this.y = az * bx - ax * bz;
+		this.z = ax * by - ay * bx;
+		return this;
+	}
+	,set: function(x,y,z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		return this;
+	}
+	,add: function(v) {
+		this.x += v.x;
+		this.y += v.y;
+		this.z += v.z;
+		return this;
+	}
+	,addf: function(x,y,z) {
+		this.x += x;
+		this.y += y;
+		this.z += z;
+		return this;
+	}
+	,addvecs: function(a,b) {
+		this.x = a.x + b.x;
+		this.y = a.y + b.y;
+		this.z = a.z + b.z;
+		return this;
+	}
+	,subvecs: function(a,b) {
+		this.x = a.x - b.x;
+		this.y = a.y - b.y;
+		this.z = a.z - b.z;
+		return this;
+	}
+	,normalize: function() {
+		var n = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+		if(n > 0.0) {
+			var invN = 1.0 / n;
+			this.x *= invN;
+			this.y *= invN;
+			this.z *= invN;
+		}
+		return this;
+	}
+	,mult: function(f) {
+		this.x *= f;
+		this.y *= f;
+		this.z *= f;
+		return this;
+	}
+	,dot: function(v) {
+		return this.x * v.x + this.y * v.y + this.z * v.z;
+	}
+	,setFrom: function(v) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+		return this;
+	}
+	,clone: function() {
+		return new iron_math_Vec3(this.x,this.y,this.z);
+	}
+	,lerp: function(from,to,s) {
+		this.x = from.x + (to.x - from.x) * s;
+		this.y = from.y + (to.y - from.y) * s;
+		this.z = from.z + (to.z - from.z) * s;
+		return this;
+	}
+	,applyproj: function(m) {
+		var x = this.x;
+		var y = this.y;
+		var z = this.z;
+		var d = 1.0 / (m.self._03 * x + m.self._13 * y + m.self._23 * z + m.self._33);
+		this.x = (m.self._00 * x + m.self._10 * y + m.self._20 * z + m.self._30) * d;
+		this.y = (m.self._01 * x + m.self._11 * y + m.self._21 * z + m.self._31) * d;
+		this.z = (m.self._02 * x + m.self._12 * y + m.self._22 * z + m.self._32) * d;
+		return this;
+	}
+	,applymat: function(m) {
+		var x = this.x;
+		var y = this.y;
+		var z = this.z;
+		this.x = m.self._00 * x + m.self._10 * y + m.self._20 * z + m.self._30;
+		this.y = m.self._01 * x + m.self._11 * y + m.self._21 * z + m.self._31;
+		this.z = m.self._02 * x + m.self._12 * y + m.self._22 * z + m.self._32;
+		return this;
+	}
+	,equals: function(v) {
+		if(this.x == v.x && this.y == v.y) {
+			return this.z == v.z;
+		} else {
+			return false;
+		}
+	}
+	,length: function() {
+		return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+	}
+	,sub: function(v) {
+		this.x -= v.x;
+		this.y -= v.y;
+		this.z -= v.z;
+		return this;
+	}
+	,distanceTo: function(p) {
+		return Math.sqrt((p.x - this.x) * (p.x - this.x) + (p.y - this.y) * (p.y - this.y) + (p.z - this.z) * (p.z - this.z));
+	}
+	,clamp: function(min,max) {
+		var l = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+		if(l < min) {
+			var n = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+			if(n > 0.0) {
+				var invN = 1.0 / n;
+				this.x *= invN;
+				this.y *= invN;
+				this.z *= invN;
+			}
+			var _this = this;
+			_this.x *= min;
+			_this.y *= min;
+			_this.z *= min;
+		} else if(l > max) {
+			var n1 = Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+			if(n1 > 0.0) {
+				var invN1 = 1.0 / n1;
+				this.x *= invN1;
+				this.y *= invN1;
+				this.z *= invN1;
+			}
+			var _this1 = this;
+			_this1.x *= max;
+			_this1.y *= max;
+			_this1.z *= max;
+		}
+		return this;
+	}
+	,toString: function() {
+		return "(" + this.x + ", " + this.y + ", " + this.z + ")";
+	}
+	,__class__: iron_math_Vec3
 };
 var iron_object_Animation = function() {
 	this.markerEvents = null;
@@ -42910,12 +43146,12 @@ var zui_Themes = function() { };
 $hxClasses["zui.Themes"] = zui_Themes;
 zui_Themes.__name__ = "zui.Themes";
 var zui_Zui = function(ops) {
-	this.restoreY = -1.0;
-	this.restoreX = -1.0;
 	this.checkSelectImage = null;
 	this.elementsBaked = false;
+	this.tabVertical = false;
 	this.tabScroll = 0.0;
 	this.tabHandle = null;
+	this.tabColors = null;
 	this.tabNames = null;
 	this.tooltipTime = 0.0;
 	this.tooltipWait = false;
@@ -42935,7 +43171,10 @@ var zui_Zui = function(ops) {
 	this.textToSubmit = "";
 	this.submitTextHandle = null;
 	this.textSelectedHandle = null;
-	this.windowHeader = 0.0;
+	this.restoreY = -1.0;
+	this.restoreX = -1.0;
+	this.windowHeaderH = 0.0;
+	this.windowHeaderW = 0.0;
 	this.dragHandle = null;
 	this.scrollHandle = null;
 	this.windowEnded = true;
@@ -43084,7 +43323,10 @@ zui_Zui.prototype = {
 	,windowEnded: null
 	,scrollHandle: null
 	,dragHandle: null
-	,windowHeader: null
+	,windowHeaderW: null
+	,windowHeaderH: null
+	,restoreX: null
+	,restoreY: null
 	,textSelectedHandle: null
 	,textSelectedCurrentText: null
 	,submitTextHandle: null
@@ -43111,8 +43353,10 @@ zui_Zui.prototype = {
 	,tooltipWait: null
 	,tooltipTime: null
 	,tabNames: null
+	,tabColors: null
 	,tabHandle: null
 	,tabScroll: null
+	,tabVertical: null
 	,elementsBaked: null
 	,checkSelectImage: null
 	,setScale: function(factor) {
@@ -43269,7 +43513,8 @@ zui_Zui.prototype = {
 		this._windowY = y + handle.dragY;
 		this._windowW = w;
 		this._windowH = h;
-		this.windowHeader = 0;
+		this.windowHeaderW = 0;
+		this.windowHeaderH = 0;
 		if(this.windowDirty(handle,x,y,w,h)) {
 			handle.redraws = 2;
 		}
@@ -43317,7 +43562,7 @@ zui_Zui.prototype = {
 				handle.dragY += this.inputDY | 0;
 			}
 			this._y += 15;
-			this.windowHeader += 15;
+			this.windowHeaderH += 15;
 		}
 		return true;
 	}
@@ -43337,8 +43582,9 @@ zui_Zui.prototype = {
 				this.g.set_color(this.t.SEPARATOR_COL);
 				this.g.fillRect(0,0,this._windowW,15);
 			}
-			var fullHeight = this._y - handle.scrollOffset;
-			if(fullHeight < this._windowH || handle.layout == 1 || !this.scrollEnabled) {
+			var wh = this._windowH - this.windowHeaderH;
+			var fullHeight = this._y - handle.scrollOffset - this.windowHeaderH;
+			if(fullHeight < wh || handle.layout == 1 || !this.scrollEnabled) {
 				handle.scrollEnabled = false;
 				handle.scrollOffset = 0;
 			} else {
@@ -43347,14 +43593,15 @@ zui_Zui.prototype = {
 					handle.scrollOffset = this.tabScroll;
 					this.tabScroll = 0;
 				}
-				var amountToScroll = fullHeight - this._windowH;
+				var wy = this._windowY + this.windowHeaderH;
+				var amountToScroll = fullHeight - wh;
 				var amountScrolled = -handle.scrollOffset;
 				var ratio = amountScrolled / amountToScroll;
-				var barH = this._windowH * Math.abs(this._windowH / fullHeight);
+				var barH = wh * Math.abs(wh / fullHeight);
 				barH = Math.max(barH,this.t.ELEMENT_H * this.ops.scaleFactor);
-				var totalScrollableArea = this._windowH - barH;
+				var totalScrollableArea = wh - barH;
 				var e = amountToScroll / totalScrollableArea;
-				var barY = totalScrollableArea * ratio;
+				var barY = totalScrollableArea * ratio + this.windowHeaderH;
 				var barFocus = this.getInputInRect(this._windowX + this._windowW - (this.t.SCROLL_W * this.ops.scaleFactor | 0),barY + this._windowY,this.t.SCROLL_W * this.ops.scaleFactor | 0,barH);
 				if(this.inputStarted && barFocus) {
 					this.scrollHandle = handle;
@@ -43362,18 +43609,18 @@ zui_Zui.prototype = {
 				}
 				if(handle == this.scrollHandle) {
 					this.scroll(this.inputDY * e,fullHeight);
-				} else if(this.inputWheelDelta != 0 && this.comboSelectedHandle == null && this.getInputInRect(this._windowX,this._windowY,this._windowW,this._windowH)) {
+				} else if(this.inputWheelDelta != 0 && this.comboSelectedHandle == null && this.getInputInRect(this._windowX,wy,this._windowW,wh)) {
 					this.scroll(this.inputWheelDelta * (this.t.ELEMENT_H * this.ops.scaleFactor),fullHeight);
 				}
 				if(handle.scrollOffset > 0) {
 					handle.scrollOffset = 0;
-				} else if(fullHeight + handle.scrollOffset < this._windowH) {
-					handle.scrollOffset = this._windowH - fullHeight;
+				} else if(fullHeight + handle.scrollOffset < wh) {
+					handle.scrollOffset = wh - fullHeight;
 				}
 				this.g.set_color(this.t.WINDOW_BG_COL);
-				this.g.fillRect(this._windowW - (this.t.SCROLL_W * this.ops.scaleFactor | 0),this._windowY,this.t.SCROLL_W * this.ops.scaleFactor | 0,this._windowH);
+				this.g.fillRect(this._windowW - (this.t.SCROLL_W * this.ops.scaleFactor | 0),wy,this.t.SCROLL_W * this.ops.scaleFactor | 0,wh);
 				this.g.set_color(this.t.ACCENT_COL);
-				var scrollbarFocus = this.getInputInRect(this._windowX + this._windowW - (this.t.SCROLL_W * this.ops.scaleFactor | 0),this._windowY,this.t.SCROLL_W * this.ops.scaleFactor | 0,this._windowH);
+				var scrollbarFocus = this.getInputInRect(this._windowX + this._windowW - (this.t.SCROLL_W * this.ops.scaleFactor | 0),wy,this.t.SCROLL_W * this.ops.scaleFactor | 0,wh);
 				var barW = scrollbarFocus || handle == this.scrollHandle ? this.t.SCROLL_W * this.ops.scaleFactor | 0 : (this.t.SCROLL_W * this.ops.scaleFactor | 0) / 3;
 				this.g.fillRect(this._windowW - barW - this.scrollAlign,barY,barW,barH);
 			}
@@ -43405,24 +43652,38 @@ zui_Zui.prototype = {
 	,scroll: function(delta,fullHeight) {
 		this.currentWindow.scrollOffset -= delta;
 	}
-	,restoreX: null
-	,restoreY: null
-	,tab: function(handle,text) {
+	,tab: function(handle,text,vertical,color) {
+		if(color == null) {
+			color = -1;
+		}
+		if(vertical == null) {
+			vertical = false;
+		}
 		if(this.tabNames == null) {
 			this.tabNames = [];
+			this.tabColors = [];
 			this.tabHandle = handle;
-			this.windowHeader += this.buttonOffsetY + this.t.BUTTON_H * this.ops.scaleFactor;
+			this.tabVertical = vertical;
+			if(vertical) {
+				this.windowHeaderW += this.t.ELEMENT_W * this.ops.scaleFactor;
+			} else {
+				this.windowHeaderH += this.t.BUTTON_H * this.ops.scaleFactor + this.buttonOffsetY + this.t.ELEMENT_OFFSET * this.ops.scaleFactor;
+			}
 			this.restoreX = this.inputX;
 			this.restoreY = this.inputY;
-			if(this.getInputInRect(this._windowX,this._windowY,this._windowW,this.windowHeader)) {
+			if(!vertical && this.getInputInRect(this._windowX,this._windowY,this._windowW,this.windowHeaderH)) {
 				this.inputX = this.inputY = -1;
 			}
 		}
 		this.tabNames.push(text);
+		this.tabColors.push(color);
 		var selected = handle.position == this.tabNames.length - 1;
-		if(selected) {
-			this.endElement();
-			this._y += 2;
+		if(this.tabNames.length == 1) {
+			if(vertical) {
+				this._x += this.windowHeaderW + 6;
+			} else {
+				this._y += this.windowHeaderH + 3;
+			}
 		}
 		return selected;
 	}
@@ -43433,21 +43694,31 @@ zui_Zui.prototype = {
 			return;
 		}
 		var tabX = 0.0;
+		var tabY = 0.0;
 		var tabH = this.t.BUTTON_H * this.ops.scaleFactor * 1.1 | 0;
 		var origy = this._y;
 		this._y = this.currentWindow.dragEnabled ? 15 : 0;
 		this.tabHandle.changed = false;
 		this.g.set_color(this.t.SEPARATOR_COL);
-		this.g.fillRect(0,this._y,this._windowW,this.buttonOffsetY + tabH + 2);
+		if(this.tabVertical) {
+			this.g.fillRect(0,this._y,this.t.ELEMENT_W * this.ops.scaleFactor,this._windowH);
+		} else {
+			this.g.fillRect(0,this._y,this._windowW,this.buttonOffsetY + tabH + 2);
+		}
 		this.g.set_color(this.t.ACCENT_COL);
-		this.g.fillRect(this.buttonOffsetY,this._y + this.buttonOffsetY + tabH + 2,this._windowW - this.buttonOffsetY * 2,1);
-		this._y += 2;
+		if(this.tabVertical) {
+			this.g.fillRect(this.t.ELEMENT_W * this.ops.scaleFactor,this._y,1,this._windowH);
+		} else {
+			this.g.fillRect(this.buttonOffsetY,this._y + this.buttonOffsetY + tabH + 2,this._windowW - this.buttonOffsetY * 2,1);
+		}
+		var basey = this.tabVertical ? this._y : this._y + 2;
 		var _g = 0;
 		var _g1 = this.tabNames.length;
 		while(_g < _g1) {
 			var i = _g++;
 			this._x = tabX;
-			this._w = this.ops.font.width(this.fontSize,this.tabNames[i]) + this.buttonOffsetY * 2 + 18 * this.ops.scaleFactor | 0;
+			this._y = basey + tabY;
+			this._w = this.tabVertical ? this.t.ELEMENT_W * this.ops.scaleFactor - this.ops.scaleFactor | 0 : this.ops.font.width(this.fontSize,this.tabNames[i]) + this.buttonOffsetY * 2 + 18 * this.ops.scaleFactor | 0;
 			var released = this.getReleased();
 			var pushed = this.getPushed();
 			var hover = this.getHover();
@@ -43461,8 +43732,12 @@ zui_Zui.prototype = {
 				this.tabHandle.changed = true;
 			}
 			var selected = this.tabHandle.position == i;
-			this.g.set_color(selected ? this.t.WINDOW_BG_COL : pushed || hover ? this.t.BUTTON_HOVER_COL : this.t.SEPARATOR_COL);
-			tabX += this._w + 1;
+			this.g.set_color(this.tabColors[i] != -1 ? this.tabColors[i] : selected ? this.t.WINDOW_BG_COL : pushed || hover ? this.t.BUTTON_HOVER_COL : this.t.SEPARATOR_COL);
+			if(this.tabVertical) {
+				tabY += tabH + 1;
+			} else {
+				tabX += this._w + 1;
+			}
 			var g = this.g;
 			var x = this._x + this.buttonOffsetY;
 			var y = this._y + this.buttonOffsetY;
@@ -43477,7 +43752,7 @@ zui_Zui.prototype = {
 			g.fillRect(x,y - 1,w,tabH + 1);
 			this.g.set_color(selected ? this.t.BUTTON_TEXT_COL : this.t.LABEL_COL);
 			this.drawString(this.g,this.tabNames[i],this.t.TEXT_OFFSET,0,0);
-			if(selected) {
+			if(selected && !this.tabVertical) {
 				this.g.set_color(this.t.WINDOW_BG_COL);
 				this.g.fillRect(this._x + this.buttonOffsetY + 1,this._y + this.buttonOffsetY + tabH,this._w - 1,1);
 			}
@@ -43601,7 +43876,7 @@ zui_Zui.prototype = {
 		}
 		this.g.set_color(this.t.TEXT_COL);
 		this.drawString(this.g,text,this.t.TEXT_OFFSET * this.ops.scaleFactor,0,align);
-		this.endElement();
+		this.endElement(Math.max(this.t.ELEMENT_H * this.ops.scaleFactor,this.ops.font.height(this.fontSize)) + this.t.ELEMENT_OFFSET * this.ops.scaleFactor);
 		if(started) {
 			return 1;
 		} else if(released) {
@@ -43887,11 +44162,12 @@ zui_Zui.prototype = {
 			this.endElement();
 			return handle.position == position;
 		}
+		if(position == 0) {
+			handle.changed = false;
+		}
 		if(this.getReleased()) {
 			handle.position = position;
 			handle.changed = this.changed = true;
-		} else {
-			handle.changed = false;
 		}
 		var hover = this.getHover();
 		this.drawRadio(handle.position == position,hover);
@@ -44348,7 +44624,7 @@ zui_Zui.prototype = {
 		if(yOffset == null) {
 			yOffset = 0;
 		}
-		var maxChars = this._w / (this.fontSize / 2 | 0) | 0;
+		var maxChars = this._w / (this.fontSize * 0.45 | 0) | 0;
 		if(text.length > maxChars) {
 			text = text.substring(0,maxChars) + "..";
 		}
@@ -44730,6 +45006,7 @@ arm_GameController.vehicleSystem = new arm_system_VehicleSystem();
 arm_GameController.listeners = [];
 arm_Launchable.__meta__ = { fields : { launchSpeed : { prop : null}, rotationSpeed : { prop : null}}};
 arm_MechController.__meta__ = { fields : { strafeSpeed : { prop : null}, runSpeed : { prop : null}}};
+arm_Score.__meta__ = { fields : { score : { prop : null}}};
 arm_Street.STREET_SIZE = 6;
 arm_VehicleSpawner.__meta__ = { fields : { spawnFrequency : { prop : null}, spawnDirectionX : { prop : null}, spawnDirectionY : { prop : null}, spawnDirectionZ : { prop : null}, isRandomFrequency : { prop : null}, active : { prop : null}}};
 armory_data_Config.configLoaded = false;

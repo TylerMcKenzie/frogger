@@ -7,16 +7,16 @@ import kha.FastFloat;
 class VehicleSpawner extends iron.Trait
 {
 	@prop
-	private var spawnFrequency: FastFloat = -1.0;
+	private var spawnFrequency: Float = -1.0;
 
 	@prop
-	private var spawnDirectionX: FastFloat = 0.0;
+	private var spawnDirectionX: Float = 0.0;
 
 	@prop
-	private var spawnDirectionY: FastFloat = 0.0;
+	private var spawnDirectionY: Float = 0.0;
 
 	@prop
-	private var spawnDirectionZ: FastFloat = 0.0;
+	private var spawnDirectionZ: Float = 0.0;
 
 	@prop
 	private var isRandomFrequency: Bool = false;
