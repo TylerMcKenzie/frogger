@@ -1014,6 +1014,7 @@ arm_VehicleSpawner.prototype = $extend(iron_Trait.prototype,{
 	,__class__: arm_VehicleSpawner
 });
 var arm_scenes_EndlessRunner = function() {
+	this.playerScore = 0.0;
 	iron_Trait.call(this);
 	this.notifyOnInit($bind(this,this.onInit));
 	this.notifyOnUpdate($bind(this,this.onUpdate));
@@ -1023,14 +1024,22 @@ $hxClasses["arm.scenes.EndlessRunner"] = arm_scenes_EndlessRunner;
 arm_scenes_EndlessRunner.__name__ = "arm.scenes.EndlessRunner";
 arm_scenes_EndlessRunner.__super__ = iron_Trait;
 arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
-	mech: null
+	gameOverCanvas: null
+	,mech: null
 	,mechPrevPos: null
 	,physics: null
+	,playerScore: null
 	,onInit: function() {
 		this.physics = armory_trait_physics_bullet_PhysicsWorld.active;
 		this.mech = iron_Scene.active.getChild("MechController");
 		var _this = this.mech.transform.world;
 		this.mechPrevPos = new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33);
+		this.gameOverCanvas = iron_Scene.active.getTrait(armory_trait_internal_CanvasScript);
+		this.gameOverCanvas.setCanvasVisibility(true);
+		var scoreElement = this.gameOverCanvas.getElement("ScoreParent");
+		scoreElement.x = 50;
+		scoreElement.y = 50;
+		scoreElement.visible = true;
 		arm_GameController.setState("PLAYING");
 		var start = iron_Scene.active.getChild("START");
 		var _this1 = start.transform.world;
@@ -1121,7 +1130,9 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 					vehicleTrait.setIsCollided(true);
 					var scoreTrait = mechContact.object.getTrait(arm_Score);
 					if(scoreTrait != null) {
-						var score = scoreTrait.getScore();
+						this.playerScore += scoreTrait.getScore();
+						var scoreTextElement = this.gameOverCanvas.getElement("Score");
+						scoreTextElement.text = Std.string(this.playerScore);
 					}
 					var launchTrait = mechContact.object.getTrait(arm_Launchable);
 					if(launchTrait != null) {

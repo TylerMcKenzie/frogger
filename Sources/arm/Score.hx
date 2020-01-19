@@ -1,23 +1,21 @@
 package arm;
 
-import kha.FastFloat;
-
 class Score extends iron.Trait
 {
     @prop
-    private var score: FastFloat = 0.0;
+    private var score: Float = 0.0;
 
     public function new()
     {
         super();
     }
 
-    public function getScore(): FastFloat
+    public function getScore(): Float
     {
         return score;
     }
 
-    public function setScore(s: FastFloat)
+    public function setScore(s: Float)
     {
         score = s;
     }

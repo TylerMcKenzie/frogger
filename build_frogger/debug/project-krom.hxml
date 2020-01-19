@@ -59,35 +59,37 @@
 -D kha_version=1810
 -D kha_project_name=frogger
 -js krom/krom.js.temp
-arm.scenes.EndlessRunner
---macro keep('arm.scenes.EndlessRunner')
-arm.Player
---macro keep('arm.Player')
-arm.Vehicle
---macro keep('arm.Vehicle')
-arm.scenes.Title
---macro keep('arm.scenes.Title')
-armory.trait.internal.Bridge
---macro keep('armory.trait.internal.Bridge')
-arm.scenes.Frogger
---macro keep('arm.scenes.Frogger')
+arm.Score
+--macro keep('arm.Score')
 arm.VehicleSpawner
 --macro keep('arm.VehicleSpawner')
-arm.MechController
---macro keep('arm.MechController')
-arm.Launchable
---macro keep('arm.Launchable')
 armory.trait.physics.bullet.PhysicsWorld
 --macro keep('armory.trait.physics.bullet.PhysicsWorld')
 arm.Street
 --macro keep('arm.Street')
+arm.scenes.Frogger
+--macro keep('arm.scenes.Frogger')
+arm.scenes.EndlessRunner
+--macro keep('arm.scenes.EndlessRunner')
+armory.trait.internal.Bridge
+--macro keep('armory.trait.internal.Bridge')
+arm.Player
+--macro keep('arm.Player')
+armory.trait.internal.CanvasScript
+--macro keep('armory.trait.internal.CanvasScript')
+arm.scenes.Title
+--macro keep('arm.scenes.Title')
+armory.trait.FollowCamera
+--macro keep('armory.trait.FollowCamera')
+arm.Launchable
+--macro keep('arm.Launchable')
+arm.MechController
+--macro keep('arm.MechController')
+arm.Vehicle
+--macro keep('arm.Vehicle')
 armory.trait.internal.DebugConsole
 --macro keep('armory.trait.internal.DebugConsole')
 armory.trait.physics.bullet.RigidBody
 --macro keep('armory.trait.physics.bullet.RigidBody')
-armory.trait.FollowCamera
---macro keep('armory.trait.FollowCamera')
-armory.trait.internal.CanvasScript
---macro keep('armory.trait.internal.CanvasScript')
 --times
 -main Main

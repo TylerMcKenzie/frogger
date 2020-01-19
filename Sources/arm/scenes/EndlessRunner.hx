@@ -3,14 +3,20 @@ package arm.scenes;
 import iron.object.Object;
 import iron.Scene;
 import iron.math.Vec4;
+import armory.trait.internal.CanvasScript;
 import armory.trait.physics.PhysicsWorld;
 import armory.trait.physics.RigidBody;
+import kha.System;
 
 class EndlessRunner extends iron.Trait {
+    private var gameOverCanvas: CanvasScript;
+    
     private var mech: Object;
     private var mechPrevPos: Vec4;
 
     private var physics: PhysicsWorld;
+
+    private var playerScore: Float = 0.0;
 
     public function new () {
         super();
@@ -27,6 +33,15 @@ class EndlessRunner extends iron.Trait {
         mechPrevPos = mech.transform.world.getLoc();
 
         // TODO: setup pause mechanics
+        // Canvas stuff
+        gameOverCanvas = Scene.active.getTrait(CanvasScript);
+        gameOverCanvas.setCanvasVisibility(true);
+
+        // Show Score
+        var scoreElement = gameOverCanvas.getElement("ScoreParent");
+        scoreElement.x = 50;
+        scoreElement.y = 50;
+        scoreElement.visible = true;
 
         GameController.setState("PLAYING");
         var start = Scene.active.getChild("START");
@@ -58,7 +73,10 @@ class EndlessRunner extends iron.Trait {
                     // Get score trait and points
                     var scoreTrait = mechContact.object.getTrait(Score);
                     if (scoreTrait != null) {
-                        var score = scoreTrait.getScore();
+                        playerScore += scoreTrait.getScore();
+
+                        var scoreTextElement = gameOverCanvas.getElement("Score");
+                        scoreTextElement.text = Std.string(playerScore);
                     }
 
                     //fling the car
