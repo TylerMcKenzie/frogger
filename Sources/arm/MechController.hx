@@ -8,11 +8,11 @@ import kha.FastFloat;
 
 class MechController extends iron.Trait {
     @prop
-    private var strafeSpeed: FastFloat = 0.1;
+    private var strafeSpeed: Float = 0.45;
     private var baseStrafeSpeed: FastFloat;
 
     @prop
-    private var runSpeed: FastFloat = 0.1;
+    private var runSpeed: Float = 0.35;
     private var baseRunSpeed: FastFloat;
 
 	private var kb: Keyboard = Input.getKeyboard();

@@ -598,8 +598,8 @@ arm_Launchable.prototype = $extend(iron_Trait.prototype,{
 });
 var arm_MechController = function() {
 	this.kb = iron_system_Input.getKeyboard();
-	this.runSpeed = 0.1;
-	this.strafeSpeed = 0.1;
+	this.runSpeed = 0.35;
+	this.strafeSpeed = 0.45;
 	var _gthis = this;
 	iron_Trait.call(this);
 	this.notifyOnInit(function() {
