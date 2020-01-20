@@ -780,6 +780,33 @@ arm_Player.prototype = $extend(iron_Trait.prototype,{
 	}
 	,__class__: arm_Player
 });
+var arm_Powerup = function() {
+	iron_Trait.call(this);
+	this.notifyOnInit(function() {
+	});
+	this.notifyOnUpdate(function() {
+	});
+};
+$hxClasses["arm.Powerup"] = arm_Powerup;
+arm_Powerup.__name__ = "arm.Powerup";
+arm_Powerup.__super__ = iron_Trait;
+arm_Powerup.prototype = $extend(iron_Trait.prototype,{
+	powerupName: null
+	,value: null
+	,getName: function() {
+		return this.powerupName;
+	}
+	,setName: function(n) {
+		this.powerupName = n;
+	}
+	,getValue: function() {
+		return this.value;
+	}
+	,setValue: function(v) {
+		this.value = v;
+	}
+	,__class__: arm_Powerup
+});
 var arm_Score = function() {
 	this.score = 0.0;
 	iron_Trait.call(this);
@@ -45017,6 +45044,7 @@ arm_GameController.vehicleSystem = new arm_system_VehicleSystem();
 arm_GameController.listeners = [];
 arm_Launchable.__meta__ = { fields : { launchSpeed : { prop : null}, rotationSpeed : { prop : null}}};
 arm_MechController.__meta__ = { fields : { strafeSpeed : { prop : null}, runSpeed : { prop : null}}};
+arm_Powerup.__meta__ = { fields : { powerupName : { prop : null}, value : { prop : null}}};
 arm_Score.__meta__ = { fields : { score : { prop : null}}};
 arm_Street.STREET_SIZE = 6;
 arm_VehicleSpawner.__meta__ = { fields : { spawnFrequency : { prop : null}, spawnDirectionX : { prop : null}, spawnDirectionY : { prop : null}, spawnDirectionZ : { prop : null}, isRandomFrequency : { prop : null}, active : { prop : null}}};
