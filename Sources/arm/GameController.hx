@@ -3,6 +3,7 @@ package arm;
 import arm.config.GameState;
 import arm.system.StreetSystem;
 import arm.system.VehicleSystem;
+import arm.system.PowerupSystem;
 
 
 typedef TStateChange = {
@@ -14,6 +15,7 @@ class GameController
 {
     public static var streetSystem: StreetSystem = new StreetSystem();
 	public static var vehicleSystem: VehicleSystem = new VehicleSystem();
+    public static var powerupSystem: PowerupSystem = new PowerupSystem();
 
 	private static var state: String;
 

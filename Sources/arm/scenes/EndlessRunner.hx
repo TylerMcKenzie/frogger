@@ -71,6 +71,7 @@ class EndlessRunner extends iron.Trait {
 
     private function onUpdate()
     {
+        // Street management
         if (mech.transform.world.getLoc().y - 6 > mechPrevPos.y) {
             GameController.streetSystem.addStreet();
             mechPrevPos = mech.transform.world.getLoc();
@@ -81,73 +82,17 @@ class EndlessRunner extends iron.Trait {
             }
         }
         
+        // Apply powerups if we got any
         if (activePowerups.length > 0) {
-            var mechControllerTrait = mech.getTrait(MechController);
-
-            for (powerupState in activePowerups) {
-                if (!powerupState.applied) {
-                    switch (powerupState.powerup.getName()) {
-                        case "boost":
-                            mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
-                        case "agility":
-                            mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
-                    }
-
-                    powerupState.powerup.setIsActive(true);
-                    powerupState.applied = true;
-                } else {
-                    if (!powerupState.powerup.isActive()) {
-                        switch (powerupState.powerup.getName()) {
-                            case "boost":
-                                mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() - cast(powerupState.powerup.getValue(), FastFloat));
-                            case "agility":
-                                mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() - cast(powerupState.powerup.getValue(), FastFloat));
-                        }
-                        
-                        activePowerups.remove(powerupState);
-                        powerupState.powerup.object.remove();
-                    }
-                }
-            }
+            applyActivePowerups();
         }
         
+        // Handle mech collisions
         var mechContacts = physics.getContacts(mech.getChild("Mech").getTrait(RigidBody));
         if (mechContacts != null) {
             for (mechContact in mechContacts) {
-                // mech collision detection
-                var vehicleTrait = mechContact.object.getTrait(Vehicle);
-                if (vehicleTrait != null  && vehicleTrait.getIsCollided() == false) {
-                    vehicleTrait.setIsCollided(true);
-
-                    // Get score trait and points
-                    var scoreTrait = mechContact.object.getTrait(Score);
-                    if (scoreTrait != null) {
-                        playerScore += scoreTrait.getScore();
-
-                        var scoreTextElement = gameOverCanvas.getElement("Score");
-                        scoreTextElement.text = Std.string(playerScore);
-                    }
-
-                    //fling the car
-                    var launchTrait = mechContact.object.getTrait(Launchable);
-                    if (launchTrait != null) {
-                        var launchDirectionY = 1;
-                        
-                        if (mech.transform.worldx() > mechContact.object.transform.worldx()) {
-                            launchDirectionY = -1;
-                        }
-
-                        vehicleTrait.setMoving(false);
-
-                        launchTrait.setLaunchDirection(new Vec4(launchDirectionY, 1, 1));
-                        launchTrait.setLaunchSpeed(vehicleTrait.getSpeed());
-
-                        launchTrait.setRotationDirection(new Vec4(0, launchDirectionY, 1));
-                        launchTrait.setRotationSpeed(0.1);
-                        launchTrait.setLaunched(true);
-                    }
-                }
-
+                // Add powerup to powerup list
+                // check this first incase a score bonus is applied, player gets that immediately
                 var powerUp = mechContact.object.getTrait(Powerup);
                 if (powerUp != null) {
                     if (powerUp.object.visible == true) {
@@ -159,7 +104,77 @@ class EndlessRunner extends iron.Trait {
                         powerUp.object.visible = false;
                     }
                 }
+                
+                // vehicle collision detection
+                var vehicleTrait = mechContact.object.getTrait(Vehicle);
+                if (vehicleTrait != null  && vehicleTrait.getIsCollided() == false) {
+                    handleVehicleCollision(vehicleTrait, mechContact);
+                }
             }
+        }
+    }
+
+    private function applyActivePowerups()
+    {
+        var mechControllerTrait = mech.getTrait(MechController);
+
+        for (powerupState in activePowerups) {
+            if (!powerupState.applied) {
+                switch (powerupState.powerup.getName()) {
+                    case "boost":
+                        mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
+                    case "agility":
+                        mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
+                }
+
+                powerupState.powerup.setIsActive(true);
+                powerupState.applied = true;
+            } else {
+                if (!powerupState.powerup.isActive()) {
+                    switch (powerupState.powerup.getName()) {
+                        case "boost":
+                            mechControllerTrait.resetRunSpeed();
+                        case "agility":
+                            mechControllerTrait.resetStrafeSpeed();
+                    }
+                    
+                    activePowerups.remove(powerupState);
+                    powerupState.powerup.object.remove();
+                }
+            }
+        }
+    }
+
+    private function handleVehicleCollision(vehicleTrait, contactRb)
+    {
+        vehicleTrait.setIsCollided(true);
+
+        // Get score trait and points
+        var scoreTrait = contactRb.object.getTrait(Score);
+        if (scoreTrait != null) {
+            playerScore += scoreTrait.getScore();
+
+            var scoreTextElement = gameOverCanvas.getElement("Score");
+            scoreTextElement.text = Std.string(playerScore);
+        }
+
+        //fling the car
+        var launchTrait = contactRb.object.getTrait(Launchable);
+        if (launchTrait != null) {
+            var launchDirectionY = 1;
+            
+            if (mech.transform.worldx() > contactRb.object.transform.worldx()) {
+                launchDirectionY = -1;
+            }
+
+            vehicleTrait.setMoving(false);
+
+            launchTrait.setLaunchDirection(new Vec4(launchDirectionY, 1, 1));
+            launchTrait.setLaunchSpeed(vehicleTrait.getSpeed());
+
+            launchTrait.setRotationDirection(new Vec4(0, launchDirectionY, 1));
+            launchTrait.setRotationSpeed(0.1);
+            launchTrait.setLaunched(true);
         }
     }
 
