@@ -1,5 +1,6 @@
 package arm;
 
+import iron.system.Time;
 import iron.Trait;
 
 class Powerup extends Trait
@@ -9,9 +10,11 @@ class Powerup extends Trait
 
     @prop
     private var powerupDuration: Float = 0.0;
+    private var durationCountDown: Float = 0.0;
+    private var active: Bool = false;
 
     @prop
-    private var value: String;
+    private var value: Float;
 
     @prop
     private var target: String;
@@ -20,13 +23,25 @@ class Powerup extends Trait
     {
         super();
 
-        notifyOnInit(function() {
-
-        });
-
         notifyOnUpdate(function() {
-
+            
+            if (durationCountDown < getPowerupDuration() && getPowerupDuration() > 0 && isActive()) {
+                setIsActive(true);
+                durationCountDown += Time.delta;
+            } else {
+                setIsActive(false);
+            }
         });
+    }
+
+    public function isActive(): Bool
+    {
+        return active;  
+    }
+
+    public function setIsActive(b: Bool)
+    {
+        active = b;
     }
 
     public function getName(): String
@@ -39,12 +54,12 @@ class Powerup extends Trait
         powerupName = n;
     }
 
-    public function getValue(): String
+    public function getValue(): Float
     {
         return value;
     }
 
-    public function setValue(v: String)
+    public function setValue(v: Float)
     {
         value = v;
     }
@@ -57,5 +72,10 @@ class Powerup extends Trait
     public function setTarget(t: String)
     {
         target = t;
+    }
+
+    public function getPowerupDuration(): Float
+    {
+        return powerupDuration;
     }
 }

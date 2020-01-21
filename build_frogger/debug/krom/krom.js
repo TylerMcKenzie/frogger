@@ -643,8 +643,14 @@ arm_MechController.prototype = $extend(iron_Trait.prototype,{
 	,setRunSpeed: function(speed) {
 		this.runSpeed = speed;
 	}
+	,getRunSpeed: function() {
+		return this.runSpeed;
+	}
 	,setStrafeSpeed: function(speed) {
 		this.strafeSpeed = speed;
+	}
+	,getStrafeSpeed: function() {
+		return this.strafeSpeed;
 	}
 	,moveLeft: function() {
 		this.object.transform.translate(-this.strafeSpeed,0,0);
@@ -781,10 +787,18 @@ arm_Player.prototype = $extend(iron_Trait.prototype,{
 	,__class__: arm_Player
 });
 var arm_Powerup = function() {
+	this.active = false;
+	this.durationCountDown = 0.0;
+	this.powerupDuration = 0.0;
+	var _gthis = this;
 	iron_Trait.call(this);
-	this.notifyOnInit(function() {
-	});
 	this.notifyOnUpdate(function() {
+		if(_gthis.durationCountDown < _gthis.getPowerupDuration() && _gthis.getPowerupDuration() > 0 && _gthis.isActive()) {
+			_gthis.setIsActive(true);
+			_gthis.durationCountDown += 0.0166666666666666664 * iron_system_Time.scale;
+		} else {
+			_gthis.setIsActive(false);
+		}
 	});
 };
 $hxClasses["arm.Powerup"] = arm_Powerup;
@@ -792,7 +806,17 @@ arm_Powerup.__name__ = "arm.Powerup";
 arm_Powerup.__super__ = iron_Trait;
 arm_Powerup.prototype = $extend(iron_Trait.prototype,{
 	powerupName: null
+	,powerupDuration: null
+	,durationCountDown: null
+	,active: null
 	,value: null
+	,target: null
+	,isActive: function() {
+		return this.active;
+	}
+	,setIsActive: function(b) {
+		this.active = b;
+	}
 	,getName: function() {
 		return this.powerupName;
 	}
@@ -804,6 +828,15 @@ arm_Powerup.prototype = $extend(iron_Trait.prototype,{
 	}
 	,setValue: function(v) {
 		this.value = v;
+	}
+	,getTarget: function() {
+		return this.target;
+	}
+	,setTarget: function(t) {
+		this.target = t;
+	}
+	,getPowerupDuration: function() {
+		return this.powerupDuration;
 	}
 	,__class__: arm_Powerup
 });
@@ -1041,6 +1074,7 @@ arm_VehicleSpawner.prototype = $extend(iron_Trait.prototype,{
 	,__class__: arm_VehicleSpawner
 });
 var arm_scenes_EndlessRunner = function() {
+	this.activePowerups = [];
 	this.playerScore = 0.0;
 	iron_Trait.call(this);
 	this.notifyOnInit($bind(this,this.onInit));
@@ -1056,6 +1090,7 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 	,mechPrevPos: null
 	,physics: null
 	,playerScore: null
+	,activePowerups: null
 	,onInit: function() {
 		this.physics = armory_trait_physics_bullet_PhysicsWorld.active;
 		this.mech = iron_Scene.active.getChild("MechController");
@@ -1072,6 +1107,62 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 		var _this1 = start.transform.world;
 		var startLocation = new iron_math_Vec4(_this1.self._30,_this1.self._31,_this1.self._32,_this1.self._33);
 		arm_GameController.streetSystem.createStreetPath(startLocation,25);
+		iron_Scene.active.spawnObject("AgilityUp",null,function(o) {
+			var _this2 = o.transform.loc;
+			_this2.x = startLocation.x;
+			_this2.y = startLocation.y;
+			_this2.z = startLocation.z;
+			_this2.w = startLocation.w;
+			var _this3 = o.transform.loc;
+			var x = 0;
+			var y = 55;
+			var z = 1.5;
+			if(z == null) {
+				z = 0.0;
+			}
+			if(y == null) {
+				y = 0.0;
+			}
+			if(x == null) {
+				x = 0.0;
+			}
+			var v_x = x;
+			var v_y = y;
+			var v_z = z;
+			var v_w = 1.0;
+			_this3.x += v_x;
+			_this3.y += v_y;
+			_this3.z += v_z;
+			o.transform.buildMatrix();
+		});
+		iron_Scene.active.spawnObject("SpeedUp",null,function(o1) {
+			var _this4 = o1.transform.loc;
+			_this4.x = startLocation.x;
+			_this4.y = startLocation.y;
+			_this4.z = startLocation.z;
+			_this4.w = startLocation.w;
+			var _this5 = o1.transform.loc;
+			var x1 = 0;
+			var y1 = 105;
+			var z1 = 1.5;
+			if(z1 == null) {
+				z1 = 0.0;
+			}
+			if(y1 == null) {
+				y1 = 0.0;
+			}
+			if(x1 == null) {
+				x1 = 0.0;
+			}
+			var v_x1 = x1;
+			var v_y1 = y1;
+			var v_z1 = z1;
+			var v_w1 = 1.0;
+			_this5.x += v_x1;
+			_this5.y += v_y1;
+			_this5.z += v_z1;
+			o1.transform.buildMatrix();
+		});
 	}
 	,onUpdate: function() {
 		var _this = this.mech.transform.world;
@@ -1146,12 +1237,44 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 				passedStreet.remove();
 			}
 		}
+		if(this.activePowerups.length > 0) {
+			var mechControllerTrait = this.mech.getTrait(arm_MechController);
+			var _g = 0;
+			var _g1 = this.activePowerups;
+			while(_g < _g1.length) {
+				var powerupState = _g1[_g];
+				++_g;
+				if(!powerupState.applied) {
+					switch(powerupState.powerup.getName()) {
+					case "agility":
+						mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + js_Boot.__cast(powerupState.powerup.getValue() , Float));
+						break;
+					case "boost":
+						mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + js_Boot.__cast(powerupState.powerup.getValue() , Float));
+						break;
+					}
+					powerupState.powerup.setIsActive(true);
+					powerupState.applied = true;
+				} else if(!powerupState.powerup.isActive()) {
+					switch(powerupState.powerup.getName()) {
+					case "agility":
+						mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() - js_Boot.__cast(powerupState.powerup.getValue() , Float));
+						break;
+					case "boost":
+						mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() - js_Boot.__cast(powerupState.powerup.getValue() , Float));
+						break;
+					}
+					HxOverrides.remove(this.activePowerups,powerupState);
+					powerupState.powerup.object.remove();
+				}
+			}
+		}
 		var mechContacts = this.physics.getContacts(this.mech.getChild("Mech").getTrait(armory_trait_physics_bullet_RigidBody));
 		if(mechContacts != null) {
-			var _g = 0;
-			while(_g < mechContacts.length) {
-				var mechContact = mechContacts[_g];
-				++_g;
+			var _g2 = 0;
+			while(_g2 < mechContacts.length) {
+				var mechContact = mechContacts[_g2];
+				++_g2;
 				var vehicleTrait = mechContact.object.getTrait(arm_Vehicle);
 				if(vehicleTrait != null && vehicleTrait.getIsCollided() == false) {
 					vehicleTrait.setIsCollided(true);
@@ -1173,6 +1296,13 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 						launchTrait.setRotationDirection(new iron_math_Vec4(0,launchDirectionY,1));
 						launchTrait.setRotationSpeed(0.1);
 						launchTrait.setLaunched(true);
+					}
+				}
+				var powerUp = mechContact.object.getTrait(arm_Powerup);
+				if(powerUp != null) {
+					if(powerUp.object.visible == true) {
+						this.activePowerups.push({ applied : false, powerup : powerUp});
+						powerUp.object.visible = false;
 					}
 				}
 			}
@@ -45044,7 +45174,7 @@ arm_GameController.vehicleSystem = new arm_system_VehicleSystem();
 arm_GameController.listeners = [];
 arm_Launchable.__meta__ = { fields : { launchSpeed : { prop : null}, rotationSpeed : { prop : null}}};
 arm_MechController.__meta__ = { fields : { strafeSpeed : { prop : null}, runSpeed : { prop : null}}};
-arm_Powerup.__meta__ = { fields : { powerupName : { prop : null}, value : { prop : null}}};
+arm_Powerup.__meta__ = { fields : { powerupName : { prop : null}, powerupDuration : { prop : null}, value : { prop : null}, target : { prop : null}}};
 arm_Score.__meta__ = { fields : { score : { prop : null}}};
 arm_Street.STREET_SIZE = 6;
 arm_VehicleSpawner.__meta__ = { fields : { spawnFrequency : { prop : null}, spawnDirectionX : { prop : null}, spawnDirectionY : { prop : null}, spawnDirectionZ : { prop : null}, isRandomFrequency : { prop : null}, active : { prop : null}}};

@@ -7,6 +7,12 @@ import armory.trait.internal.CanvasScript;
 import armory.trait.physics.PhysicsWorld;
 import armory.trait.physics.RigidBody;
 import kha.System;
+import kha.FastFloat;
+
+typedef PowerupState = {
+    var applied: Bool;
+    var powerup: Powerup;
+} 
 
 class EndlessRunner extends iron.Trait {
     private var gameOverCanvas: CanvasScript;
@@ -17,6 +23,8 @@ class EndlessRunner extends iron.Trait {
     private var physics: PhysicsWorld;
 
     private var playerScore: Float = 0.0;
+
+    private var activePowerups: Array<PowerupState> = new Array<PowerupState>();
 
     public function new () {
         super();
@@ -47,6 +55,18 @@ class EndlessRunner extends iron.Trait {
         var start = Scene.active.getChild("START");
         var startLocation = start.transform.world.getLoc();
         GameController.streetSystem.createStreetPath(startLocation, 25);
+
+        Scene.active.spawnObject("AgilityUp", null, function (o: Object) {
+            o.transform.loc.setFrom(startLocation);
+            o.transform.loc.add(new Vec4(0, 55, 1.5));
+            o.transform.buildMatrix();
+        });
+
+        Scene.active.spawnObject("SpeedUp", null, function (o: Object) {
+            o.transform.loc.setFrom(startLocation);
+            o.transform.loc.add(new Vec4(0, 105, 1.5));
+            o.transform.buildMatrix();
+        });
     }
 
     private function onUpdate()
@@ -61,8 +81,37 @@ class EndlessRunner extends iron.Trait {
             }
         }
         
-        var mechContacts = physics.getContacts(mech.getChild("Mech").getTrait(RigidBody));
+        if (activePowerups.length > 0) {
+            var mechControllerTrait = mech.getTrait(MechController);
 
+            for (powerupState in activePowerups) {
+                if (!powerupState.applied) {
+                    switch (powerupState.powerup.getName()) {
+                        case "boost":
+                            mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
+                        case "agility":
+                            mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
+                    }
+
+                    powerupState.powerup.setIsActive(true);
+                    powerupState.applied = true;
+                } else {
+                    if (!powerupState.powerup.isActive()) {
+                        switch (powerupState.powerup.getName()) {
+                            case "boost":
+                                mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() - cast(powerupState.powerup.getValue(), FastFloat));
+                            case "agility":
+                                mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() - cast(powerupState.powerup.getValue(), FastFloat));
+                        }
+                        
+                        activePowerups.remove(powerupState);
+                        powerupState.powerup.object.remove();
+                    }
+                }
+            }
+        }
+        
+        var mechContacts = physics.getContacts(mech.getChild("Mech").getTrait(RigidBody));
         if (mechContacts != null) {
             for (mechContact in mechContacts) {
                 // mech collision detection
@@ -96,6 +145,18 @@ class EndlessRunner extends iron.Trait {
                         launchTrait.setRotationDirection(new Vec4(0, launchDirectionY, 1));
                         launchTrait.setRotationSpeed(0.1);
                         launchTrait.setLaunched(true);
+                    }
+                }
+
+                var powerUp = mechContact.object.getTrait(Powerup);
+                if (powerUp != null) {
+                    if (powerUp.object.visible == true) {
+                        activePowerups.push({
+                            applied: false,
+                            powerup: powerUp
+                        });
+                        
+                        powerUp.object.visible = false;
                     }
                 }
             }

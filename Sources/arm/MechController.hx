@@ -57,9 +57,19 @@ class MechController extends iron.Trait {
         runSpeed = speed;
     }
 
+    public function getRunSpeed(): FastFloat
+    {
+        return runSpeed;
+    }
+
     public function setStrafeSpeed(speed: FastFloat)
     {
         strafeSpeed = speed;
+    }
+
+    public function getStrafeSpeed(): FastFloat
+    {
+        return strafeSpeed;        
     }
 
     private function moveLeft()
