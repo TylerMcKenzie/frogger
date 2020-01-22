@@ -108,7 +108,7 @@ class EndlessRunner extends iron.Trait {
                 // vehicle collision detection
                 var vehicleTrait = mechContact.object.getTrait(Vehicle);
                 if (vehicleTrait != null  && vehicleTrait.getIsCollided() == false) {
-                    handleVehicleCollision(vehicleTrait, mechContact);
+                    handleVehicleCollision(vehicleTrait);
                 }
             }
         }
@@ -145,12 +145,12 @@ class EndlessRunner extends iron.Trait {
         }
     }
 
-    private function handleVehicleCollision(vehicleTrait, contactRb)
+    private function handleVehicleCollision(vehicleTrait: Vehicle)
     {
         vehicleTrait.setIsCollided(true);
 
         // Get score trait and points
-        var scoreTrait = contactRb.object.getTrait(Score);
+        var scoreTrait = vehicleTrait.object.getTrait(Score);
         if (scoreTrait != null) {
             playerScore += scoreTrait.getScore();
 
@@ -159,11 +159,11 @@ class EndlessRunner extends iron.Trait {
         }
 
         //fling the car
-        var launchTrait = contactRb.object.getTrait(Launchable);
+        var launchTrait = vehicleTrait.object.getTrait(Launchable);
         if (launchTrait != null) {
             var launchDirectionY = 1;
             
-            if (mech.transform.worldx() > contactRb.object.transform.worldx()) {
+            if (mech.transform.worldx() > vehicleTrait.object.transform.worldx()) {
                 launchDirectionY = -1;
             }
 

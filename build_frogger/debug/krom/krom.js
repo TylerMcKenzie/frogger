@@ -289,6 +289,20 @@ _$UInt_UInt_$Impl_$.toFloat = function(this1) {
 		return int + 0.0;
 	}
 };
+var arm_system_PowerupSystem = function() {
+};
+$hxClasses["arm.system.PowerupSystem"] = arm_system_PowerupSystem;
+arm_system_PowerupSystem.__name__ = "arm.system.PowerupSystem";
+arm_system_PowerupSystem.prototype = {
+	getPowerupObject: function(powerupName) {
+		var returnObject;
+		iron_Scene.active.spawnObject(powerupName,null,function(powerup) {
+			returnObject = powerup;
+		});
+		return returnObject;
+	}
+	,__class__: arm_system_PowerupSystem
+};
 var arm_system_StreetSystem = function() {
 	this.streets = [];
 };
@@ -1238,66 +1252,14 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 			}
 		}
 		if(this.activePowerups.length > 0) {
-			var mechControllerTrait = this.mech.getTrait(arm_MechController);
-			var _g = 0;
-			var _g1 = this.activePowerups;
-			while(_g < _g1.length) {
-				var powerupState = _g1[_g];
-				++_g;
-				if(!powerupState.applied) {
-					switch(powerupState.powerup.getName()) {
-					case "agility":
-						mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + js_Boot.__cast(powerupState.powerup.getValue() , Float));
-						break;
-					case "boost":
-						mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + js_Boot.__cast(powerupState.powerup.getValue() , Float));
-						break;
-					}
-					powerupState.powerup.setIsActive(true);
-					powerupState.applied = true;
-				} else if(!powerupState.powerup.isActive()) {
-					switch(powerupState.powerup.getName()) {
-					case "agility":
-						mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() - js_Boot.__cast(powerupState.powerup.getValue() , Float));
-						break;
-					case "boost":
-						mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() - js_Boot.__cast(powerupState.powerup.getValue() , Float));
-						break;
-					}
-					HxOverrides.remove(this.activePowerups,powerupState);
-					powerupState.powerup.object.remove();
-				}
-			}
+			this.applyActivePowerups();
 		}
 		var mechContacts = this.physics.getContacts(this.mech.getChild("Mech").getTrait(armory_trait_physics_bullet_RigidBody));
 		if(mechContacts != null) {
-			var _g2 = 0;
-			while(_g2 < mechContacts.length) {
-				var mechContact = mechContacts[_g2];
-				++_g2;
-				var vehicleTrait = mechContact.object.getTrait(arm_Vehicle);
-				if(vehicleTrait != null && vehicleTrait.getIsCollided() == false) {
-					vehicleTrait.setIsCollided(true);
-					var scoreTrait = mechContact.object.getTrait(arm_Score);
-					if(scoreTrait != null) {
-						this.playerScore += scoreTrait.getScore();
-						var scoreTextElement = this.gameOverCanvas.getElement("Score");
-						scoreTextElement.text = Std.string(this.playerScore);
-					}
-					var launchTrait = mechContact.object.getTrait(arm_Launchable);
-					if(launchTrait != null) {
-						var launchDirectionY = 1;
-						if(this.mech.transform.world.self._30 > mechContact.object.transform.world.self._30) {
-							launchDirectionY = -1;
-						}
-						vehicleTrait.setMoving(false);
-						launchTrait.setLaunchDirection(new iron_math_Vec4(launchDirectionY,1,1));
-						launchTrait.setLaunchSpeed(vehicleTrait.getSpeed());
-						launchTrait.setRotationDirection(new iron_math_Vec4(0,launchDirectionY,1));
-						launchTrait.setRotationSpeed(0.1);
-						launchTrait.setLaunched(true);
-					}
-				}
+			var _g = 0;
+			while(_g < mechContacts.length) {
+				var mechContact = mechContacts[_g];
+				++_g;
 				var powerUp = mechContact.object.getTrait(arm_Powerup);
 				if(powerUp != null) {
 					if(powerUp.object.visible == true) {
@@ -1305,7 +1267,65 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 						powerUp.object.visible = false;
 					}
 				}
+				var vehicleTrait = mechContact.object.getTrait(arm_Vehicle);
+				if(vehicleTrait != null && vehicleTrait.getIsCollided() == false) {
+					this.handleVehicleCollision(vehicleTrait);
+				}
 			}
+		}
+	}
+	,applyActivePowerups: function() {
+		var mechControllerTrait = this.mech.getTrait(arm_MechController);
+		var _g = 0;
+		var _g1 = this.activePowerups;
+		while(_g < _g1.length) {
+			var powerupState = _g1[_g];
+			++_g;
+			if(!powerupState.applied) {
+				switch(powerupState.powerup.getName()) {
+				case "agility":
+					mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + js_Boot.__cast(powerupState.powerup.getValue() , Float));
+					break;
+				case "boost":
+					mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + js_Boot.__cast(powerupState.powerup.getValue() , Float));
+					break;
+				}
+				powerupState.powerup.setIsActive(true);
+				powerupState.applied = true;
+			} else if(!powerupState.powerup.isActive()) {
+				switch(powerupState.powerup.getName()) {
+				case "agility":
+					mechControllerTrait.resetStrafeSpeed();
+					break;
+				case "boost":
+					mechControllerTrait.resetRunSpeed();
+					break;
+				}
+				HxOverrides.remove(this.activePowerups,powerupState);
+				powerupState.powerup.object.remove();
+			}
+		}
+	}
+	,handleVehicleCollision: function(vehicleTrait) {
+		vehicleTrait.setIsCollided(true);
+		var scoreTrait = vehicleTrait.object.getTrait(arm_Score);
+		if(scoreTrait != null) {
+			this.playerScore += scoreTrait.getScore();
+			var scoreTextElement = this.gameOverCanvas.getElement("Score");
+			scoreTextElement.text = Std.string(this.playerScore);
+		}
+		var launchTrait = vehicleTrait.object.getTrait(arm_Launchable);
+		if(launchTrait != null) {
+			var launchDirectionY = 1;
+			if(this.mech.transform.world.self._30 > vehicleTrait.object.transform.world.self._30) {
+				launchDirectionY = -1;
+			}
+			vehicleTrait.setMoving(false);
+			launchTrait.setLaunchDirection(new iron_math_Vec4(launchDirectionY,1,1));
+			launchTrait.setLaunchSpeed(vehicleTrait.getSpeed());
+			launchTrait.setRotationDirection(new iron_math_Vec4(0,launchDirectionY,1));
+			launchTrait.setRotationSpeed(0.1);
+			launchTrait.setLaunched(true);
 		}
 	}
 	,onRemove: function() {
@@ -45171,6 +45191,7 @@ Main.projectPackage = "arm";
 arm_system_VehicleSystem.VEHICLES = ["Truck_L_brown","Truck_L_green","Truck_L_red","Truck_M_brown","Truck_M_green","Truck_M_red","Truck_S_green","Truck_S_brown","Truck_S_red"];
 arm_GameController.streetSystem = new arm_system_StreetSystem();
 arm_GameController.vehicleSystem = new arm_system_VehicleSystem();
+arm_GameController.powerupSystem = new arm_system_PowerupSystem();
 arm_GameController.listeners = [];
 arm_Launchable.__meta__ = { fields : { launchSpeed : { prop : null}, rotationSpeed : { prop : null}}};
 arm_MechController.__meta__ = { fields : { strafeSpeed : { prop : null}, runSpeed : { prop : null}}};
