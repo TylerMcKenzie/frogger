@@ -72,14 +72,26 @@ class EndlessRunner extends iron.Trait {
     private function onUpdate()
     {
         // Street management
-        if (mech.transform.world.getLoc().y - 6 > mechPrevPos.y) {
+        if (mech.transform.worldy() - 6 > mechPrevPos.y) {
             GameController.streetSystem.addStreet();
             mechPrevPos = mech.transform.world.getLoc();
 
             var passedStreet = GameController.streetSystem.getStreets()[0];
-            if (mech.transform.world.getLoc().y > passedStreet.transform.world.getLoc().y + 12) {
+            if (mech.transform.worldy() > passedStreet.transform.worldy() + 12) {
                 passedStreet.remove();
             }
+        }
+
+        GameController.powerupSystem.update();
+        if (GameController.powerupSystem.canSpawn()) {
+            var pUp = GameController.powerupSystem.getRandomPowerupObject();
+            var targetStreet = GameController.streetSystem.getFinish();
+            pUp.transform.loc.x = targetStreet.transform.worldx();
+            pUp.transform.loc.y = targetStreet.transform.worldy();
+            pUp.transform.loc.z = targetStreet.transform.worldz() + 2;
+            pUp.transform.buildMatrix();
+
+            GameController.powerupSystem.setNextSpawn(Math.random() * (5.0 - 1.0) + 1.0);
         }
         
         // Apply powerups if we got any

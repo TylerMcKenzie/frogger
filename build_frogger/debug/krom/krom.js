@@ -290,16 +290,48 @@ _$UInt_UInt_$Impl_$.toFloat = function(this1) {
 	}
 };
 var arm_system_PowerupSystem = function() {
+	this.canSpawnPowerup = false;
+	this.nextPowerupSpawn = 0.0;
+	this.lastPowerupSpawn = 0.0;
 };
 $hxClasses["arm.system.PowerupSystem"] = arm_system_PowerupSystem;
 arm_system_PowerupSystem.__name__ = "arm.system.PowerupSystem";
 arm_system_PowerupSystem.prototype = {
-	getPowerupObject: function(powerupName) {
+	lastPowerupSpawn: null
+	,nextPowerupSpawn: null
+	,canSpawnPowerup: null
+	,update: function() {
+		if(this.lastPowerupSpawn > this.nextPowerupSpawn) {
+			this.lastPowerupSpawn = 0.0;
+			this.nextPowerupSpawn = 0.0;
+			this.canSpawnPowerup = true;
+		} else {
+			this.canSpawnPowerup = false;
+			this.lastPowerupSpawn += 0.0166666666666666664 * iron_system_Time.scale;
+		}
+	}
+	,getPowerupObject: function(powerupName) {
 		var returnObject;
 		iron_Scene.active.spawnObject(powerupName,null,function(powerup) {
 			returnObject = powerup;
 		});
 		return returnObject;
+	}
+	,getRandomPowerupObject: function() {
+		var rand = Math.random();
+		var randPowerUp;
+		if(rand > 0.5) {
+			randPowerUp = this.getPowerupObject("AgilityUp");
+		} else {
+			randPowerUp = this.getPowerupObject("SpeedUp");
+		}
+		return randPowerUp;
+	}
+	,canSpawn: function() {
+		return this.canSpawnPowerup;
+	}
+	,setNextSpawn: function(time) {
+		this.nextPowerupSpawn = time;
 	}
 	,__class__: arm_system_PowerupSystem
 };
@@ -1179,77 +1211,24 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 		});
 	}
 	,onUpdate: function() {
-		var _this = this.mech.transform.world;
-		var x = _this.self._30;
-		var y = _this.self._31;
-		var z = _this.self._32;
-		var w = _this.self._33;
-		if(w == null) {
-			w = 1.0;
-		}
-		if(z == null) {
-			z = 0.0;
-		}
-		if(y == null) {
-			y = 0.0;
-		}
-		if(x == null) {
-			x = 0.0;
-		}
-		var inlVec4_x = x;
-		var inlVec4_y = y;
-		var inlVec4_z = z;
-		var inlVec4_w = w;
-		if(inlVec4_y - 6 > this.mechPrevPos.y) {
+		if(this.mech.transform.world.self._31 - 6 > this.mechPrevPos.y) {
 			arm_GameController.streetSystem.addStreet();
-			var _this1 = this.mech.transform.world;
-			this.mechPrevPos = new iron_math_Vec4(_this1.self._30,_this1.self._31,_this1.self._32,_this1.self._33);
+			var _this = this.mech.transform.world;
+			this.mechPrevPos = new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33);
 			var passedStreet = arm_GameController.streetSystem.getStreets()[0];
-			var _this2 = this.mech.transform.world;
-			var x1 = _this2.self._30;
-			var y1 = _this2.self._31;
-			var z1 = _this2.self._32;
-			var w1 = _this2.self._33;
-			if(w1 == null) {
-				w1 = 1.0;
-			}
-			if(z1 == null) {
-				z1 = 0.0;
-			}
-			if(y1 == null) {
-				y1 = 0.0;
-			}
-			if(x1 == null) {
-				x1 = 0.0;
-			}
-			var inlVec4_x1 = x1;
-			var inlVec4_y1 = y1;
-			var inlVec4_z1 = z1;
-			var inlVec4_w1 = w1;
-			var _this3 = passedStreet.transform.world;
-			var x2 = _this3.self._30;
-			var y2 = _this3.self._31;
-			var z2 = _this3.self._32;
-			var w2 = _this3.self._33;
-			if(w2 == null) {
-				w2 = 1.0;
-			}
-			if(z2 == null) {
-				z2 = 0.0;
-			}
-			if(y2 == null) {
-				y2 = 0.0;
-			}
-			if(x2 == null) {
-				x2 = 0.0;
-			}
-			var inlVec4_x2 = x2;
-			var inlVec4_y2 = y2;
-			var inlVec4_z2 = z2;
-			var inlVec4_w2 = w2;
-			if(inlVec4_y1 > inlVec4_y2 + 12) {
+			if(this.mech.transform.world.self._31 > passedStreet.transform.world.self._31 + 12) {
 				passedStreet.remove();
 			}
+		}
+		arm_GameController.powerupSystem.update();
+		if(arm_GameController.powerupSystem.canSpawn()) {
+			var pUp = arm_GameController.powerupSystem.getRandomPowerupObject();
+			var targetStreet = arm_GameController.streetSystem.getFinish();
+			pUp.transform.loc.x = targetStreet.transform.world.self._30;
+			pUp.transform.loc.y = targetStreet.transform.world.self._31;
+			pUp.transform.loc.z = targetStreet.transform.world.self._32 + 2;
+			pUp.transform.buildMatrix();
+			arm_GameController.powerupSystem.setNextSpawn(Math.random() * 4. + 1.0);
 		}
 		if(this.activePowerups.length > 0) {
 			this.applyActivePowerups();
