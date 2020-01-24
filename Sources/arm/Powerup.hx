@@ -32,6 +32,10 @@ class Powerup extends Trait
                 setIsActive(false);
             }
         });
+
+        notifyOnRemove(function() {
+            GameController.powerupSystem.unregister(object);
+        });
     }
 
     public function isActive(): Bool

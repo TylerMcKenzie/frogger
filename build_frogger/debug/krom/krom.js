@@ -290,6 +290,7 @@ _$UInt_UInt_$Impl_$.toFloat = function(this1) {
 	}
 };
 var arm_system_PowerupSystem = function() {
+	this.powerups = [];
 	this.canSpawnPowerup = false;
 	this.nextPowerupSpawn = 0.0;
 	this.lastPowerupSpawn = 0.0;
@@ -300,6 +301,7 @@ arm_system_PowerupSystem.prototype = {
 	lastPowerupSpawn: null
 	,nextPowerupSpawn: null
 	,canSpawnPowerup: null
+	,powerups: null
 	,update: function() {
 		if(this.lastPowerupSpawn > this.nextPowerupSpawn) {
 			this.lastPowerupSpawn = 0.0;
@@ -311,19 +313,23 @@ arm_system_PowerupSystem.prototype = {
 		}
 	}
 	,getPowerupObject: function(powerupName) {
+		var _gthis = this;
 		var returnObject;
 		iron_Scene.active.spawnObject(powerupName,null,function(powerup) {
 			returnObject = powerup;
+			_gthis.register(returnObject);
 		});
 		return returnObject;
 	}
 	,getRandomPowerupObject: function() {
 		var rand = Math.random();
 		var randPowerUp;
-		if(rand > 0.5) {
+		if(rand > 0.66) {
 			randPowerUp = this.getPowerupObject("AgilityUp");
-		} else {
+		} else if(rand < 0.66 && rand > 0.33) {
 			randPowerUp = this.getPowerupObject("SpeedUp");
+		} else {
+			randPowerUp = this.getPowerupObject("DoubleScore");
 		}
 		return randPowerUp;
 	}
@@ -332,6 +338,15 @@ arm_system_PowerupSystem.prototype = {
 	}
 	,setNextSpawn: function(time) {
 		this.nextPowerupSpawn = time;
+	}
+	,getPowerups: function() {
+		return this.powerups;
+	}
+	,register: function(powerup) {
+		this.powerups.push(powerup);
+	}
+	,unregister: function(powerup) {
+		HxOverrides.remove(this.powerups,powerup);
 	}
 	,__class__: arm_system_PowerupSystem
 };
@@ -846,6 +861,9 @@ var arm_Powerup = function() {
 			_gthis.setIsActive(false);
 		}
 	});
+	this.notifyOnRemove(function() {
+		arm_GameController.powerupSystem.unregister(_gthis.object);
+	});
 };
 $hxClasses["arm.Powerup"] = arm_Powerup;
 arm_Powerup.__name__ = "arm.Powerup";
@@ -1120,7 +1138,10 @@ arm_VehicleSpawner.prototype = $extend(iron_Trait.prototype,{
 	,__class__: arm_VehicleSpawner
 });
 var arm_scenes_EndlessRunner = function() {
+	this.scoreMultiplier = 1.0;
 	this.activePowerups = [];
+	this.minSpawnTimeDelay = 1.0;
+	this.maxSpawnTimeDelay = 3.0;
 	this.playerScore = 0.0;
 	iron_Trait.call(this);
 	this.notifyOnInit($bind(this,this.onInit));
@@ -1136,7 +1157,10 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 	,mechPrevPos: null
 	,physics: null
 	,playerScore: null
+	,maxSpawnTimeDelay: null
+	,minSpawnTimeDelay: null
 	,activePowerups: null
+	,scoreMultiplier: null
 	,onInit: function() {
 		this.physics = armory_trait_physics_bullet_PhysicsWorld.active;
 		this.mech = iron_Scene.active.getChild("MechController");
@@ -1153,92 +1177,44 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 		var _this1 = start.transform.world;
 		var startLocation = new iron_math_Vec4(_this1.self._30,_this1.self._31,_this1.self._32,_this1.self._33);
 		arm_GameController.streetSystem.createStreetPath(startLocation,25);
-		iron_Scene.active.spawnObject("AgilityUp",null,function(o) {
-			var _this2 = o.transform.loc;
-			_this2.x = startLocation.x;
-			_this2.y = startLocation.y;
-			_this2.z = startLocation.z;
-			_this2.w = startLocation.w;
-			var _this3 = o.transform.loc;
-			var x = 0;
-			var y = 55;
-			var z = 1.5;
-			if(z == null) {
-				z = 0.0;
-			}
-			if(y == null) {
-				y = 0.0;
-			}
-			if(x == null) {
-				x = 0.0;
-			}
-			var v_x = x;
-			var v_y = y;
-			var v_z = z;
-			var v_w = 1.0;
-			_this3.x += v_x;
-			_this3.y += v_y;
-			_this3.z += v_z;
-			o.transform.buildMatrix();
-		});
-		iron_Scene.active.spawnObject("SpeedUp",null,function(o1) {
-			var _this4 = o1.transform.loc;
-			_this4.x = startLocation.x;
-			_this4.y = startLocation.y;
-			_this4.z = startLocation.z;
-			_this4.w = startLocation.w;
-			var _this5 = o1.transform.loc;
-			var x1 = 0;
-			var y1 = 105;
-			var z1 = 1.5;
-			if(z1 == null) {
-				z1 = 0.0;
-			}
-			if(y1 == null) {
-				y1 = 0.0;
-			}
-			if(x1 == null) {
-				x1 = 0.0;
-			}
-			var v_x1 = x1;
-			var v_y1 = y1;
-			var v_z1 = z1;
-			var v_w1 = 1.0;
-			_this5.x += v_x1;
-			_this5.y += v_y1;
-			_this5.z += v_z1;
-			o1.transform.buildMatrix();
-		});
 	}
 	,onUpdate: function() {
-		if(this.mech.transform.world.self._31 - 6 > this.mechPrevPos.y) {
-			arm_GameController.streetSystem.addStreet();
-			var _this = this.mech.transform.world;
-			this.mechPrevPos = new iron_math_Vec4(_this.self._30,_this.self._31,_this.self._32,_this.self._33);
-			var passedStreet = arm_GameController.streetSystem.getStreets()[0];
-			if(this.mech.transform.world.self._31 > passedStreet.transform.world.self._31 + 12) {
-				passedStreet.remove();
+		while(arm_GameController.streetSystem.getFinish().transform.world.self._31 < Math.round(this.mech.transform.world.self._31 + 294)) arm_GameController.streetSystem.addStreet();
+		var passedStreet = arm_GameController.streetSystem.getStreets()[0];
+		if(this.mech.transform.world.self._31 > passedStreet.transform.world.self._31 + 30) {
+			passedStreet.remove();
+			var _g = 0;
+			var _g1 = arm_GameController.powerupSystem.getPowerups();
+			while(_g < _g1.length) {
+				var passedPowerup = _g1[_g];
+				++_g;
+				if(passedPowerup.transform.world.self._31 + 30 < this.mech.transform.world.self._31 && !passedPowerup.getTrait(arm_Powerup).isActive()) {
+					passedPowerup.remove();
+					haxe_Log.trace("removed powerup",{ fileName : "arm/scenes/EndlessRunner.hx", lineNumber : 77, className : "arm.scenes.EndlessRunner", methodName : "onUpdate"});
+				}
 			}
 		}
 		arm_GameController.powerupSystem.update();
 		if(arm_GameController.powerupSystem.canSpawn()) {
 			var pUp = arm_GameController.powerupSystem.getRandomPowerupObject();
 			var targetStreet = arm_GameController.streetSystem.getFinish();
-			pUp.transform.loc.x = targetStreet.transform.world.self._30;
+			var targetStreet1 = targetStreet.transform.world.self._30;
+			var tmp = targetStreet.transform.dim.x * (Math.random() * 2 - 1) / 2;
+			pUp.transform.loc.x = targetStreet1 + tmp;
 			pUp.transform.loc.y = targetStreet.transform.world.self._31;
 			pUp.transform.loc.z = targetStreet.transform.world.self._32 + 2;
 			pUp.transform.buildMatrix();
-			arm_GameController.powerupSystem.setNextSpawn(Math.random() * 4. + 1.0);
+			arm_GameController.powerupSystem.setNextSpawn(Math.random() * (this.maxSpawnTimeDelay - this.minSpawnTimeDelay) + this.minSpawnTimeDelay);
 		}
 		if(this.activePowerups.length > 0) {
 			this.applyActivePowerups();
 		}
 		var mechContacts = this.physics.getContacts(this.mech.getChild("Mech").getTrait(armory_trait_physics_bullet_RigidBody));
 		if(mechContacts != null) {
-			var _g = 0;
-			while(_g < mechContacts.length) {
-				var mechContact = mechContacts[_g];
-				++_g;
+			var _g2 = 0;
+			while(_g2 < mechContacts.length) {
+				var mechContact = mechContacts[_g2];
+				++_g2;
 				var powerUp = mechContact.object.getTrait(arm_Powerup);
 				if(powerUp != null) {
 					if(powerUp.object.visible == true) {
@@ -1268,6 +1244,9 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 				case "boost":
 					mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + js_Boot.__cast(powerupState.powerup.getValue() , Float));
 					break;
+				case "double_score":
+					this.scoreMultiplier = 2.0;
+					break;
 				}
 				powerupState.powerup.setIsActive(true);
 				powerupState.applied = true;
@@ -1279,6 +1258,9 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 				case "boost":
 					mechControllerTrait.resetRunSpeed();
 					break;
+				case "double_score":
+					this.scoreMultiplier = 1.0;
+					break;
 				}
 				HxOverrides.remove(this.activePowerups,powerupState);
 				powerupState.powerup.object.remove();
@@ -1289,7 +1271,7 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 		vehicleTrait.setIsCollided(true);
 		var scoreTrait = vehicleTrait.object.getTrait(arm_Score);
 		if(scoreTrait != null) {
-			this.playerScore += scoreTrait.getScore();
+			this.playerScore += scoreTrait.getScore() * this.scoreMultiplier;
 			var scoreTextElement = this.gameOverCanvas.getElement("Score");
 			scoreTextElement.text = Std.string(this.playerScore);
 		}

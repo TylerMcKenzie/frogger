@@ -24,9 +24,11 @@ class EndlessRunner extends iron.Trait {
 
     private var playerScore: Float = 0.0;
 
-    private var maxSpawnTimeDelay: Float = 30.0;
-    private var minSpawnTimeDelay: Float = 15.0;
+    private var maxSpawnTimeDelay: Float = 3.0;
+    private var minSpawnTimeDelay: Float = 1.0;
     private var activePowerups: Array<PowerupState> = new Array<PowerupState>();
+
+    private var scoreMultiplier: Float = 1.0;
 
     public function new () {
         super();
@@ -57,30 +59,22 @@ class EndlessRunner extends iron.Trait {
         var start = Scene.active.getChild("START");
         var startLocation = start.transform.world.getLoc();
         GameController.streetSystem.createStreetPath(startLocation, 25);
-
-        Scene.active.spawnObject("AgilityUp", null, function (o: Object) {
-            o.transform.loc.setFrom(startLocation);
-            o.transform.loc.add(new Vec4(0, 55, 1.5));
-            o.transform.buildMatrix();
-        });
-
-        Scene.active.spawnObject("SpeedUp", null, function (o: Object) {
-            o.transform.loc.setFrom(startLocation);
-            o.transform.loc.add(new Vec4(0, 105, 1.5));
-            o.transform.buildMatrix();
-        });
     }
 
     private function onUpdate()
     {
         // Street management
-        if (mech.transform.worldy() - 6 > mechPrevPos.y) {
+        while (GameController.streetSystem.getFinish().transform.worldy() < Math.round(mech.transform.worldy() + 294)) {
             GameController.streetSystem.addStreet();
-            mechPrevPos = mech.transform.world.getLoc();
+        }
+        
+        var passedStreet = GameController.streetSystem.getStreets()[0];
+        if (mech.transform.worldy() > passedStreet.transform.worldy() + 30) {
+            passedStreet.remove();
 
-            var passedStreet = GameController.streetSystem.getStreets()[0];
-            if (mech.transform.worldy() > passedStreet.transform.worldy() + 12) {
-                passedStreet.remove();
+            for (passedPowerup in GameController.powerupSystem.getPowerups()) if (passedPowerup.transform.worldy() + 30 < mech.transform.worldy() && !passedPowerup.getTrait(Powerup).isActive()) {
+                passedPowerup.remove();
+                trace("removed powerup");
             }
         }
 
@@ -139,6 +133,8 @@ class EndlessRunner extends iron.Trait {
                         mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
                     case "agility":
                         mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
+                    case "double_score":
+                        scoreMultiplier = 2.0;
                 }
 
                 powerupState.powerup.setIsActive(true);
@@ -150,6 +146,8 @@ class EndlessRunner extends iron.Trait {
                             mechControllerTrait.resetRunSpeed();
                         case "agility":
                             mechControllerTrait.resetStrafeSpeed();
+                        case "double_score":
+                            scoreMultiplier = 1.0;
                     }
                     
                     activePowerups.remove(powerupState);
@@ -166,7 +164,7 @@ class EndlessRunner extends iron.Trait {
         // Get score trait and points
         var scoreTrait = vehicleTrait.object.getTrait(Score);
         if (scoreTrait != null) {
-            playerScore += scoreTrait.getScore();
+            playerScore += scoreTrait.getScore() * scoreMultiplier;
 
             var scoreTextElement = gameOverCanvas.getElement("Score");
             scoreTextElement.text = Std.string(playerScore);

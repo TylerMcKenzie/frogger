@@ -12,6 +12,8 @@ class PowerupSystem
 
     private var canSpawnPowerup: Bool = false;
 
+    private var powerups: Array<Object> = new Array<Object>();
+
     public function new() {}
 
     public function update()
@@ -32,6 +34,7 @@ class PowerupSystem
 
         Scene.active.spawnObject(powerupName, null, function(powerup: Object) {
             returnObject = powerup;
+            register(returnObject);
         });
 
         return returnObject;
@@ -42,10 +45,12 @@ class PowerupSystem
         var rand = Math.random();
         var randPowerUp;
 
-        if (rand > 0.5) {
+        if (rand > 0.66) {
             randPowerUp = getPowerupObject("AgilityUp");
-        } else {
+        } else if (rand < 0.66 && rand > 0.33) { 
             randPowerUp = getPowerupObject("SpeedUp");
+        } else {
+            randPowerUp = getPowerupObject("DoubleScore");
         }
 
         return randPowerUp;
@@ -60,5 +65,19 @@ class PowerupSystem
     {
         nextPowerupSpawn = time;
     }
- 
+
+    public function getPowerups(): Array<Object>
+    {
+        return powerups;
+    }
+    
+	public function register(powerup: Object)
+    {
+        this.powerups.push(powerup);
+    }
+
+    public function unregister(powerup: Object)
+    {
+        this.powerups.remove(powerup);
+    }
 }
