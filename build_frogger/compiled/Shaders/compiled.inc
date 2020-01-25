@@ -8,6 +8,7 @@
 #define _Sun
 #define _SMAA
 #define _SSAO
+#define _Emission
 #define _CToneFilmic
 const float PI = 3.1415926535;
 const float PI2 = PI * 2.0;

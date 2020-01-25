@@ -24,8 +24,8 @@ class EndlessRunner extends iron.Trait {
 
     private var playerScore: Float = 0.0;
 
-    private var maxSpawnTimeDelay: Float = 3.0;
-    private var minSpawnTimeDelay: Float = 1.0;
+    private var maxSpawnTimeDelay: Float = 10.0;
+    private var minSpawnTimeDelay: Float = 5.0;
     private var activePowerups: Array<PowerupState> = new Array<PowerupState>();
 
     private var scoreMultiplier: Float = 1.0;
@@ -84,7 +84,7 @@ class EndlessRunner extends iron.Trait {
             var targetStreet = GameController.streetSystem.getFinish();
             pUp.transform.loc.x = targetStreet.transform.worldx() + (targetStreet.transform.dim.x * (Math.random() * (1 + 1) - 1)) / 2;
             pUp.transform.loc.y = targetStreet.transform.worldy();
-            pUp.transform.loc.z = targetStreet.transform.worldz() + 2; // TODO: should this offset be based on the powerup size? or am i a sparty pants for making them a ll the same size?
+            pUp.transform.loc.z = targetStreet.transform.worldz() + 3.5; // TODO: should this offset be based on the powerup size? or am i a sparty pants for making them a ll the same size?
             pUp.transform.buildMatrix();
 
             GameController.powerupSystem.setNextSpawn(Math.random() * (maxSpawnTimeDelay - minSpawnTimeDelay) + minSpawnTimeDelay);

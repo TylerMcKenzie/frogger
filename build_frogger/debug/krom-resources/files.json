@@ -1,6 +1,90 @@
 {
 	"files": [
 		{
+			"name": "DoubleScore_mesh_frag",
+			"files": [
+				"DoubleScore_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
+			"types": []
+		},
+		{
+			"name": "GasCan_jug_mesh_frag",
+			"files": [
+				"GasCan_jug_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
+			"types": []
+		},
+		{
+			"name": "GasCan_spout_mesh_frag",
+			"files": [
+				"GasCan_spout_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
+			"types": []
+		},
+		{
+			"name": "Gears_mesh_frag",
+			"files": [
+				"Gears_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
+			"types": []
+		},
+		{
 			"name": "Material_001_mesh_frag",
 			"files": [
 				"Material_001_mesh.frag.glsl"

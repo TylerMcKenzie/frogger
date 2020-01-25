@@ -214,6 +214,12 @@ void main()
     fragColor = vec4(envl.x, envl.y, envl.z, fragColor.w);
     vec3 _849 = fragColor.xyz * textureLod(ssaotex, texCoord, 0.0).x;
     fragColor = vec4(_849.x, _849.y, _849.z, fragColor.w);
+    if (g0.w == 1.0)
+    {
+        vec3 _861 = fragColor.xyz + g1.xyz;
+        fragColor = vec4(_861.x, _861.y, _861.z, fragColor.w);
+        albedo = vec3(0.0);
+    }
     vec3 sh = normalize(v + sunDir);
     float sdotNH = dot(n, sh);
     float sdotVH = dot(v, sh);
@@ -221,8 +227,8 @@ void main()
     float svisibility = 1.0;
     vec3 sdirect = lambertDiffuseBRDF(albedo, sdotNL) + (specularBRDF(f0, roughness, sdotNL, sdotNH, dotNV, sdotVH) * occspec.y);
     svisibility = shadowTestCascade(shadowMap, eye, p + ((n * shadowsBias) * 10.0), shadowsBias);
-    vec3 _906 = fragColor.xyz + ((sdirect * svisibility) * sunCol);
-    fragColor = vec4(_906.x, _906.y, _906.z, fragColor.w);
+    vec3 _918 = fragColor.xyz + ((sdirect * svisibility) * sunCol);
+    fragColor = vec4(_918.x, _918.y, _918.z, fragColor.w);
     fragColor.w = 1.0;
 }
 
