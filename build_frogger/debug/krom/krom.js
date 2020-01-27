@@ -919,7 +919,7 @@ arm_Powerup.prototype = $extend(iron_Trait.prototype,{
 		return this.powerupDuration;
 	}
 	,getPowerupDurationRemaining: function() {
-		return this.durationCountDown;
+		return this.powerupDuration - this.durationCountDown;
 	}
 	,addPowerupDuration: function(dur) {
 		this.durationCountDown -= dur;
@@ -1196,6 +1196,18 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 		scoreElement.x = 50;
 		scoreElement.y = 50;
 		scoreElement.visible = true;
+		var powerUpParent = this.gameOverCanvas.getElement("PowerupListParent");
+		powerUpParent.x = kha_System.windowWidth() - powerUpParent.width;
+		powerUpParent.y = 0;
+		var _g = 0;
+		var _g1 = this.gameOverCanvas.getElements();
+		while(_g < _g1.length) {
+			var element = _g1[_g];
+			++_g;
+			if(powerUpParent.children.indexOf(element.id) != -1) {
+				element.visible = false;
+			}
+		}
 		arm_GameController.setState("PLAYING");
 		var start = iron_Scene.active.getChild("START");
 		var _this1 = start.transform.world;
@@ -1398,18 +1410,16 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 		}
 	}
 	,drawPowerupsUi: function() {
-		var parent = this.gameOverCanvas.getElement("PowerupListParent");
-		parent.x = kha_System.windowWidth() - parent.width;
-		var yOffset = 100;
+		var yOffset = 0;
 		var _g = 0;
 		var _g1 = this.activePowerups;
 		while(_g < _g1.length) {
 			var active = _g1[_g];
 			++_g;
 			var powerupTextElement = this.gameOverCanvas.getElement(active.powerup.object.name);
-			powerupTextElement.text = Std.string(active.powerup.getPowerupDurationRemaining()) + "s";
+			powerupTextElement.text = powerupTextElement.text.substring(0,powerupTextElement.text.indexOf("-") + 2) + Std.string(Math.round(active.powerup.getPowerupDurationRemaining())) + "s";
 			powerupTextElement.y = yOffset;
-			yOffset += 40;
+			yOffset += powerupTextElement.height;
 			powerupTextElement.visible = true;
 		}
 	}
@@ -1434,6 +1444,35 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 			launchTrait.setRotationSpeed(0.1);
 			launchTrait.setLaunched(true);
 		}
+	}
+	,worldToScreen: function(loc) {
+		var v = new iron_math_Vec4();
+		var cam = iron_Scene.active.camera;
+		if(cam != null) {
+			v.x = loc.x;
+			v.y = loc.y;
+			v.z = loc.z;
+			v.w = loc.w;
+			var m = cam.V;
+			var x = v.x;
+			var y = v.y;
+			var z = v.z;
+			var d = 1.0 / (m.self._03 * x + m.self._13 * y + m.self._23 * z + m.self._33);
+			v.x = (m.self._00 * x + m.self._10 * y + m.self._20 * z + m.self._30) * d;
+			v.y = (m.self._01 * x + m.self._11 * y + m.self._21 * z + m.self._31) * d;
+			v.z = (m.self._02 * x + m.self._12 * y + m.self._22 * z + m.self._32) * d;
+			var m1 = cam.P;
+			var x1 = v.x;
+			var y1 = v.y;
+			var z1 = v.z;
+			var d1 = 1.0 / (m1.self._03 * x1 + m1.self._13 * y1 + m1.self._23 * z1 + m1.self._33);
+			v.x = (m1.self._00 * x1 + m1.self._10 * y1 + m1.self._20 * z1 + m1.self._30) * d1;
+			v.y = (m1.self._01 * x1 + m1.self._11 * y1 + m1.self._21 * z1 + m1.self._31) * d1;
+			v.z = (m1.self._02 * x1 + m1.self._12 * y1 + m1.self._22 * z1 + m1.self._32) * d1;
+		}
+		var w = kha_System.windowWidth();
+		var h = kha_System.windowHeight();
+		return new iron_math_Vec2((v.x + 1) * 0.5 * w,(-v.y + 1) * 0.5 * h);
 	}
 	,onRemove: function() {
 		arm_GameController.streetSystem.removeStreets();

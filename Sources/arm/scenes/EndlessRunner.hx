@@ -3,6 +3,7 @@ package arm.scenes;
 import zui.Canvas.TElement;
 import iron.object.Object;
 import iron.Scene;
+import iron.math.Vec2;
 import iron.math.Vec4;
 import armory.trait.internal.CanvasScript;
 import armory.trait.physics.PhysicsWorld;
@@ -57,6 +58,17 @@ class EndlessRunner extends iron.Trait {
         scoreElement.x = 50;
         scoreElement.y = 50;
         scoreElement.visible = true;
+
+        // Hide powerup displays
+        var powerUpParent = gameOverCanvas.getElement("PowerupListParent");
+        powerUpParent.x = System.windowWidth() - powerUpParent.width;
+        powerUpParent.y = 0;
+
+        for (element in gameOverCanvas.getElements()) {
+            if (powerUpParent.children.indexOf(element.id) != -1) {
+                element.visible = false;
+            }
+        }
 
         GameController.setState("PLAYING");
         var start = Scene.active.getChild("START");
@@ -216,15 +228,13 @@ class EndlessRunner extends iron.Trait {
 
     private function drawPowerupsUi()
     {
-        var parent = gameOverCanvas.getElement("PowerupListParent");
-        parent.x = System.windowWidth() - parent.width;
-        var yOffset = 100;
+        var yOffset = 0;
+
         for (active in activePowerups) {
             var powerupTextElement = gameOverCanvas.getElement(active.powerup.object.name);
-            powerupTextElement.text = Std.string(active.powerup.getPowerupDurationRemaining()) + "s";
-            // powerupTextElement.x =  powerupTextElement.width;
+            powerupTextElement.text = powerupTextElement.text.substring(0, powerupTextElement.text.indexOf("-") + 2) + Std.string(Math.round(active.powerup.getPowerupDurationRemaining())) + "s";
             powerupTextElement.y = yOffset;
-            yOffset += 40;
+            yOffset += powerupTextElement.height;
 
             powerupTextElement.visible = true;
         }
@@ -261,6 +271,22 @@ class EndlessRunner extends iron.Trait {
             launchTrait.setRotationSpeed(0.1);
             launchTrait.setLaunched(true);
         }
+    }
+
+    // Might need this?
+    private function worldToScreen(loc: Vec4): Vec2
+    {
+        var v = new Vec4();
+		var cam = iron.Scene.active.camera;
+		if (cam != null) {
+			v.setFrom(loc);
+			v.applyproj(cam.V);
+			v.applyproj(cam.P);
+		}
+
+		var w = System.windowWidth();
+		var h = System.windowHeight();
+		return new Vec2((v.x + 1) * 0.5 * w, (-v.y + 1) * 0.5 * h);
     }
 
     private function onRemove()
