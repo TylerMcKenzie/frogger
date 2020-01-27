@@ -1,5 +1,6 @@
 package arm.scenes;
 
+import zui.Canvas.TElement;
 import iron.object.Object;
 import iron.Scene;
 import iron.math.Vec4;
@@ -30,6 +31,8 @@ class EndlessRunner extends iron.Trait {
 
     private var scoreMultiplier: Float = 1.0;
 
+    private var streetBounds: Map<String, Float> = new Map<String, Float>();
+
     public function new () {
         super();
 
@@ -59,6 +62,10 @@ class EndlessRunner extends iron.Trait {
         var start = Scene.active.getChild("START");
         var startLocation = start.transform.world.getLoc();
         GameController.streetSystem.createStreetPath(startLocation, 25);
+
+        var lastStreet = GameController.streetSystem.getFinish();
+        streetBounds["left"] = lastStreet.transform.worldx() - lastStreet.transform.dim.x/2;
+        streetBounds["right"] = lastStreet.transform.worldx() + lastStreet.transform.dim.x/2;
     }
 
     private function onUpdate()
@@ -74,8 +81,16 @@ class EndlessRunner extends iron.Trait {
 
             for (passedPowerup in GameController.powerupSystem.getPowerups()) if (passedPowerup.transform.worldy() + 30 < mech.transform.worldy() && !passedPowerup.getTrait(Powerup).isActive()) {
                 passedPowerup.remove();
-                trace("removed powerup");
             }
+        }
+
+        // Keep player in street bounds
+        var mechBody = mech.getChild("Mech");
+        var mechBodyWidthOffset = mechBody.transform.dim.x/2;
+        if (mechBody.transform.worldx() + mechBodyWidthOffset >= streetBounds["right"]) {
+            mech.transform.loc.x = streetBounds["right"] - mechBodyWidthOffset;
+        } else if (mechBody.transform.worldx() - mechBodyWidthOffset <= streetBounds["left"]) {
+            mech.transform.loc.x = streetBounds["left"] + mechBodyWidthOffset;
         }
 
         GameController.powerupSystem.update();
@@ -93,10 +108,11 @@ class EndlessRunner extends iron.Trait {
         // Apply powerups if we got any
         if (activePowerups.length > 0) {
             applyActivePowerups();
+            drawPowerupsUi();
         }
         
         // Handle mech collisions
-        var mechContacts = physics.getContacts(mech.getChild("Mech").getTrait(RigidBody));
+        var mechContacts = physics.getContacts(mechBody.getTrait(RigidBody));
         if (mechContacts != null) {
             for (mechContact in mechContacts) {
                 // Add powerup to powerup list
@@ -126,34 +142,91 @@ class EndlessRunner extends iron.Trait {
     {
         var mechControllerTrait = mech.getTrait(MechController);
 
-        for (powerupState in activePowerups) {
-            if (!powerupState.applied) {
-                switch (powerupState.powerup.getName()) {
+        var active = activePowerups.filter(function(f: PowerupState) { return f.applied; });
+        var inactive = activePowerups.filter(function(f:PowerupState) { return !f.applied; });
+
+        // if there are no active powerups but we have inactive ones, apply and activate them
+        if (active.length == 0 && inactive.length > 0) {
+            for (inactivePowerup in inactive) {
+                switch (inactivePowerup.powerup.getName()) {
                     case "boost":
-                        mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
+                        mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + cast(inactivePowerup.powerup.getValue(), FastFloat));
                     case "agility":
-                        mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(powerupState.powerup.getValue(), FastFloat));
+                        mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(inactivePowerup.powerup.getValue(), FastFloat));
                     case "double_score":
                         scoreMultiplier = 2.0;
                 }
 
-                powerupState.powerup.setIsActive(true);
-                powerupState.applied = true;
-            } else {
-                if (!powerupState.powerup.isActive()) {
-                    switch (powerupState.powerup.getName()) {
+                inactivePowerup.powerup.setIsActive(true);
+                inactivePowerup.applied = true;
+            }
+        } else {
+            // if we have both active and inactive powerups, add the inactive powerups to the active ones
+            for (inactivePowerup in inactive) {
+                var aPowerup = active.filter(function(f: PowerupState) { return f.powerup.getName() == inactivePowerup.powerup.getName();})[0];
+
+                if (aPowerup != null) {
+                    switch (inactivePowerup.powerup.getName()) {
                         case "boost":
-                            mechControllerTrait.resetRunSpeed();
+                            mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + cast(inactivePowerup.powerup.getValue(), FastFloat));
                         case "agility":
-                            mechControllerTrait.resetStrafeSpeed();
+                            mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(inactivePowerup.powerup.getValue(), FastFloat));
                         case "double_score":
-                            scoreMultiplier = 1.0;
+                            scoreMultiplier = 2.0;
                     }
                     
-                    activePowerups.remove(powerupState);
-                    powerupState.powerup.object.remove();
+                    aPowerup.powerup.addPowerupDuration(inactivePowerup.powerup.getPowerupDuration());
+    
+                    inactivePowerup.powerup.remove();
+                    activePowerups.remove(inactivePowerup);
+                } else {
+                    // if there is no powerup by this name already activate this one
+                    switch (inactivePowerup.powerup.getName()) {
+                        case "boost":
+                            mechControllerTrait.setRunSpeed(mechControllerTrait.getRunSpeed() + cast(inactivePowerup.powerup.getValue(), FastFloat));
+                        case "agility":
+                            mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(inactivePowerup.powerup.getValue(), FastFloat));
+                        case "double_score":
+                            scoreMultiplier = 2.0;
+                    }
+    
+                    inactivePowerup.powerup.setIsActive(true);
+                    inactivePowerup.applied = true;
                 }
             }
+        }
+
+        for (powerupState in activePowerups) {
+			if (!powerupState.powerup.isActive()) {
+				switch (powerupState.powerup.getName()) {
+					case "boost":
+						mechControllerTrait.resetRunSpeed();
+					case "agility":
+						mechControllerTrait.resetStrafeSpeed();
+					case "double_score":
+						scoreMultiplier = 1.0;
+				}
+
+				activePowerups.remove(powerupState);
+                powerupState.powerup.object.remove();
+                gameOverCanvas.getElement(powerupState.powerup.object.name).visible = false;
+			}
+        }
+    }
+
+    private function drawPowerupsUi()
+    {
+        var parent = gameOverCanvas.getElement("PowerupListParent");
+        parent.x = System.windowWidth() - parent.width;
+        var yOffset = 100;
+        for (active in activePowerups) {
+            var powerupTextElement = gameOverCanvas.getElement(active.powerup.object.name);
+            powerupTextElement.text = Std.string(active.powerup.getPowerupDurationRemaining()) + "s";
+            // powerupTextElement.x =  powerupTextElement.width;
+            powerupTextElement.y = yOffset;
+            yOffset += 40;
+
+            powerupTextElement.visible = true;
         }
     }
 

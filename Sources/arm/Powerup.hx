@@ -98,4 +98,14 @@ class Powerup extends Trait
     {
         return powerupDuration;
     }
+
+
+    public function getPowerupDurationRemaining(): Float
+    {
+        return durationCountDown;
+    }
+    
+    public function addPowerupDuration(dur: Float) {
+        durationCountDown -= dur;
+    }
 }
