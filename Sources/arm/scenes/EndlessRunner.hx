@@ -30,7 +30,7 @@ class EndlessRunner extends iron.Trait {
     private var minSpawnTimeDelay: Float = 5.0;
     private var activePowerups: Array<PowerupState> = new Array<PowerupState>();
 
-    private var scoreMultiplier: Float = 1.0;
+    private var scoreMultiplier: Float = 0.0;
 
     private var streetBounds: Map<String, Float> = new Map<String, Float>();
 
@@ -166,7 +166,7 @@ class EndlessRunner extends iron.Trait {
                     case "agility":
                         mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(inactivePowerup.powerup.getValue(), FastFloat));
                     case "double_score":
-                        scoreMultiplier = 2.0;
+                        scoreMultiplier += 2.0;
                 }
 
                 inactivePowerup.powerup.setIsActive(true);
@@ -184,7 +184,7 @@ class EndlessRunner extends iron.Trait {
                         case "agility":
                             mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(inactivePowerup.powerup.getValue(), FastFloat));
                         case "double_score":
-                            scoreMultiplier = 2.0;
+                            scoreMultiplier += 2.0;
                     }
                     
                     aPowerup.powerup.addPowerupDuration(inactivePowerup.powerup.getPowerupDuration());
@@ -199,7 +199,7 @@ class EndlessRunner extends iron.Trait {
                         case "agility":
                             mechControllerTrait.setStrafeSpeed(mechControllerTrait.getStrafeSpeed() + cast(inactivePowerup.powerup.getValue(), FastFloat));
                         case "double_score":
-                            scoreMultiplier = 2.0;
+                            scoreMultiplier += 2.0;
                     }
     
                     inactivePowerup.powerup.setIsActive(true);
@@ -216,7 +216,7 @@ class EndlessRunner extends iron.Trait {
 					case "agility":
 						mechControllerTrait.resetStrafeSpeed();
 					case "double_score":
-						scoreMultiplier = 1.0;
+						scoreMultiplier -= 2.0;
 				}
 
 				activePowerups.remove(powerupState);
@@ -247,7 +247,8 @@ class EndlessRunner extends iron.Trait {
         // Get score trait and points
         var scoreTrait = vehicleTrait.object.getTrait(Score);
         if (scoreTrait != null) {
-            playerScore += scoreTrait.getScore() * scoreMultiplier;
+            var multiplier = scoreMultiplier != 0 ? scoreMultiplier : 1.0;
+            playerScore += scoreTrait.getScore() * multiplier;
 
             var scoreTextElement = gameOverCanvas.getElement("Score");
             scoreTextElement.text = Std.string(playerScore);
