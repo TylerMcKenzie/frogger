@@ -1,10 +1,10 @@
 package arm.scenes;
 
-import zui.Canvas.TElement;
 import iron.object.Object;
 import iron.Scene;
 import iron.math.Vec2;
 import iron.math.Vec4;
+import iron.system.Time;
 import armory.trait.internal.CanvasScript;
 import armory.trait.physics.PhysicsWorld;
 import armory.trait.physics.RigidBody;
@@ -29,6 +29,11 @@ class EndlessRunner extends iron.Trait {
     private var maxSpawnTimeDelay: Float = 10.0;
     private var minSpawnTimeDelay: Float = 5.0;
     private var activePowerups: Array<PowerupState> = new Array<PowerupState>();
+
+    private var vehicleChainTimer: Float = 0.0;
+    private var vehicleChainCount: Int = 0;
+    private var isVehicleChaining: Bool = false;
+    private var chainMultiplier: Float = 0.0;
 
     private var scoreMultiplier: Float = 0.0;
 
@@ -144,9 +149,30 @@ class EndlessRunner extends iron.Trait {
                 // vehicle collision detection
                 var vehicleTrait = mechContact.object.getTrait(Vehicle);
                 if (vehicleTrait != null  && vehicleTrait.getIsCollided() == false) {
+                    vehicleChainCount += 1;
+                    
+                    if (isVehicleChaining) {
+                        vehicleChainTimer += 1.5;
+                    }
+                    
                     handleVehicleCollision(vehicleTrait);
                 }
             }
+        }
+
+        if (vehicleChainCount > 5 && !isVehicleChaining) {
+            vehicleChainTimer = 5.0;
+            chainMultiplier = 1.5;
+            isVehicleChaining = true;
+        }
+
+        // Todo determine max chain can be, then make multipliers around those ranges
+
+        if (vehicleChainTimer > 0.0) {
+            vehicleChainTimer -= Time.delta;
+        } else {
+            isVehicleChaining = false;
+            chainMultiplier = 0.0;
         }
     }
 
@@ -248,6 +274,7 @@ class EndlessRunner extends iron.Trait {
         var scoreTrait = vehicleTrait.object.getTrait(Score);
         if (scoreTrait != null) {
             var multiplier = scoreMultiplier != 0 ? scoreMultiplier : 1.0;
+            multiplier += chainMultiplier;
             playerScore += scoreTrait.getScore() * multiplier;
 
             var scoreTextElement = gameOverCanvas.getElement("Score");
