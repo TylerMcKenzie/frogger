@@ -4,21 +4,19 @@ import iron.math.Vec4;
 import iron.system.Time;
 import kha.FastFloat;
 
-class VehicleSpawner extends GameTrait
+class VehicleSpawner extends iron.Trait
 {
-	private var system: VehicleSystem;
+	@prop
+	private var spawnFrequency: Float = -1.0;
 
 	@prop
-	private var spawnFrequency: FastFloat = -1.0;
+	private var spawnDirectionX: Float = 0.0;
 
 	@prop
-	private var spawnDirectionX: FastFloat = 0.0;
+	private var spawnDirectionY: Float = 0.0;
 
 	@prop
-	private var spawnDirectionY: FastFloat = 0.0;
-
-	@prop
-	private var spawnDirectionZ: FastFloat = 0.0;
+	private var spawnDirectionZ: Float = 0.0;
 
 	@prop
 	private var isRandomFrequency: Bool = false;
@@ -34,7 +32,6 @@ class VehicleSpawner extends GameTrait
 	public function new()
 	{
 		super();
-		this.system = this.game.vehicleSystem;
 
 		if (this.spawnFrequency == -1) {
 			this.isRandomFrequency = true;
@@ -43,7 +40,7 @@ class VehicleSpawner extends GameTrait
 		}
 
 		notifyOnUpdate(function() {
-			if (this.active != true) {
+			if (this.active != true || GameController.getState() == "PAUSED") {
 				return;
 			}
 
@@ -72,7 +69,7 @@ class VehicleSpawner extends GameTrait
 		this.active = active;
 	}
 
-	override public function reset()
+	public function reset()
 	{
 		this.isRandomFrequency = false;
 		this.active = false;
@@ -82,14 +79,15 @@ class VehicleSpawner extends GameTrait
 
 	private function randomFreq()
 	{
-		return Math.random()*(3 - 0.5) + 0.5;
+		return Math.random()*(4 - 0.75) + 0.75;
 	}
 
 	private function spawnVehicle()
 	{
-		var vehicleObject = this.system.getRandomVehicle();
+		var vehicleObject = GameController.vehicleSystem.getRandomVehicle();
 		var vehicleTrait = vehicleObject.getTrait(Vehicle);
-		vehicleObject.transform.loc.setFrom(object.transform.world.getLoc());
+		var spawnLoc = object.transform.world.getLoc();
+		vehicleObject.transform.loc.set(spawnLoc.x, spawnLoc.y, vehicleObject.transform.loc.z);
 		vehicleObject.transform.buildMatrix();
 		vehicleTrait.setDirection(
 			new Vec4(
@@ -98,7 +96,7 @@ class VehicleSpawner extends GameTrait
 				this.spawnDirectionZ
 			)
 		);
-		vehicleTrait.setLifeTime(8);
+		vehicleTrait.setLifeTime(3.25);
 		vehicleTrait.setActive(true);
 	}
 }

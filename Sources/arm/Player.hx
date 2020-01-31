@@ -1,28 +1,20 @@
 package arm;
 
-import iron.Scene;
 import kha.FastFloat;
 import iron.system.Input;
 
-import armory.trait.physics.RigidBody;
+import arm.config.StepConfig;
 import armory.trait.physics.PhysicsWorld;
+import armory.trait.physics.RigidBody;
 
-@:enum
-abstract StepConfig(FastFloat) 
+class Player extends iron.Trait 
 {
-	var PLAYER_STEP_X = 3.0;
-	var PLAYER_STEP_Y = 6.0;
-}
+	private var kb: Keyboard = Input.getKeyboard();
+	private var stepX: FastFloat = cast PLAYER_STEP_X;
+	private var stepY: FastFloat = cast PLAYER_STEP_Y;
 
-class Player extends GameTrait 
-{
-	private var kb = Input.getKeyboard();
-	private var stepX = cast(PLAYER_STEP_X, FastFloat);
-	private var stepY = cast(PLAYER_STEP_Y, FastFloat);
-
-	private var physics:PhysicsWorld;
 	private var body: RigidBody;
-
+	private var physics: PhysicsWorld;
 	private var dead: Bool = false;
 
 	public function new()
@@ -30,43 +22,50 @@ class Player extends GameTrait
 		super();
 
 		notifyOnInit(function() {
-			this.physics = PhysicsWorld.active;
-			this.body = this.object.getTrait(RigidBody);
+			body = object.getTrait(RigidBody);
+			physics = PhysicsWorld.active;
 		});
 
 		notifyOnUpdate(function() {
-			if (this.game.state != PLAYING) return;
-			if (!this.body.ready) return;
+			if (GameController.getState() != "PLAYING") return;
+			if (!body.ready) return;
 			
-			if (this.kb.started("up") || this.kb.started("w")) jumpForward();
-			// if (this.kb.started("down") || this.kb.started("s")) jumpBackward();
-			if (this.kb.started("left") || this.kb.started("a")) jumpLeft();
-			if (this.kb.started("right") || this.kb.started("d")) jumpRight();
+			if (kb.started("up") || kb.started("w")) jumpForward();
+			if (kb.started("down") || kb.started("s")) jumpBackward();
+			if (kb.started("left") || kb.started("a")) jumpLeft();
+			if (kb.started("right") || kb.started("d")) jumpRight();
 			
-			this.body.syncTransform();
+			body.syncTransform();
 
-			var collisionObjects = physics.getContacts(this.body);
-
-			if (collisionObjects != null) {
-				trace(collisionObjects.length);
-				for (cObject in collisionObjects) {
-					if (cObject.object.getTrait(Vehicle) != null) {
-						if (Scene.active.raw.name == "Game") this.dead = true; // IN SCENE 1
-						if (Scene.active.raw.name == "Game 2") trace("FLING CAR"); // IN SCENE 2
-					}
-				}
+			if (getVehicleCollision() == true) {
+				this.dead = true;
 			}
 		});
 	}
 
-	override public function reset()
+	private function getVehicleCollision()
+    {
+        var collisionObjects = physics.getContacts(this.body);
+		
+        if (collisionObjects != null) {
+            for (cObject in collisionObjects) {
+                if (cObject.object.getTrait(Vehicle) != null) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+	public function reset()
 	{
-		this.dead = false;
+		dead = false;
 	}
 
 	private function jumpForward() 
 	{
-		this.object.transform.translate(0, stepY, 0);
+		object.transform.translate(0, stepY, 0);
 	}
 
 	private function jumpBackward() 
@@ -86,6 +85,6 @@ class Player extends GameTrait
 
 	public function isDead()
 	{
-		return this.dead;
+		return dead;
 	}
 }
