@@ -1162,6 +1162,11 @@ arm_VehicleSpawner.prototype = $extend(iron_Trait.prototype,{
 var arm_scenes_EndlessRunner = function() {
 	this.streetBounds = new haxe_ds_StringMap();
 	this.scoreMultiplier = 1.0;
+	this.chainMultiplierUpdatable = true;
+	this.chainMultiplier = 0.0;
+	this.isVehicleChaining = false;
+	this.vehicleChainCount = 0;
+	this.vehicleChainTimer = 0.0;
 	this.activePowerups = [];
 	this.minSpawnTimeDelay = 5.0;
 	this.maxSpawnTimeDelay = 10.0;
@@ -1183,6 +1188,11 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 	,maxSpawnTimeDelay: null
 	,minSpawnTimeDelay: null
 	,activePowerups: null
+	,vehicleChainTimer: null
+	,vehicleChainCount: null
+	,isVehicleChaining: null
+	,chainMultiplier: null
+	,chainMultiplierUpdatable: null
 	,scoreMultiplier: null
 	,streetBounds: null
 	,onInit: function() {
@@ -1196,6 +1206,10 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 		scoreElement.x = 50;
 		scoreElement.y = 50;
 		scoreElement.visible = true;
+		var chainTextParent = this.gameOverCanvas.getElement("ChainTextParent");
+		chainTextParent.x = kha_System.windowWidth() / 2 + 100;
+		chainTextParent.y = kha_System.windowHeight() / 2;
+		chainTextParent.visible = false;
 		var powerUpParent = this.gameOverCanvas.getElement("PowerupListParent");
 		powerUpParent.x = kha_System.windowWidth() - powerUpParent.width;
 		powerUpParent.y = 0;
@@ -1290,9 +1304,39 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 				}
 				var vehicleTrait = mechContact.object.getTrait(arm_Vehicle);
 				if(vehicleTrait != null && vehicleTrait.getIsCollided() == false) {
+					this.vehicleChainCount += 1;
+					if(this.isVehicleChaining) {
+						this.vehicleChainTimer += 1;
+						this.chainMultiplierUpdatable = true;
+					}
 					this.handleVehicleCollision(vehicleTrait);
 				}
 			}
+		}
+		if(this.vehicleChainCount > 5 && !this.isVehicleChaining) {
+			this.vehicleChainTimer = 5.0;
+			this.chainMultiplier = 1.5;
+			this.isVehicleChaining = true;
+			this.gameOverCanvas.getElement("ChainTextParent").visible = true;
+		}
+		if(this.vehicleChainTimer > 0.0) {
+			this.vehicleChainTimer -= 0.0166666666666666664 * iron_system_Time.scale;
+			if(this.vehicleChainCount == 15 && this.chainMultiplierUpdatable) {
+				this.chainMultiplier += 0.5;
+				this.chainMultiplierUpdatable = false;
+			} else if(this.vehicleChainCount % 20 == 0 && this.chainMultiplierUpdatable) {
+				this.chainMultiplier += 1;
+				this.chainMultiplierUpdatable = false;
+			}
+			var tmp3 = Std.string(this.chainMultiplier);
+			this.gameOverCanvas.getElement("ChainMultText").text = "x" + tmp3;
+		} else {
+			if(this.isVehicleChaining) {
+				this.vehicleChainCount = 0;
+			}
+			this.isVehicleChaining = false;
+			this.chainMultiplier = 0.0;
+			this.gameOverCanvas.getElement("ChainTextParent").visible = false;
 		}
 	}
 	,applyActivePowerups: function() {
@@ -1427,7 +1471,9 @@ arm_scenes_EndlessRunner.prototype = $extend(iron_Trait.prototype,{
 		vehicleTrait.setIsCollided(true);
 		var scoreTrait = vehicleTrait.object.getTrait(arm_Score);
 		if(scoreTrait != null) {
-			this.playerScore += scoreTrait.getScore() * this.scoreMultiplier;
+			var multiplier = this;
+			var multiplier1 = multiplier.scoreMultiplier += this.chainMultiplier;
+			this.playerScore += scoreTrait.getScore() * multiplier1;
 			var scoreTextElement = this.gameOverCanvas.getElement("Score");
 			scoreTextElement.text = Std.string(this.playerScore);
 		}

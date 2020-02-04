@@ -34,6 +34,7 @@ class EndlessRunner extends iron.Trait {
     private var vehicleChainCount: Int = 0;
     private var isVehicleChaining: Bool = false;
     private var chainMultiplier: Float = 0.0;
+    private var chainMultiplierUpdatable: Bool = true;
 
     private var scoreMultiplier: Float = 1.0;
 
@@ -63,6 +64,12 @@ class EndlessRunner extends iron.Trait {
         scoreElement.x = 50;
         scoreElement.y = 50;
         scoreElement.visible = true;
+
+        // Setup chain text
+        var chainTextParent = gameOverCanvas.getElement("ChainTextParent");
+        chainTextParent.x = System.windowWidth()/2 + 100;
+        chainTextParent.y = System.windowHeight()/2;
+        chainTextParent.visible = false;
 
         // Hide powerup displays
         var powerUpParent = gameOverCanvas.getElement("PowerupListParent");
@@ -152,7 +159,8 @@ class EndlessRunner extends iron.Trait {
                     vehicleChainCount += 1;
                     
                     if (isVehicleChaining) {
-                        vehicleChainTimer += 1.5;
+                        vehicleChainTimer += 1;
+                        chainMultiplierUpdatable = true;
                     }
                     
                     handleVehicleCollision(vehicleTrait);
@@ -164,15 +172,32 @@ class EndlessRunner extends iron.Trait {
             vehicleChainTimer = 5.0;
             chainMultiplier = 1.5;
             isVehicleChaining = true;
+            gameOverCanvas.getElement("ChainTextParent").visible = true;
         }
 
         // Todo determine max chain can be, then make multipliers around those ranges
 
         if (vehicleChainTimer > 0.0) {
             vehicleChainTimer -= Time.delta;
+            
+            if (vehicleChainCount == 15 && chainMultiplierUpdatable) {
+                chainMultiplier += 0.5;
+                chainMultiplierUpdatable = false;
+            } else if (vehicleChainCount % 20 == 0 && chainMultiplierUpdatable) {
+                chainMultiplier += 1;
+                chainMultiplierUpdatable = false;
+            }
+
+            gameOverCanvas.getElement("ChainMultText").text = "x" + Std.string(chainMultiplier);
         } else {
+            // if we were chaining and now we arent then reset counter
+            if (isVehicleChaining) {
+                vehicleChainCount = 0;
+            }
+
             isVehicleChaining = false;
             chainMultiplier = 0.0;
+            gameOverCanvas.getElement("ChainTextParent").visible = false;
         }
     }
 
