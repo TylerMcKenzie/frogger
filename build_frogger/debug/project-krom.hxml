@@ -27,6 +27,7 @@
 -D rp_antialiasing=SMAA
 -D rp_supersampling=1
 -D rp_ssgi=SSAO
+-D rp_translucency
 -D rp_dynres
 -D arm_audio
 -D arm_physics
@@ -59,39 +60,39 @@
 -D kha_version=1810
 -D kha_project_name=frogger
 -js krom/krom.js.temp
-arm.Launchable
---macro keep('arm.Launchable')
-arm.Street
---macro keep('arm.Street')
-arm.VehicleSpawner
---macro keep('arm.VehicleSpawner')
-armory.trait.physics.bullet.RigidBody
---macro keep('armory.trait.physics.bullet.RigidBody')
-arm.scenes.EndlessRunner
---macro keep('arm.scenes.EndlessRunner')
-arm.Score
---macro keep('arm.Score')
-arm.Player
---macro keep('arm.Player')
-armory.trait.physics.bullet.PhysicsWorld
---macro keep('armory.trait.physics.bullet.PhysicsWorld')
-armory.trait.internal.DebugConsole
---macro keep('armory.trait.internal.DebugConsole')
 arm.Powerup
 --macro keep('arm.Powerup')
-arm.Vehicle
---macro keep('arm.Vehicle')
-armory.trait.internal.CanvasScript
---macro keep('armory.trait.internal.CanvasScript')
-armory.trait.internal.Bridge
---macro keep('armory.trait.internal.Bridge')
 arm.scenes.Frogger
 --macro keep('arm.scenes.Frogger')
+arm.Vehicle
+--macro keep('arm.Vehicle')
+arm.VehicleSpawner
+--macro keep('arm.VehicleSpawner')
+arm.Street
+--macro keep('arm.Street')
 arm.MechController
 --macro keep('arm.MechController')
-armory.trait.FollowCamera
---macro keep('armory.trait.FollowCamera')
+arm.Player
+--macro keep('arm.Player')
 arm.scenes.Title
 --macro keep('arm.scenes.Title')
+arm.Launchable
+--macro keep('arm.Launchable')
+armory.trait.physics.bullet.PhysicsWorld
+--macro keep('armory.trait.physics.bullet.PhysicsWorld')
+armory.trait.physics.bullet.RigidBody
+--macro keep('armory.trait.physics.bullet.RigidBody')
+arm.Score
+--macro keep('arm.Score')
+armory.trait.internal.Bridge
+--macro keep('armory.trait.internal.Bridge')
+armory.trait.internal.CanvasScript
+--macro keep('armory.trait.internal.CanvasScript')
+armory.trait.internal.DebugConsole
+--macro keep('armory.trait.internal.DebugConsole')
+armory.trait.FollowCamera
+--macro keep('armory.trait.FollowCamera')
+arm.scenes.EndlessRunner
+--macro keep('arm.scenes.EndlessRunner')
 --times
 -main Main

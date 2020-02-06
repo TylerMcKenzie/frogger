@@ -1,6 +1,27 @@
 {
 	"files": [
 		{
+			"name": "Black_mesh_frag",
+			"files": [
+				"Black_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
+			"types": []
+		},
+		{
 			"name": "DoubleScore_mesh_frag",
 			"files": [
 				"DoubleScore_mesh.frag.glsl"
@@ -529,6 +550,192 @@
 			],
 			"uniforms": [],
 			"types": []
+		},
+		{
+			"name": "Transparant_mesh_frag",
+			"files": [
+				"Transparant_mesh.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [],
+			"types": []
+		},
+		{
+			"name": "Transparant_shadowmap_frag",
+			"files": [
+				"Transparant_shadowmap.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [],
+			"outputs": [],
+			"uniforms": [],
+			"types": []
+		},
+		{
+			"name": "Transparant_translucent_frag",
+			"files": [
+				"Transparant_translucent.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				},
+				{
+					"name": "eyeDir",
+					"type": "vec3"
+				},
+				{
+					"name": "wposition",
+					"type": "vec3"
+				},
+				{
+					"name": "gl_FragCoord",
+					"type": "vec4"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4[]"
+				}
+			],
+			"uniforms": [
+				{
+					"name": "casData",
+					"type": "vec4[]"
+				},
+				{
+					"name": "shirr",
+					"type": "vec4[]"
+				},
+				{
+					"name": "backgroundCol",
+					"type": "vec3"
+				},
+				{
+					"name": "envmapStrength",
+					"type": "float"
+				},
+				{
+					"name": "sunDir",
+					"type": "vec3"
+				},
+				{
+					"name": "receiveShadow",
+					"type": "bool"
+				},
+				{
+					"name": "shadowMap",
+					"type": "sampler2DShadow"
+				},
+				{
+					"name": "eye",
+					"type": "vec3"
+				},
+				{
+					"name": "shadowsBias",
+					"type": "float"
+				},
+				{
+					"name": "sunCol",
+					"type": "vec3"
+				}
+			],
+			"types": []
+		},
+		{
+			"name": "Transparant_translucent_vert",
+			"files": [
+				"Transparant_translucent.vert.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "pos",
+					"type": "vec4"
+				},
+				{
+					"name": "nor",
+					"type": "vec2"
+				},
+				{
+					"name": "gl_VertexID",
+					"type": "int"
+				},
+				{
+					"name": "gl_InstanceID",
+					"type": "int"
+				}
+			],
+			"outputs": [
+				{
+					"name": "wposition",
+					"type": "vec3"
+				},
+				{
+					"name": "wnormal",
+					"type": "vec3"
+				},
+				{
+					"name": "eyeDir",
+					"type": "vec3"
+				}
+			],
+			"uniforms": [
+				{
+					"name": "W",
+					"type": "mat4"
+				},
+				{
+					"name": "N",
+					"type": "mat3"
+				},
+				{
+					"name": "WVP",
+					"type": "mat4"
+				},
+				{
+					"name": "eye",
+					"type": "vec3"
+				}
+			],
+			"types": [
+				{
+					"name": "gl_PerVertex",
+					"members": [
+						{
+							"type": "vec4",
+							"name": "gl_Position"
+						},
+						{
+							"type": "float",
+							"name": "gl_PointSize"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_ClipDistance"
+						},
+						{
+							"type": "float[]",
+							"name": "gl_CullDistance"
+						}
+					]
+				}
+			]
 		},
 		{
 			"name": "Truck_L_brown_mesh_frag",
@@ -2148,6 +2355,40 @@
 				{
 					"name": "invVP",
 					"type": "mat4"
+				}
+			],
+			"types": []
+		},
+		{
+			"name": "translucent_resolve_frag",
+			"files": [
+				"translucent_resolve.frag.glsl"
+			],
+			"type": "shader",
+			"inputs": [
+				{
+					"name": "texCoord",
+					"type": "vec2"
+				}
+			],
+			"outputs": [
+				{
+					"name": "fragColor",
+					"type": "vec4"
+				}
+			],
+			"uniforms": [
+				{
+					"name": "gbuffer0",
+					"type": "sampler2D"
+				},
+				{
+					"name": "texSize",
+					"type": "vec2"
+				},
+				{
+					"name": "gbuffer1",
+					"type": "sampler2D"
 				}
 			],
 			"types": []
