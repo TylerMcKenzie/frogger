@@ -87,9 +87,8 @@ class EndlessRunner extends iron.Trait {
         var startLocation = start.transform.world.getLoc();
         GameController.streetSystem.createStreetPath(startLocation, 25);
 
-        var lastStreet = GameController.streetSystem.getFinish();
-        streetBounds["left"] = lastStreet.transform.worldx() - lastStreet.transform.dim.x/2;
-        streetBounds["right"] = lastStreet.transform.worldx() + lastStreet.transform.dim.x/2;
+        streetBounds["left"] = -37.5;
+        streetBounds["right"] = 37.5;
     }
 
     private function onUpdate()
@@ -110,7 +109,8 @@ class EndlessRunner extends iron.Trait {
 
         // Keep player in street bounds
         var mechBody = mech.getChild("Mech");
-        var mechBodyWidthOffset = mechBody.transform.dim.x/2;
+        // var mechBodyWidthOffset = mechBody.transform.dim.x/2;
+        var mechBodyWidthOffset = 2.5;
         if (mechBody.transform.worldx() + mechBodyWidthOffset >= streetBounds["right"]) {
             mech.transform.loc.x = streetBounds["right"] - mechBodyWidthOffset;
         } else if (mechBody.transform.worldx() - mechBodyWidthOffset <= streetBounds["left"]) {
@@ -121,7 +121,7 @@ class EndlessRunner extends iron.Trait {
         if (GameController.powerupSystem.canSpawn()) {
             var pUp = GameController.powerupSystem.getRandomPowerupObject();
             var targetStreet = GameController.streetSystem.getFinish();
-            pUp.transform.loc.x = targetStreet.transform.worldx() + (targetStreet.transform.dim.x * (Math.random() * (1 + 1) - 1)) / 2;
+            pUp.transform.loc.x = targetStreet.transform.worldx() + (streetBounds["right"] * (Math.random() * (1 + 1) - 1));
             pUp.transform.loc.y = targetStreet.transform.worldy();
             pUp.transform.loc.z = targetStreet.transform.worldz() + 3.5; // TODO: should this offset be based on the powerup size? or am i a sparty pants for making them a ll the same size?
             pUp.transform.buildMatrix();
@@ -298,7 +298,7 @@ class EndlessRunner extends iron.Trait {
         // Get score trait and points
         var scoreTrait = vehicleTrait.object.getTrait(Score);
         if (scoreTrait != null) {
-            var multiplier = scoreMultiplier += chainMultiplier;
+            var multiplier = scoreMultiplier + chainMultiplier;
             playerScore += scoreTrait.getScore() * multiplier;
 
             var scoreTextElement = gameOverCanvas.getElement("Score");
