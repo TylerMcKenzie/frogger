@@ -4,22 +4,24 @@ import iron.object.Object;
 import iron.Scene;
 
 class Pool {
-	private var size:Int;
+	private var poolSize:Int;
 	private var isDynamic:Bool;
+    private var objectName: String;
 
 	private var activePool:Array<Object>;
 	private var inactivePool:Array<Object>;
 
-	public function new(poolSize:Int, objectName:String, ?dynamicFlag:Bool = false) {
-		size = poolSize;
+	public function new(pSize:Int, oName:String, ?dynamicFlag:Bool = false) {
+		poolSize = pSize;
 		isDynamic = dynamicFlag;
+        objectName = oName;
 
 		createInactivePool();
 	}
 
 	private function createInactivePool(): Void {
-        for (i in 0...size) {
-            createObject();
+        for (i in 0...poolSize) {
+            inactivePool.push(createObject());
         }
     }
 
@@ -34,8 +36,6 @@ class Pool {
 			}
         );
         
-        inactivePool.push(object);
-            
         return object;
     }
 
@@ -44,10 +44,13 @@ class Pool {
 
         if (inactivePool.length > 0) {
 			object = inactivePool.pop();
-			activePool.push(object);
-		} else if (dynamicFlag) {
+		} else if (isDynamic) {
             object = createObject();
         }
+
+        // Todo some sort of a reset or re-init here?
+
+        activePool.push(object);
 
         return object;
     }
@@ -56,7 +59,6 @@ class Pool {
         var objectIndex = activePool.indexOf(o);
 
         var object = activePool.splice(objectIndex, 1);
-        object
         
     }
 }
