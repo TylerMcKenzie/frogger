@@ -8,8 +8,9 @@ class Pool {
 	private var isDynamic:Bool;
     private var objectName: String;
 
-	private var activePool:Array<Object>;
-	private var inactivePool:Array<Object>;
+	private var activePool:Array<Object> = [];
+    private var inactivePool:Array<Object> = [];
+    private var traitList:Array<Class<T>> [];
 
 	public function new(pSize:Int, oName:String, ?dynamicFlag:Bool = false) {
 		poolSize = pSize;
@@ -35,6 +36,12 @@ class Pool {
                 object = o;
 			}
         );
+
+        if (traitList == null) {
+            for (t in object.traits) {
+                traitList.push(Type.getClass(t));
+            }
+        }
         
         return object;
     }
@@ -48,9 +55,11 @@ class Pool {
             object = createObject();
         }
 
-        // Todo some sort of a reset or re-init here?
-
         activePool.push(object);
+
+        for (t in traitList) {
+            object.addTrait(Type.createInstance(t, []));
+        }
 
         return object;
     }
@@ -58,7 +67,14 @@ class Pool {
     public function returnObject(o:Object): Void {
         var objectIndex = activePool.indexOf(o);
 
+        if (objectIndex == -1) return;
+
         var object = activePool.splice(objectIndex, 1);
         
+        for (trait in object.traits) {
+            object.removeTrait(t);
+        }
+
+        inactivePool.push(object);
     }
 }
