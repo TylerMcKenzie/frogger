@@ -67,6 +67,7 @@ class Vehicle extends iron.Trait
 			if (this.aliveTime <= 0) {
 				this.alive = false;
 				this.object.remove();
+				// GameController.vehicleSystem.returnVehicle(this.object);
 			}
 		});
 

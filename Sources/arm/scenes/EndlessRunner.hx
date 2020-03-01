@@ -54,6 +54,8 @@ class EndlessRunner extends iron.Trait {
         mech = Scene.active.getChild("MechController");
         mechPrevPos = mech.transform.world.getLoc();
 
+        GameController.vehicleSystem.initPools();
+
         // TODO: setup pause mechanics
         // Canvas stuff
         gameOverCanvas = Scene.active.getTrait(CanvasScript);

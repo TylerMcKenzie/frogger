@@ -6,6 +6,8 @@ import iron.Scene;
 
 class VehicleSystem
 {
+	private var objectPools:Map<VehicleType, Pool> = new Map<VehicleType, Pool>();
+
 	public static var VEHICLES: Array<VehicleType> = [
 		TRUCK_L_BROWN,
 		TRUCK_L_GREEN,
@@ -22,6 +24,13 @@ class VehicleSystem
 
 	public function new() {}
 
+	public function initPools()
+	{
+		for (vehicleType in VEHICLES) {
+			// objectPools.set(vehicleType, new Pool(10, cast(vehicleType, String)));
+		}
+	}
+
 	public function getVehicle(type) : Object
 	{
 		var vehicle;
@@ -33,6 +42,8 @@ class VehicleSystem
 				vehicle = v;
 			}
 		);
+
+		// vehicle = objectPools.get(cast(type, VehicleType)).getObject();
 
 		return vehicle;
 	}
@@ -57,5 +68,9 @@ class VehicleSystem
 	public function unregister(vehicle: Vehicle)
 	{
 		this.vehicles.remove(vehicle);
+	}
+
+	public function returnVehicle(v: Object) {
+		objectPools.get(cast(v.name, VehicleType)).returnObject(v);
 	}
 }

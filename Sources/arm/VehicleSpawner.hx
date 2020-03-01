@@ -79,24 +79,26 @@ class VehicleSpawner extends iron.Trait
 
 	private function randomFreq()
 	{
-		return Math.random()*(4 - 0.75) + 0.75;
+		return Math.random()*(4 - 1.25) + 1.25;
 	}
 
 	private function spawnVehicle()
 	{
 		var vehicleObject = GameController.vehicleSystem.getRandomVehicle();
-		var vehicleTrait = vehicleObject.getTrait(Vehicle);
-		var spawnLoc = object.transform.world.getLoc();
-		vehicleObject.transform.loc.set(spawnLoc.x, spawnLoc.y, vehicleObject.transform.loc.z);
-		vehicleObject.transform.buildMatrix();
-		vehicleTrait.setDirection(
-			new Vec4(
-				this.spawnDirectionX, 
-				this.spawnDirectionY, 
-				this.spawnDirectionZ
-			)
-		);
-		vehicleTrait.setLifeTime(3.25);
-		vehicleTrait.setActive(true);
+		if (vehicleObject != null) {
+			var vehicleTrait = vehicleObject.getTrait(Vehicle);
+			var spawnLoc = object.transform.world.getLoc();
+			vehicleObject.transform.loc.set(spawnLoc.x, spawnLoc.y, vehicleObject.transform.loc.z);
+			vehicleObject.transform.buildMatrix();
+			vehicleTrait.setDirection(
+				new Vec4(
+					this.spawnDirectionX, 
+					this.spawnDirectionY, 
+					this.spawnDirectionZ
+				)
+			);
+			vehicleTrait.setLifeTime(3.25);
+			vehicleTrait.setActive(true);
+		}
 	}
 }
